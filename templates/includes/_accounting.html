@@ -1,0 +1,72 @@
+<fieldset class="fieldset">
+	<legend></legend>
+	<table id="inventory">
+		<thead>
+			<tr style="background: yellow;">
+				<th style="width: 50px;">
+					<span>ردیف</span>
+				</th>
+				<th class="vw8">
+					<span>شناسه سفارش</span>
+				</th>
+				<th class="vw12">
+					<span>کد رهگیری</span>
+				</th>
+				<th class="vw8 font12">
+					<span>مبلغ تمام شده کالا</span>
+				</th>
+				<th class="font12">
+					<span>هزینه ارسال</span>
+				</th>
+				<th class="font12">
+					<span>ارزش افزوده</span>
+				</th>
+				<th class="font12">
+					<span>هزینه پست</span>
+				</th>
+				<th class="font12">
+					<span>بستانکار | بدهکار</span>
+				</th>
+				<th class="vw8">
+					<span>تاریخ ثبت رکورد</span>
+				</th>
+				<th style="width: 15px;"></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for rec in accounting %}
+				<tr class="rows">
+					<td style="width: 50px;">
+						<span>{{loop.index}}</span>
+					</td>
+					<td class="vw8">
+						<span>{{rec[0]}}</span>
+					</td>
+					<td class="vw12">
+						<!--<span>{{rec[1]}}</span>-->
+						<span>21868000411926025734</span>
+					</td>
+					<td class="vw8">
+						<!--<span>{{rec[2]}}</span>-->
+						<span>{{rec[1]}}</span>
+					</td>
+					<td>
+						<span class="red">6050</span>
+					</td>
+					<td>
+						<span  class="red">544</span>
+					</td>
+					<td>
+						<span class="blue">{{rec[2]}}</span>
+					</td>
+					<td>
+						<span class="blue">3405</span>
+					</td>
+					<td class="vw8">
+						<span>{{rec[3]}}</span>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</fieldset>

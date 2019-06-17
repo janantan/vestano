@@ -1,0 +1,70 @@
+<fieldset class="fieldset">
+	<legend>لیست موجودی انبار:</legend>
+	<table id="inventory">
+		<thead>
+			<tr style="background: yellow;">
+				<th style="width: 50px;">
+					<span>ردیف</span>
+				</th>
+				<th class="vw15">
+					<span>عنوان کالا</span>
+				</th>
+				<th class="vw8">
+					<span>شناسه کالا</span>
+				</th>
+				<th>
+					<span>موجودی</span>
+				</th>
+				<th class="font12">
+					<span>ارسال شده</span>
+				</th>
+				<th class="font12">
+					<span>آماده ارسال</span>
+				</th>
+				<th class="font12">
+					<span>در دست بررسی</span>
+				</th>
+				<th class="font12">
+					<span>برگشتی</span>
+				</th>
+				<th class="vw8">
+					<span>تاریخ ثبت رکورد</span>
+				</th>
+				<th style="width: 15px;"></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for rec in inventory %}
+				<tr class="rows">
+					<td style="width: 50px;">
+						<span>{{loop.index}}</span>
+					</td>
+					<td class="vw15">
+						<span>{{rec[0]}}</span>
+					</td>
+					<td class="vw8">
+						<span>{{rec[1]}}</span>
+					</td>
+					<td>
+						<span>{{rec[2]}}</span>
+					</td>
+					<td>
+						<span class="blue">5</span>
+					</td>
+					<td>
+						<span>3</span>
+					</td>
+					<td>
+						<span>4</span>
+					</td>
+					<td>
+						<span class="red">2</span>
+					</td>
+					<td class="vw8">
+						<span>{{rec[3]}}</span>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</fieldset>

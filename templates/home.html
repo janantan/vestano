@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% include 'includes/_logo.html' %}
+
+<div class="container">
+  <main class="card">
+    {% block body %}
+      <aside id="first-statement" class="clearfix">
+        <figure>
+          <img src="/static/img/first page.jpg" alt="vestano company" height="600" />
+        </figure>
+      </aside>
+    {% endblock %}
+  </main>
+</div>

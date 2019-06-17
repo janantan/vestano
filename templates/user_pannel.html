@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+
+{% include 'includes/_logo.html' %}
+
+{% block body %}
+  <div class="container">
+    {% include 'includes/_tab.html' %}
+    <main class="card" style="margin-top: 0;">
+      <div id="login-form">        
+        <section>
+          {% if item == "ordering" %}
+            {% include 'includes/_ordering.html' %}
+          {% elif item == "inventory" %}
+            {% include 'includes/_inventory.html' %}
+          {% elif item == "accounting" %}
+            {% include 'includes/_accounting.html' %}
+          {% endif %}
+        </section>    
+      </div>
+    </main>
+  </div>
+{% endblock %}

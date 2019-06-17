@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+
+{% include 'includes/_logo.html' %}
+
+{% block body %}
+  <div class="container">
+    <main class="card">
+      <div id="login-form">
+        <section>
+          <form method="POST" action="">
+            <fieldset>
+              <legend>لطفا وارد شوید</legend>
+              <div>         
+                <label for="username">نام کاربری</label>
+                <input id="username" type="text" name="username" placeholder="e.g. John" required />
+              </div>
+
+              <div>
+                <label for="password">گذرواژه</label>
+                <input id="password" type="password" name="password" required />
+              </div>
+            </fieldset>
+
+            <div>
+              <input type="submit" value="ورود" /> 
+            </div>      
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+{% endblock %}

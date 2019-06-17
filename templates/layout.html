@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fa-IR">
+    <head>
+        <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
+        <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+        <link rel='icon' href='favicon.ico'>
+        <title>شرکت وستانو</title>
+        <!--<meta charset="utf-8" />-->
+        <meta content="text/html;charset=UTF-8" http-equiv="Content-Type" />
+        <meta name="description" content="سامانه پستی وستانو"  />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
+    </head>
+    <body>
+        <header id="main-header" class="clearfix">
+            {% include 'includes/_navbar.html' %}            
+        </header>
+
+        {% include 'includes/_messages.html' %}             
+        {% block body %}{% endblock %}
+
+        <!--{% include 'includes/_footer.html' %}-->
+
+        
+    </body>
+</html>

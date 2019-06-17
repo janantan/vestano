@@ -1,0 +1,83 @@
+<div class="container">
+	<section id="login-form" class="card">
+		<form method="post" action="http://127.0.0.1:5000">
+			<fieldset>
+				<legend>Basic info</legend>
+				<div>					
+					<label for="username">Username</label>
+					<input id="username" type="text" name="username" placeholder="e.g. John" required />
+				</div>
+
+				<div>
+					<label for="password">Password</label>
+					<input id="password" type="password" name="password" required />
+				</div>
+
+				<div>
+					<label for="email">Email</label>
+					<input id="email" type="email" name="email" />
+				</div>
+
+				<div>
+					<label>Gender</label>
+					<label>
+						<input type="radio" name="gender" value="m" /> Male
+					</label>
+					
+					<label>
+						<input type="radio" name="gender" value="f" /> Femail
+					</label>				
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<legend>More info</legend>
+				<div>
+					<label>Bio</label>
+					<textarea name="bio" id="bio" cols="30" rows="5"></textarea>
+				</div>
+
+				<div>
+					<label>Skils</label>
+					<label>
+						<input type="checkbox" name="skils[]" value="Programing" /> Programing
+						<input type="checkbox" name="skils[]" value="Chess" /> Chess
+						<input type="checkbox" name="skils[]" value="Dancing" /> Dancing
+					</label>
+				</div>
+
+				<div>
+					<label>City</label>
+					<select name="city" id="city">
+						<option value="">(Select City)</option>
+						<option value="Tehran">Tehran</option>
+						<option value="Zanjan">Zanjan</option>
+						<option value="Abyek">Abyek</option>
+						<option value="Rasht">Rasht</option>
+					</select>
+				</div>
+				
+				<div>
+					<label>Photo</label>
+					<input type="file" name="photo" />
+				</div>
+
+				<div>
+					<label>Birthdate</label>
+					<input type="date" name="birthdate" />
+				</div>
+
+				<div>
+					<label>Search</label>
+					<input type="search" name="search" />
+				</div>
+			</fieldset>
+
+				<div>
+					<input type="submit" value="Register" />
+					<input type="reset" value="Reset Form" />				
+				</div>			
+		</form>
+	</section>
+	
+</div>
