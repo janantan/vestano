@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from suds.client import Client
 from pymongo import MongoClient
 import utils
@@ -49,4 +50,5 @@ order = {
     'percentDiscount' : 0
     }
 
-print(SoapClient(order))
+#print(SoapClient(order))
+#utils.api_test()

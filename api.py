@@ -1,9 +1,13 @@
+# encoding: utf-8
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, jsonify
 from pymongo import MongoClient
 from passlib.hash import sha256_crypt
+from flask_spyne import Spyne
+from spyne.protocol.soap import Soap11
+from spyne.model.primitive import Unicode, Integer, String
+from spyne.model.complex import Array, Iterable, ComplexModel
 import datetime
 import jdatetime
-import xlrd
 import json
 import utils
 
@@ -13,9 +17,51 @@ cursor = utils.config_mongodb()
 app = Flask(__name__)
 
 app.secret_key = 'secret@vestano@password_hash@840'
+
+spyne = Spyne(app)
+
+#Create namespace
+class Products(ComplexModel):
+    __namespace__ = "products"
+    productName = String
+    count = Integer
+    price = Integer
+    weight = Integer
+    percentDiscount = Integer
+    description = String
+
+class User(ComplexModel):
+    __namespace__ = "user"
+    username = String
+    password = String
+
+class SomeSoapService(spyne.Service):
+    __service_url_path__ = '/soap/VestanoWebService'
+    __in_protocol__ = Soap11(validator='lxml')
+    __out_protocol__ = Soap11()
+
+    @spyne.srpc(String, String, String, String, String, Integer, Integer, String, String,
+        Array(Products), Integer, Integer, _returns=String)
+    def NewOrder(username, password, registerFirstName, registerLastName, registerCellNumber,
+        stateCode, cityCode, registerAddress, registerPostalCode, products, serviceType, payType):
+        pass
+    #def NewOrder(username,password,productsId,cityCode,serviceType,payType,
+        #registerFirstName,registerLastName,registerAddress,registerPhoneNumber,registerMobile):
+
+    #@spyne.srpc(Unicode, Integer, _returns=Iterable(Unicode))
+    @spyne.srpc(Array(User), _returns=String)
+    def datetime(v):
+        print('varification: ', v)
+        for i in range (len(v)):
+            if (v[i].username == 'jan') and (v[i].password == '123'):
+                print('The test passed!')
+                print(jdatetime.datetime.now())
+            else:
+                print('wrong username or password!')
    
 @app.route('/')
 def home():
+    utils.api_test()
     return render_template('home.html')
 
 @app.route('/user-pannel/<item>', methods=['GET', 'POST'])
@@ -82,11 +128,11 @@ def ordering(item):
 
                 print(utils.SoapClient(order))
 
-                flash('ثبت شد!', 'success')
+                flash(u'ثبت شد!', 'success')
 
                 return redirect(url_for('ordering', item='ordering'))
     else:
-        flash('لطفا ابتدا وارد شوید', 'error')
+        flash(u'لطفا ابتدا وارد شوید', 'error')
         return redirect(request.referrer)
     return render_template('user_pannel.html',
         item=item,
@@ -134,13 +180,13 @@ def register():
         result = cursor.users.find_one({"username": users['username']})
 
         if result:
-            flash('نام کاربری تکراری است. لطفا نام کاربری دیگری انتخاب کنید', 'danger')
+            flash(u'نام کاربری تکراری است. لطفا نام کاربری دیگری انتخاب کنید', 'danger')
         else:
             if new_password == confirm:            
                 cursor.users.insert_one(users)
-                flash('ثبت نام شما با موفقیت انجام شد. لطفا وارد شوید', 'success')
+                flash(u'ثبت نام شما با موفقیت انجام شد. لطفا وارد شوید', 'success')
             else:
-                flash('کلمه عبور مطابقت ندارد', 'error')
+                flash(u'کلمه عبور مطابقت ندارد', 'error')
 
     return render_template('register.html')
 
@@ -154,14 +200,14 @@ def login():
 
         if result:
             if sha256_crypt.verify(password, result['password']):
-                flash(result['name'] + ' عزیز خوش آمدید', 'success-login')
+                flash(result['name'] + u' عزیز خوش آمدید', 'success-login')
                 session['username'] = username
                 session['message'] = result['name']
                 return redirect(url_for('ordering', item='ordering'))
             else:
-                flash('کلمه عبور مطابقت ندارد', 'danger')
+                flash(u'کلمه عبور مطابقت ندارد', 'danger')
         else:
-            flash('نام کاربری ثبت نشده است. لطفا  ابتدا ثبت نام کنید', 'error')
+            flash(u'نام کاربری ثبت نشده است. لطفا  ابتدا ثبت نام کنید', 'error')
 
     return render_template('login.html')
 
@@ -182,7 +228,7 @@ def ajax():
             result = utils.Products(cursor, data)
 
     else:
-        flash('لطفا ابتدا وارد شوید', 'error')
+        flash(u'لطفا ابتدا وارد شوید', 'error')
         return redirect(request.referrer)
         
     return jsonify(result)

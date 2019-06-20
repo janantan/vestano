@@ -1,0 +1,4 @@
+** install the last version of "spyne" from "https://pypi.org/project/spyne/#history"
+	
+	"spyne" also needs "pip install lxml==4.3.4" and "pip install Flask-Ext"
+
