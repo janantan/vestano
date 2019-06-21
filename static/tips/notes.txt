@@ -1,0 +1,1 @@
+- To know methods, namespaces and types of a wsdl webservice, its enough to build a suds client and print it.

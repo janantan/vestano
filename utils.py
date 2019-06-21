@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, jsonify
 import datetime
 import string
@@ -51,6 +52,15 @@ def exel(src):
     worksheet = workbook.sheet_by_index(0)
     return worksheet
 
+def temp_orders(cursor):
+    result = cursor.temp_orders.find()
+    temp = []
+    for r in result:
+        state_result = cursor.states.find_one({'Code': r['stateCode']})
+        temp.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+        state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
+    return temp
+
 def inventory(cursor):
     result = cursor.vestano_inventory.find()
     inventory = []
@@ -65,6 +75,23 @@ def accounting(cursor):
         #record.append((r['order_id'], r['parcel_code'], int(r['total_cost']), int(r['vestano_post_cost']), int(r['delivery_cost']), int(r['vat_tax']), r['record_datetime']))
         record.append((r['order_id'], int(r['total_cost']), int(r['vestano_post_cost']), r['record_datetime']))
     return record
+
+def typeOfServices(serviceType, payType):
+    if serviceType==1:
+        sType = u'پست پیشتاز'
+    elif serviceType==2:
+        stype = u'پست سفارشی'
+    elif serviceType==3:
+        sType = u'مطبئع'
+
+    if payType==88:
+        pType = u'ارسال رایگان'
+    elif payType==1:
+        pType = u'پرداخت در محل'
+    elif payType==2:
+        pType = u'پرداخت آنلاین'
+
+    return (sType, pType)
 
 def states(cursor):
     result = cursor.states.find()
@@ -110,6 +137,24 @@ def GetStates():
         states_list.append(client.dict(item))
     return states_list
 
+def test_temp_order(temp_order):
+    #print(type(temp_order['registerFirstName']))
+    client = Client(test_uri, cache=None)
+    #print(client)
+    products = client.factory.create('ns0:ProductsArray')
+    order = temp_order
+    order['username'] = 'babalou'
+    order['password'] = '123'
+    for i in range(len(temp_order['products'])):
+        products.Products.append(temp_order['products'][i])
+    order['products'] = products
+    print('**************')
+    print(order)
+    print('**************')
+    #print(json.dumps(order))
+    print('**************')
+    client.service.NewOrder(**order)
+
 def api_test():
     client = Client(test_uri, cache=None)
     client2 = Client(API_URI)
@@ -132,8 +177,9 @@ def api_test():
     print(ns11)
     #ns.User_Pass.append(param)
     #print(ns)
-    ns2.User.append(param)
-    #print(ns2)
+    for i in range (3):
+        ns2.User.append(param)
+    print(ns2)
     #entry_list.stringArray.append(param_list)
     #entry_list.stringArray.append(param)
     #print(entry_list)
@@ -147,7 +193,7 @@ def api_test():
 def SoapClient(order):
     #client = Client(API_URI, doctor=ImportDoctor(imp))
     client = Client(API_URI)
-    ns0 = client.factory.create('ns0:ArrayOfTempProducts')
+    products = client.factory.create('ns0:ArrayOfTempProducts')
 
     #Get Price
     price = client.service.GetDeliveryPrice(
@@ -184,15 +230,14 @@ def SoapClient(order):
         stuff = {
         'Id' : 716786,
         'Count' : 1,
-        'Discount' : 0
+        'DisCount' : 0
         }
-        products = ns0.TempProducts.append(stuff)
+        products.TempProducts.append(stuff)
         print(products)
         #print(bills)
         d_price = {
         'DeliveryPrice':price.PostDeliveryPrice,
-        'VatTax':price.VatTax,
-        'id':str(stuff_id)
+        'VatTax':price.VatTax
         }
         print(d_price)
 
@@ -215,25 +260,6 @@ def SoapClient(order):
 
     add_parcel_result = client.service.AddParcel(**param)
 
-    #add_parcel_result = client.service.AddParcel(username, password, products, order['cityCode'],
-        #order['serviceType'], order['payType'], order['firstName'], order['lastName'],
-        #order['address'], order['phoneNumber'], order['cellNumber'], order['postalCode'])
-
-    #add_parcel_result = client.service.AddParcel(
-        #username = username,
-        #password = password,
-        #productsId = products,
-        #cityCode = order['cityCode'],
-        #serviceType = order['serviceType'],
-        #payType = order['payType'],
-        #registerFirstName = order['firstName'],
-        #registerLastName = order['lastName'],
-        #registerAddress = order['address'],
-        #registerPhoneNumber = order['phoneNumber'],
-        #registerMobile = order['cellNumber'],
-        #registerPostalCode = order['postalCode']
-        #)
-
     parcel_code = {
     'ParcelCode': add_parcel_result.ParcelCode,
     'PostDeliveryPrice': add_parcel_result.PostDeliveryPrice,
@@ -245,7 +271,6 @@ def SoapClient(order):
     ans = {
     'DeliveryPrice':price.PostDeliveryPrice,
     'VatTax':price.VatTax,
-    'id':str(stuff_id),
     'parcel_code': parcel_code
     }
 

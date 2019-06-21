@@ -6,6 +6,12 @@
     <li><a class="navbar-link about" href="/about">درباره ما</a></li>
   </ul>
 
+  <ul>
+    <li>
+      {% include 'includes/_logo.html' %}
+    </li>
+  </ul>
+
   <ul class="social">
     <li><a class="navbar-link twitter" href="#"></a></li>
     <li><a class="navbar-link instagram" href="#"></a></li>
@@ -16,8 +22,8 @@
   <div id="registration">
     <ul>
       <li><a class="navbar-link logout" href="/logout">خروج</a></li>
-      <li><a class="navbar-link login" href="/login">ورود</a></li>
-      <li><a class="navbar-link register" href="/register">عضویت</a></li>
+      <!--<li><a class="navbar-link login" href="/login">ورود</a></li>
+      <li><a class="navbar-link register" href="/register">عضویت</a></li>-->
       <li class="alert-welcome">{{session['message']}}</li>
     </ul>
   </div>

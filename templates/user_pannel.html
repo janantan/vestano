@@ -8,7 +8,9 @@
     <main class="card" style="margin-top: 0;">
       <div id="login-form">        
         <section>
-          {% if item == "ordering" %}
+          {% if item == "orderList" %}
+            {% include 'includes/_tempOrders.html' %}
+          {% elif item == "ordering" %}
             {% include 'includes/_ordering.html' %}
           {% elif item == "inventory" %}
             {% include 'includes/_inventory.html' %}

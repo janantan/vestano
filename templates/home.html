@@ -1,15 +1,30 @@
 {% extends 'layout.html' %}
 
-{% include 'includes/_logo.html' %}
-
 <div class="container">
-  <main class="card">
-    {% block body %}
-      <aside id="first-statement" class="clearfix">
-        <figure>
-          <img src="/static/img/first page.jpg" alt="vestano company" height="600" />
-        </figure>
-      </aside>
-    {% endblock %}
-  </main>
+	<main class="card">
+		{% block body %}
+			<div style="margin-top: 2vh;">
+				{% include 'includes/_fpMessage.html' %}
+			</div>
+			<div onclick="defaultOpacity()">
+				<aside id="first-statement" class="clearfix">
+					<figure>
+						<img id="bg-img" src="/static/img/first page.jpg" alt="vestano company" height="600" />
+					</figure>
+				</aside>
+			</div>
+			{% include 'includes/_fpLogin.html' %}
+
+			<script type="text/javascript">
+				function defaultOpacity() {
+					document.getElementById("bg-img").style.opacity = "0.7";
+					document.getElementById("fp-login").style.background = "none";
+					document.getElementById("login").style.background = "none";
+					document.getElementById("register").style.background = "none";
+					document.getElementById("register").style.background = "no-repeat left";
+					document.getElementById("register").style.backgroundImage = "url(/static/img/icon/register.png)";
+				}
+			</script>
+		{% endblock %}
+	</main>
 </div>
