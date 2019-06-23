@@ -1,6 +1,6 @@
 <nav>
   <ul>
-    <li><a class="navbar-link home" href="/">خانه</a></li>
+    <li><a class="navbar-link home" href="/home">خانه</a></li>
     <!---<li><a class="navbar-link blog" href="/blog">وبلاگ</a></li>--->
     <li><a class="navbar-link expenses" href="/user-pannel/ordering">پنل کاربری</a></li>
     <li><a class="navbar-link about" href="/about">درباره ما</a></li>
@@ -22,8 +22,10 @@
   <div id="registration">
     <ul>
       <li><a class="navbar-link logout" href="/logout">خروج</a></li>
-      <!--<li><a class="navbar-link login" href="/login">ورود</a></li>
-      <li><a class="navbar-link register" href="/register">عضویت</a></li>-->
+      <!--<li><a class="navbar-link login" href="/login">ورود</a></li>-->
+      {% if session['role'] == 'admin' %}
+        <li><a class="navbar-link register" href="/register">عضویت</a></li>
+      {% endif %}
       <li class="alert-welcome">{{session['message']}}</li>
     </ul>
   </div>

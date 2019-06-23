@@ -184,7 +184,8 @@ def test_temp_order(temp_order):
     print('**************')
     #print(json.dumps(order))
     print('**************')
-    client.service.NewOrder(**order)
+    result = client.service.NewOrder(**order)
+    return result
 
 def api_test():
     client = Client(test_uri, cache=None)

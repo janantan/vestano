@@ -520,6 +520,10 @@ a.button:active {
     font-size: 12px;
 }
 
+.font14 {
+    font-size: 14px;
+}
+
 .blue {
     color: blue;
 }
@@ -550,6 +554,10 @@ a.button:active {
 
 .right {
     text-align: right !important;
+}
+
+.left {
+    text-align: left;
 }
 
 body > footer {

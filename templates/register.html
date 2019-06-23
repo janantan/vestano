@@ -4,40 +4,65 @@
 
 {% block body %}
 	<div class="container">
-  		<main class="card">
+  		<main class="card" style="padding-bottom: 0;">
 			<div id="login-form">
 				<section>
 					<form method="POST" action="">
 						<fieldset>
 							<legend>لطفا ثبت نام کنید</legend>
-		                    <div>					
-								<label for="username">نام</label>
-								<input id="username" type="text" name="name" />
-							</div>
-		                    
-		                    <div>
-								<label for="email">پست الکترونیکی</label>
-								<input id="email" type="email" name="email" required />
-							</div>
-		                    
-							<div>					
-								<label for="username">نام کاربری</label>
-								<input id="username" type="text" name="username" placeholder="e.g. John" required />
-							</div>
-
-							<div>
-								<label for="password">گذرواژه</label>
-								<input id="password" type="password" name="password" required />
-							</div>
-		                    
-		                    <div>
-								<label for="password">تکرار گذرواژه</label>
-								<input id="password" type="password" name="confirm" required />
-							</div>
+							<table id="inventory">
+								<tr>
+				                    <td>					
+										<label class="right" for="name">نام کاربر یا فروشگاه</label>
+										<input id="name" type="text" name="name" />
+									</td>
+								</tr>
+								<tr>			                    
+				                    <td>
+										<label class="right" for="email">پست الکترونیکی</label>
+										<input id="email" type="email" name="email" />
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<label class="right" for="phone">تلفن</label>
+										<input id="phone" type="text" name="phone" />
+									</td>
+								</tr>
+								<tr>				                    
+									<td>					
+										<label class="right" for="username">نام کاربری</label>
+										<input id="username" type="text" name="username" placeholder="e.g. John" required />
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<label class="right" for="password">گذرواژه</label>
+										<input id="password" type="password" name="password" required />
+									</td>
+								</tr>
+								<tr>				                    
+				                    <td>
+										<label class="right" for="password">تکرار گذرواژه</label>
+										<input id="password" type="password" name="confirm" required />
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<label class="right" for="role">سطح دسترسی</label>
+										<select name="role" id="role" required>
+											<option value=""></option>
+											<option value="admin">ادمین</option>
+											<option value="vendor">فروشگاه</option>
+											<option value="office">کاربر دفتری</option>
+										</select>
+									</td>
+								</tr>
+							</table>
 						</fieldset>
 
 						<div>
-							<input type="submit" value="ثبت نام" />	
+							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت نام" />	
 						</div>			
 					</form>
 				</section>
