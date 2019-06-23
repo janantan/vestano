@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#coding: utf-8
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, jsonify
 import datetime
 import string
@@ -58,7 +58,7 @@ def temp_orders(cursor):
     for r in result:
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         temp.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
-        state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
+            state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
     return temp
 
 def inventory(cursor):
@@ -75,6 +75,28 @@ def accounting(cursor):
         #record.append((r['order_id'], r['parcel_code'], int(r['total_cost']), int(r['vestano_post_cost']), int(r['delivery_cost']), int(r['vat_tax']), r['record_datetime']))
         record.append((r['order_id'], int(r['total_cost']), int(r['vestano_post_cost']), r['record_datetime']))
     return record
+
+def details(cursor, code):
+    city = ""
+    price = 0
+    count = 0
+    discount = 0
+    r = cursor.temp_orders.find_one({'orderId': int(code)})
+    state_result = cursor.states.find_one({'Code': r['stateCode']})
+    for rec in state_result['Cities']:
+        if r['cityCode'] == rec['Code']:
+            city = rec['Name']
+            break
+    for p in r['products']:
+        price = price + p['price']*p['count']
+        count = count + p['count']
+        discount = discount + p['percentDiscount']
+
+    details = (r['orderId'], r['vendorName'], r['record_time']+' - '+r['record_date'],
+        r['registerFirstName']+' '+r['registerLastName'], r['registerCellNumber'], r['registerPostalCode'],
+        r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
+        r['products'],count, price, discount, code)
+    return details
 
 def typeOfServices(serviceType, payType):
     if serviceType==1:
@@ -136,6 +158,15 @@ def GetStates():
     for item in states_dict['State']:
         states_list.append(client.dict(item))
     return states_list
+
+def ReadyToShip(parcelCode):
+    client = Client(API_URI)
+    param = {
+    'username' : username,
+    'password' : password,
+    'parcelCode' : parcelCode
+    }
+    client.service.ReadyToShip(**param)
 
 def test_temp_order(temp_order):
     #print(type(temp_order['registerFirstName']))

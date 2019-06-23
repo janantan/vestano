@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fa-IR" style="padding: 10px 10px;">
+    <head>
+        <title>شرکت وستانو</title>
+        <!--<meta charset="utf-8" />-->
+        <meta content="text/html;charset=UTF-8" http-equiv="Content-Type" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
+    </head>
+    <body class="card" style="direction: rtl;">
+    	<fieldset class="fieldset" style="background-color: #bcd1fe">
+			<legend>اطلاعات سفارش</legend>
+			<table id="temp-ord">
+				<tr>
+					<td>
+						<span class="blue bold">بارکد مرسوله:</span>
+					</td>
+					<td class="vw12">
+						<span> - </span>
+					</td>
+					<td>
+						<span class="blue bold">شناسه سفارش:</span>
+					</td>
+					<td class="vw12">
+						<span>{{details[0]}}</span>
+					</td>
+					<td>
+						<span class="blue bold">نام فروشگاه:</span>
+					</td>
+					<td class="vw12">
+						<span>{{details[1]}}</span>
+					</td>
+					<td>
+						<span class="blue bold">زمان سفارش:</span>
+					</td>
+					<td class="vw17">
+						<span>{{details[2]}}</span>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<span class="blue bold">نام خریدار:</span>
+					</td>
+					<td>
+						<span>{{details[3]}}</span>
+					</td>
+					<td>
+						<span class="blue bold">تلفن ثابت:</span>
+					</td>
+					<td>
+						<span> - </span>
+					</td>
+					<td>
+						<span class="blue bold">تلفن همراه:</span>
+					</td>
+					<td>
+						<span>{{details[4]}}</span>
+					</td>
+					<td>
+						<span class="blue bold">کد پستی:</span>
+					</td>
+					<td>
+						<span>{{details[5]}}</span>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<span class="blue bold">وضعیت:</span>
+					</td>
+					<td>
+						<span>در حال پردازش</span>
+					</td>
+					<td>
+						<span class="blue bold">سرویس پستی:</span>
+					</td>
+					<td>
+						<span>{{details[6]}}</span>
+					</td>
+					<td>
+						<span class="blue bold">نوع پرداخت:</span>
+					</td>
+					<td>
+						<span>{{details[7]}}</span>
+					</td>
+					<td>
+						<span class="blue bold">هزینه ارسال:</span>
+					</td>
+					<td>
+						<span> - </span>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<span class="blue bold">نشانی:</span>
+					</td>
+					<td colspan="7">
+						<span>{{details[8]}}</span>
+					</td>
+				</tr>
+			</table>
+			<fieldset class="p-fieldset">
+				<legend>اقلام سفارش</legend>
+				<table id="temp-ord-products">
+					<tr class="bg-yellow">
+						<td class="vw18 right">
+							<span>نام کالا</span>
+						</td>
+						<td class="vw10">
+							<span>قیمت واحد</span>
+						</td>
+						<td class="vw10">
+							<span>تعداد</span>
+						</td>
+						<td class="vw10">
+							<span>مجموع قیمت</span>
+						</td>
+						<td class="vw10">
+							<span>تخفیف</span>
+						</td>
+						<td class="vw10">
+							<span>مجموع خرید</span>
+						</td>
+						<td class="vw18 bg-green">
+							<span>مجموع فاکتور</span>
+						</td>
+					</tr>
+					{% for p in details[9] %}
+						<tr>
+							<td class="vw18 right">
+								<span>{{p['productName']}}</span>
+							</td>
+							<td class="vw10">
+								<span>{{p['price']}}</span>
+							</td>
+							<td class="vw10">
+								<span>{{p['count']}}</span>
+							</td>
+							<td class="vw10">
+								<span>{{p['price']*p['count']}}</span>
+							</td>
+							<td class="vw10">
+								<span>{{p['percentDiscount']}}</span>
+							</td>
+							{% if p['percentDiscount'] %}
+								<td class="vw10">
+									<span>{{(p['price']*p['count'])-(p['price']*p['count']*p['percentDiscount']/100)}}</span>
+								</td>
+							{% else %}
+								<td class="vw10">
+									<span>{{(p['price']*p['count'])}}</span>
+								</td>
+							{% endif %}
+						</tr>
+					{% endfor %}
+					<tr class="bg-yellow">
+						<td colspan="2" class="right">
+							<span>مجموع</span>
+						</td>
+						<td>
+							<span>{{details[10]}}</span>
+						</td>
+						<td>
+							<span>{{details[11]}}</span>
+						</td>
+						<td>
+							<span>{{details[12]}}</span>
+						</td>
+						{% if details[12] %}
+							<td>
+								<span>{{details[11]-(details[11]*details[12]/100)}}</span>
+							</td>
+						{% else %}
+							<td>
+								<span>{{details[11]}}</span>
+							</td>
+						{% endif %}
+						<td class="vw18 bg-green">
+							<span>{{details[11]}}</span>
+						</td>
+					</tr>
+				</table>
+			</fieldset>
+		</fieldset>
+		<div style="margin-top: 3vh;">
+			<a class="button" href="/confirm/details[13]" style="background-color: #f3f3f3;">تایید سفارش</a>
+			<a class="button" href="/cancel/details[13]" style="background-color: #f3f3f3;">بازگشت به فروشگاه</a>
+			<a class="button" href="/pending/details[13]" style="background-color: #f3f3f3;">عدم موجودی</a>
+		</div>
+    </body>
+</html>

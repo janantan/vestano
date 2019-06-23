@@ -21,7 +21,7 @@ body, html {
 
 html {
     /*background: #fafafa;*/
-    background: #fafafa;
+    background: cadetblue;
     font-family: "BNazanin", Helvetica, Arial, sans-serif;
     font-size: 18px;
     padding-top: 100px;
@@ -204,6 +204,14 @@ a.button:active {
     position:fixed;
     text-align: center;
     top:14vh;
+    left:35vw;
+    width:25vw;
+}
+
+#f-message {
+    position:fixed;
+    text-align: right;
+    top:11vh;
     left:35vw;
     width:25vw;
 }
@@ -454,6 +462,11 @@ a.button:active {
     border: 1px solid #e1e1e1;
 }
 
+.p-fieldset {
+    padding: 10px;
+    border: 1px solid white;
+}
+
 .add-box {
     background-color: white;
     color: #303f9f;
@@ -495,6 +508,14 @@ a.button:active {
     width: 12vw !important;
 }
 
+.vw10 {
+    width: 10vw !important;
+}
+
+.vw18 {
+    width: 18vw !important;
+}
+
 .font12 {
     font-size: 12px;
 }
@@ -505,6 +526,30 @@ a.button:active {
 
 .red {
     color: red;
+}
+
+.bg-yellow {
+    background-color: yellow;
+}
+
+.bg-green {
+    background-color: #17f15a;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+#temp-ord td {
+    height: 8vh;
+}
+
+#temp-ord-products td {
+    text-align: center;
+}
+
+.right {
+    text-align: right !important;
 }
 
 body > footer {

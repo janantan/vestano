@@ -1,1 +1,3 @@
 - To know methods, namespaces and types of a wsdl webservice, its enough to build a suds client and print it.
+
+-host os : CentOS Linux release 7.3.1611 (Core)

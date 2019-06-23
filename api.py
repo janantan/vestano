@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#coding: utf-8
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, jsonify
 from pymongo import MongoClient
 from passlib.hash import sha256_crypt
@@ -45,14 +45,14 @@ class SomeSoapService(spyne.Service):
     def NewOrder(username, password, vendorName, orderId, registerFirstName, registerLastName, registerCellNumber,
         stateCode, cityCode, registerAddress, registerPostalCode, products, serviceType, payType, orderDate, orderTime):
         print('entered to NewOrder')
-        print(username, password, vendorName, registerLastName, products[0].productName)
+        print(username, password, serviceType, payType, vendorName, registerLastName, products[0].productName)
         user_result = cursor.users.find_one({"username": username})
         if user_result:
             if sha256_crypt.verify(password, user_result['password']):
 
                 p_list = []
-                p_dict = {}
                 for i in range(len(products)):
+                    p_dict = {}
                     p_dict['productName'] = products[i].productName
                     p_dict['count'] = products[i].count
                     p_dict['price'] = products[i].price
@@ -66,7 +66,7 @@ class SomeSoapService(spyne.Service):
                 if serviceType==1:
                     sType = u'پست پیشتاز'
                 elif serviceType==2:
-                    stype = u'پست سفارشی'
+                    sType = u'پست سفارشی'
                 elif serviceType==3:
                     sType = u'مطبئع'
 
@@ -116,7 +116,8 @@ class SomeSoapService(spyne.Service):
    
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    utils.api_test()
+    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+    #utils.api_test()
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -149,6 +150,7 @@ def temp_orders():
 @app.route('/user-pannel/<item>', methods=['GET', 'POST'])
 def ordering(item):
     if 'username' in session:
+        ordered_products = []
         username = session['username']
         if item == 'ordering':
             if request.method == 'POST':
@@ -165,10 +167,9 @@ def ordering(item):
                 record['address'] = request.form.get('address')
                 record['postal_code'] = request.form.get('postal_code')
 
-                ordered_products = []
-                ordered_product = {}
                 for i in range (1, 100):
                     if request.form.get('product_'+str(i)):
+                        ordered_product = {}
                         ordered_product['productName'] = request.form.get('product_'+str(i))
                         ordered_product['count'] = int(request.form.get('count_'+str(i)))
                         ordered_product['price'] = int(request.form.get('price_'+str(i)))
@@ -177,6 +178,7 @@ def ordering(item):
                         ordered_product['description'] = u'تست'
 
                         ordered_products.append(ordered_product)
+                        print(ordered_products)
 
                 #ordered_products = {'product':[], 'counts':[], 'price':[], 'weight':[],
                 #'percentDiscount':[], 'description':[]}
@@ -220,7 +222,7 @@ def ordering(item):
                 'products': ordered_products
                 }
 
-                #print(temp_order)
+                print(order)
 
                 cursor.orders.insert_one(record)
 
@@ -335,6 +337,7 @@ def logout():
     # remove the username from the session if it's there
     session.pop('username', None)
     session.pop('message', None)
+    session.pop('temp_orders', None)
     return redirect(url_for('home'))
 
 @app.route('/ajax', methods=['GET', 'POST'])
@@ -351,6 +354,13 @@ def ajax():
         return redirect(request.referrer)
         
     return jsonify(result)
+
+@app.route('/orders-details/<code>', methods=['GET', 'POST'])
+def details(code):
+
+    return render_template('includes/_orderDetails.html',
+        details = utils.details(cursor, code)
+        )
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug = True)
