@@ -35,11 +35,6 @@ class Products(ComplexModel):
     percentDiscount = Integer
     description = Unicode
 
-class User(ComplexModel):
-    __namespace__ = "user"
-    username = String
-    password = String
-
 class SomeSoapService(spyne.Service):
     __service_url_path__ = '/soap/VestanoWebService'
     __in_protocol__ = Soap11(validator='lxml')
@@ -55,6 +50,10 @@ class SomeSoapService(spyne.Service):
                 if user_result:
                     if sha256_crypt.verify(password, user_result['password']):
                         p_list = []
+                        price = 0
+                        count = 0
+                        weight = 0
+                        discount = 0
                         for i in range(len(products)):
                             p_dict = {}
                             p_dict['productName'] = products[i].productName
@@ -63,6 +62,10 @@ class SomeSoapService(spyne.Service):
                             p_dict['weight'] = products[i].weight
                             p_dict['percentDiscount'] = products[i].percentDiscount
                             p_dict['description'] = products[i].description
+                            price = price + products[i].price*products[i].count
+                            count = count + products[i].count
+                            weight = weight + products[i].weight
+                            discount = discount + products[i].percentDiscount
 
                             p_list.append(p_dict)
 
@@ -101,8 +104,30 @@ class SomeSoapService(spyne.Service):
                         'status' : 'on process'
                         }
 
+                        order = {
+                        'cityCode': cityCode,
+                        'price': price,
+                        'weight': weight,
+                        'count': count,
+                        'serviceType': serviceType,
+                        'payType': payType,
+                        'description': '',
+                        'percentDiscount': discount,
+                        'firstName': registerFirstName,
+                        'lastName': registerLastName,
+                        'address': registerAddress,
+                        'phoneNumber': '',
+                        'cellNumber': registerCellNumber,
+                        'postalCode': registerPostalCode,
+                        'products': p_list
+                        }
+
+                        print(order)
+                        print('%%%%%%%%%%%%%%%%%%%%%')
+
                         cursor.temp_orders.insert_one(input_data)
                         cursor.all_records.insert_one(input_data)
+                        #print(utils.SoapClient(order))
                         return order_id
                     else:
                         print('The Password Does Not Match!')
@@ -116,20 +141,6 @@ class SomeSoapService(spyne.Service):
         else:
             print('Missed Username Field!')
             return(jsonify('Missed Username Field!'))
-
-    #def NewOrder(username,password,productsId,cityCode,serviceType,payType,
-        #registerFirstName,registerLastName,registerAddress,registerPhoneNumber,registerMobile):
-
-    #@spyne.srpc(Unicode, Integer, _returns=Iterable(Unicode))
-    #@spyne.srpc(Array(User), _returns=String)
-    #def datetime(v):
-        #print('varification: ', v)
-        #for i in range (len(v)):
-            #if (v[i].username == 'jan') and (v[i].password == '123'):
-                #print('The test passed!')
-                #print(jdatetime.datetime.now())
-            #else:
-                #print('wrong username or password!')
 
 def token_required(f):
     @wraps(f)
@@ -213,12 +224,14 @@ def login():
 @app.route('/home', methods=['GET'])
 @token_required
 def home():
-
+    #parcelCode = '21868075911930365800'
+    #utils.ReadyToShip(parcelCode)
     return render_template('home.html')
 
 @app.route('/user-pannel/orderList', methods=['GET', 'POST'])
 @token_required
 def temp_orders():
+    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item='orderList',
@@ -227,26 +240,88 @@ def temp_orders():
         states = utils.states(cursor)
         )
 
+@app.route('/confirm-order/<code>', methods=['GET', 'POST'])
+@token_required
+def confirm_orders(code):
+    print(code)
+    result = cursor.temp_orders.find_one({"orderId": code})
+    if result:
+        (sType, pType) = utils.typeOfServicesToCode(result['serviceType'], result['payType'])
+        print(sType, pType)
+        new_rec = result
+        price = 0
+        count = 0
+        weight = 0
+        discount = 0
+        for i in range(len(result['products'])):
+            price = price + result['products'][i]['price']*result['products'][i]['count']
+            count = count + result['products'][i]['count']
+            weight = weight + result['products'][i]['weight']
+            discount = discount + result['products'][i]['percentDiscount']
+
+        order = {
+        'cityCode': result['cityCode'],
+        'price': price,
+        'weight': weight,
+        'count': count,
+        'serviceType': sType,
+        'payType': pType,
+        'description': '',
+        'percentDiscount': discount,
+        'firstName': result['registerFirstName'],
+        'lastName': result['registerLastName'],
+        'address': result['registerAddress'],
+        'phoneNumber': '',
+        'cellNumber': result['registerCellNumber'],
+        'postalCode': result['registerPostalCode'],
+        'products': result['products']
+        }
+        #soap_result = utils.SoapClient(order)
+        soap_result = {'ErrorCode' :0, 'ParcelCode': '8002123658485689'}
+        print(soap_result)
+        if not soap_result['ErrorCode']:
+
+            new_rec['status'] = 'ready to ship'
+            new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
+            print(new_rec['record_datetime'])
+            new_rec['ParcelCode'] = soap_result['ParcelCode']
+            new_rec['username'] = session['username']
+
+            #utils.ReadyToShip(soap_result['ParcelCode'])
+
+            cursor.orders.insert_one(new_rec)
+            cursor.temp_orders.remove({'orderId': code})
+
+            session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+            flash(u'سفارش تایید و ثبت شد!', 'success')
+        else:
+            flash(u'خطایی رخ داده است!', 'error')
+    else:
+        flash(u'خطایی رخ داده است! (شناسه سفارش)', 'error')
+
+    return render_template('user_pannel.html',
+        item='orderList')
+
 @app.route('/user-pannel/<item>', methods=['GET', 'POST'])
 @token_required
 def ordering(item):
     if 'username' in session:
+        session['temp_orders'] = cursor.temp_orders.estimated_document_count()
         ordered_products = []
         username = session['username']
         if item == 'ordering':
             if request.method == 'POST':
-                record = {'datetime': jdatetime.datetime.now().strftime('%d / %m / %Y')}
-                if cursor.orders.estimated_document_count():
-                    record['id'] = cursor.orders.estimated_document_count()+1
-                else:
-                    record['id'] = 1
-                record['first_name'] = request.form.get('first_name')
-                record['last_name'] = request.form.get('last_name')
-                record['cell_number'] = request.form.get('cell_number')
+                record = {'record_datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
+                record['orderId'] = str(random2.randint(1000000, 9999999))
+                record['username'] = session['username']
+                record['registerFirstName'] = request.form.get('first_name')
+                record['registerLastName'] = request.form.get('last_name')
+                record['registerCellNumber'] = request.form.get('cell_number')
                 record['stateCode'] = int(request.form.get('stateCode'))
                 record['cityCode'] = int(request.form.get('cityCode'))
-                record['address'] = request.form.get('address')
-                record['postal_code'] = request.form.get('postal_code')
+                record['registerAddress'] = request.form.get('address')
+                record['registerPostalCode'] = request.form.get('postal_code')
+                record['status'] = 'ready to ship'
 
                 for i in range (1, 100):
                     if request.form.get('product_'+str(i)):
@@ -256,32 +331,29 @@ def ordering(item):
                         ordered_product['price'] = int(request.form.get('price_'+str(i)))
                         ordered_product['weight'] = int(request.form.get('weight_'+str(i)))
                         ordered_product['percentDiscount'] = 0
-                        ordered_product['description'] = u'تست'
+                        ordered_product['description'] = u''
 
                         ordered_products.append(ordered_product)
                         print(ordered_products)
 
-                #ordered_products = {'product':[], 'counts':[], 'price':[], 'weight':[],
-                #'percentDiscount':[], 'description':[]}
-                #for i in range (1, 100):
-                    #if request.form.get('product_'+str(i)):
-                        #ordered_products['product'].append(request.form.get('product_'+str(i)))
-                        #ordered_products['counts'].append(request.form.get('count_'+str(i)))
-                        #ordered_products['price'].append(request.form.get('price_'+str(i)))
-                        #ordered_products['weight'].append(request.form.get('weight_'+str(i)))
-                        #ordered_products['percentDiscount'].append(0)
-                        #ordered_products['description'].append(u'تست')
+                print(request.form.get('serviceType'))
+                print(request.form.get('payType'))
 
-                record['ordered_products'] = ordered_products
-                record['serviceType'] = request.form.get('serviceType')
-                record['payType'] = request.form.get('payType')
-                record['free'] = request.form.getlist('free')
+                (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')), int(request.form.get('payType')))
+
+                record['products'] = ordered_products
+                record['serviceType'] = sType
+                if len(request.form.getlist('free')):
+                    record['payType'] = 88
+                else:
+                    record['payType'] = pType
 
                 price = 0
                 counts = 0
                 weight = 0
+                discount = 0
                 for i in range(len(ordered_products)):
-                    price = price + int(ordered_products[i]['price'])
+                    price = price + int(ordered_products[i]['price']) * int(ordered_products[i]['count'])
                     counts = counts + int(ordered_products[i]['count'])
                     weight = weight + int(ordered_products[i]['weight'])
 
@@ -294,35 +366,40 @@ def ordering(item):
                 'payType': record['payType'],
                 'description': '',
                 'percentDiscount': 0,
-                'firstName': record['first_name'],
-                'lastName': record['last_name'],
-                'address': record['address'],
-                'phoneNumber': '',
-                'cellNumber': record['cell_number'],
-                'postalCode': record['postal_code'],
+                'registerFirstName': record['registerFirstName'],
+                'registerLastName': record['registerLastName'],
+                'registerAddress': record['registerAddress'],
+                'registerPhoneNumber': '',
+                'registerCellNumber': record['registerCellNumber'],
+                'registerPostalCode': record['registerPostalCode'],
                 'products': ordered_products
                 }
 
-                print(order)
+                #soap_result = utils.SoapClient(order)
+
+                #if not soap_result['ParcelCode']:
+                    #record['ParcelCode'] = soap_result['ParcelCode']
+                    #cursor.orders.insert_one(record)
+                    #flash(u'ثبت شد!', 'success')
+                    #return redirect(url_for('ordering', item='ordering'))
+                #else:
+                    #flash(u'خطایی رخ داده است!', 'error')
 
                 cursor.orders.insert_one(record)
 
-                #print(utils.SoapClient(order))
-
-                r = cursor.orders.find_one({'id':record['id']})
+                r = cursor.orders.find_one({'orderId':record['orderId']})
                 temp_order = {
                 'vendorName' : u'رژیاپ',
-                'orderId' : 100,
-                'registerFirstName' : r['first_name'],
-                'registerLastName' : r['last_name'],
-                'registerCellNumber' : r['cell_number'],
+                'registerFirstName' : r['registerFirstName'],
+                'registerLastName' : r['registerLastName'],
+                'registerCellNumber' : r['registerCellNumber'],
                 'stateCode' : int(r['stateCode']),
                 'cityCode' : int(r['cityCode']),
-                'registerAddress' : r['address'],
-                'registerPostalCode' : r['postal_code'],
-                'products' : r['ordered_products'],
-                'serviceType' : int(r['serviceType']),
-                'payType' : int(r['payType']),
+                'registerAddress' : r['registerAddress'],
+                'registerPostalCode' : r['registerPostalCode'],
+                'products' : r['products'],
+                'serviceType' : r['serviceType'],
+                'payType' : r['payType'],
                 'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
                 'orderTime': jdatetime.datetime.now().strftime('%M : %H')
                 }
@@ -345,6 +422,7 @@ def ordering(item):
 @app.route('/user-pannel/inventory/<category>', methods=['GET', 'POST'])
 @token_required
 def inventory(category):
+    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item="inventory",
@@ -356,6 +434,7 @@ def inventory(category):
 @app.route('/user-pannel/accounting', methods=['GET', 'POST'])
 @token_required
 def accounting():
+    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item="accounting",
@@ -366,6 +445,7 @@ def accounting():
 
 @app.route('/about')
 def about():
+    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
     return render_template('about.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -395,6 +475,32 @@ def register():
                 flash(u'کلمه عبور مطابقت ندارد', 'error')
 
     return render_template('register.html')
+
+@app.route('/change-password', methods=['GET', 'POST'])
+@token_required
+def change_password():
+    if request.method == 'POST':
+        current_pass = request.form.get('current_pass')
+        new_pass = request.form.get('password')
+        confirm = request.form.get('confirm')
+        
+        result = cursor.users.find_one({"username": session['username']})
+
+        if sha256_crypt.verify(current_pass, result['password']):
+            if new_pass == confirm:
+                new_pass = sha256_crypt.hash(str(new_pass))
+                cursor.users.update_many(
+                        {"username": session['username']},
+                        {'$set': {'password': new_pass}}
+                        )
+                flash(u'کلمه عبور با موفقیت تغییر یافت. لطفا مجددا وارد شوید.', 'success-login')
+                return redirect(url_for('logout'))
+            else:
+                flash(u"کلمه عبور مطابقت ندارد! لطفا مجددا وارد کنید.", 'danger')
+                return redirect(url_for('change_password'))
+        else:
+            flash('Current Password Not Matched!', 'danger')
+    return render_template('includes/_changePassword.html')
 
 @app.route('/logout')
 def logout():

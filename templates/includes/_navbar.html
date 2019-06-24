@@ -26,7 +26,7 @@
       {% if session['role'] == 'admin' %}
         <li><a class="navbar-link register" href="/register">عضویت</a></li>
       {% endif %}
-      <li class="alert-welcome">{{session['message']}}</li>
+      <li class="alert-welcome"><a href="/change-password" style="color:#303f9f" title="تغییر کلمه عبور">{{session['message']}}</a></li>
     </ul>
   </div>
 </nav>

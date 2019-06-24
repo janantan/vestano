@@ -5,7 +5,11 @@
 {% block body %}
   <div class="container">
     {% include 'includes/_tab.html' %}
-    <main class="card" style="margin-top: 0;">
+    {% if item == "ordering" %}
+      <main class="card" style="margin-top: 0; padding-bottom: 0;">
+    {% else %}
+      <main class="card" style="margin-top: 0;">
+    {% endif %}
       <div id="login-form">        
         <section>
           {% if item == "orderList" %}

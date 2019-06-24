@@ -81,7 +81,7 @@ def details(cursor, code):
     price = 0
     count = 0
     discount = 0
-    r = cursor.temp_orders.find_one({'orderId': int(code)})
+    r = cursor.temp_orders.find_one({'orderId': code})
     state_result = cursor.states.find_one({'Code': r['stateCode']})
     for rec in state_result['Cities']:
         if r['cityCode'] == rec['Code']:
@@ -98,11 +98,11 @@ def details(cursor, code):
         r['products'],count, price, discount, code)
     return details
 
-def typeOfServices(serviceType, payType):
+def typeOfServicesToString(serviceType, payType):
     if serviceType==1:
         sType = u'پست پیشتاز'
     elif serviceType==2:
-        stype = u'پست سفارشی'
+        sType = u'پست سفارشی'
     elif serviceType==3:
         sType = u'مطبئع'
 
@@ -112,6 +112,23 @@ def typeOfServices(serviceType, payType):
         pType = u'پرداخت در محل'
     elif payType==2:
         pType = u'پرداخت آنلاین'
+
+    return (sType, pType)
+
+def typeOfServicesToCode(serviceType, payType):
+    if serviceType == u'پست پیشتاز':
+        sType = 1
+    elif serviceType == u'پست سفارشی':
+        sType = 2
+    elif serviceType == u'مطبئع':
+        sType = 3
+
+    if payType == u'ارسال رایگان':
+        pType = 88
+    elif payType == u'پرداخت در محل':
+        pType = 1
+    elif payType == u'پرداخت آنلاین':
+        pType = 2
 
     return (sType, pType)
 
@@ -166,10 +183,10 @@ def ReadyToShip(parcelCode):
     'password' : password,
     'parcelCode' : parcelCode
     }
+    print(param)
     client.service.ReadyToShip(**param)
 
 def test_temp_order(temp_order):
-    #print(type(temp_order['registerFirstName']))
     client = Client(test_uri, cache=None)
     #print(client)
     products = client.factory.create('ns0:ProductsArray')
@@ -179,10 +196,6 @@ def test_temp_order(temp_order):
     for i in range(len(temp_order['products'])):
         products.Products.append(temp_order['products'][i])
     order['products'] = products
-    print('**************')
-    print(order)
-    print('**************')
-    #print(json.dumps(order))
     print('**************')
     result = client.service.NewOrder(**order)
     return result
@@ -241,14 +254,14 @@ def SoapClient(order):
     bills = client.service.Billing(username = username, password = password)
 
     #products = {}
-    for i in range(len(order['products']['product'])):
+    for i in range(len(order['products'])):
         #stuff_id = client.service.AddStuff(
             #username = username,
             #password = password,
-            #name = order['products']['product'][i],
+            #name = order['products']['productName'][i],
             #price = int(order['products']['price'][i]),
             #weight = int(order['products']['weight'][i]),
-            #count = int(order['products']['counts'][i]),
+            #count = int(order['products']['count'][i]),
             #description = order['description'],
             #percentDiscount = order['percentDiscount']
             #)
@@ -260,8 +273,8 @@ def SoapClient(order):
         #products = [int(stuff_id), 1, 0]
         #products[str(i)] = {'Id' : int(stuff_id), 'Count' : 1, 'Discount' : 0}
         stuff = {
-        'Id' : 716786,
-        'Count' : 1,
+        'Id' : 716085,
+        'Count' : 2,
         'DisCount' : 0
         }
         products.TempProducts.append(stuff)
@@ -290,20 +303,15 @@ def SoapClient(order):
     'registerPostalCode' : order['postalCode']
     }
 
+    print(param)
+
     add_parcel_result = client.service.AddParcel(**param)
 
     parcel_code = {
     'ParcelCode': add_parcel_result.ParcelCode,
     'PostDeliveryPrice': add_parcel_result.PostDeliveryPrice,
     'VatTax': add_parcel_result.VatTax,
-    'ErrorCode': add_parcel_result.ErrorCode,
-    'Description': add_parcel_result.Description
+    'ErrorCode': add_parcel_result.ErrorCode
     }
 
-    ans = {
-    'DeliveryPrice':price.PostDeliveryPrice,
-    'VatTax':price.VatTax,
-    'parcel_code': parcel_code
-    }
-
-    return ans
+    return parcel_code
