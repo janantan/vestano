@@ -185,7 +185,6 @@ def login():
 
     token = None
     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-    #utils.api_test()
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -199,6 +198,7 @@ def login():
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60)},
                     app.secret_key)
                 token = TOKEN.decode('UTF-8')
+                print(token)
                 return redirect(url_for('ordering', item='ordering'))
             else:
                 flash(u'کلمه عبور مطابقت ندارد', 'danger')

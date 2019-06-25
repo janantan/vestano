@@ -32,6 +32,7 @@ a {
 }
 #main-header {
     /*background: #fafafa;*/
+    background: gainsboro;
     padding: 15px 30px;
     /*box-shadow: 0 4px 2px -2px #aaa;*/
     box-shadow: 0 4px 2px -2px rgba(0,0,0,0.05);
@@ -60,7 +61,7 @@ a {
     text-decoration: none;
     border: 1px solid transparent;
     font-size: 18px;
-    color: rgb(215, 212, 207);
+    /*color: rgb(215, 212, 207);*/
 }
 
 /*sudo class*/
@@ -213,16 +214,16 @@ a.button:active {
 #fp-message {
     position:fixed;
     text-align: center;
-    top:0.1vh;
-    right: 15vw;
+    top:9vh;
+    right: 28vw;
     width:25vw;
 }
 
 #f-message {
     position:fixed;
     text-align: right;
-    top:0.1vh;
-    right: 15vw;
+    top:9vh;
+    right: 28vw;
     width:25vw;
 }
 
@@ -250,8 +251,8 @@ a.button:active {
 
 #logo figure {
     position: fixed;
-    top: -4vh;
-    right: -3vw;
+    top: -3vh;
+    right: -2vw;
 }
 
 #first-statement figure {
@@ -606,7 +607,9 @@ a.button:active {
 
 .user-name {
     font-size: 20px;
-    color: rgb(194, 145, 144) !important;
+    margin-left: 20px;
+    /*color: rgb(194, 145, 144) !important;*/
+    color: #0b4158 !important;
 }
 
 body > footer {
@@ -670,6 +673,7 @@ form fieldset {
     padding: 10px;
     margin-bottom: 20px;
     border: 1px solid #e1e1e1;
+    font-size: 18px;
 }
 
 form legend {
