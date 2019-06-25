@@ -7,7 +7,7 @@
         <meta name="viewport" content="width=device-width,initial-scale=1.0" />
         <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
     </head>
-    <body class="card" style="direction: rtl;">
+    <body class="card" style="direction: rtl; margin: 0 auto;">
     	<fieldset class="fieldset" style="background-color: #bcd1fe">
     		<div>
     			اطلاعات سفارش
@@ -184,9 +184,23 @@
 			</fieldset>
 		</fieldset>
 		<div style="margin-top: 3vh;">
-			<a class="button" href="/confirm-order/{{details[13]}}" onclick="close_window();" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
+			<a class="button" href="javascript:confirm('/confirm-order/{{details[13]}}')" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
+			<!--<a class="button" href="/confirm-order/{{details[13]}}" onclick="close_window();" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>-->
 			<a class="button" href="/cancel-order/{{details[13]}}" style="background-color: #f3f3f3;">بازگشت به فروشگاه</a>
 			<a class="button" href="/pending-order/{{details[13]}}" style="background-color: #f3f3f3;">عدم موجودی</a>
 		</div>
+
+		<script type="text/javascript">
+			function confirm(url) {
+				const xhr = new XMLHttpRequest();
+				xhr.open('GET', url, true);
+				xhr.send();
+
+				window.setTimeout(function(){
+					opener.location.href = '/user-pannel/orderList';
+					close();
+				}, 1000);
+			}
+		</script>
     </body>
 </html>

@@ -4,11 +4,12 @@
 
 {% block body %}
 	<div class="container">
-  		<main class="card" style="padding-bottom: 0;">
+		{% include 'includes/_tab.html' %}
+  		<main class="card">
 			<div id="login-form">
 				<section>
 					<form method="POST" action="">
-						<fieldset>
+						<fieldset style="height: 76vh;">
 							<legend>لطفا ثبت نام کنید</legend>
 							<table id="inventory">
 								<tr>
@@ -55,15 +56,18 @@
 											<option value="admin">ادمین</option>
 											<option value="vendor">فروشگاه</option>
 											<option value="office">کاربر دفتری</option>
+											<option value="api">API</option>
 										</select>
+									</td>
+								</tr>
+								<tr>
+									<td style="padding-top: 7vh; text-align: right;">
+										<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ایجاد کاربری" />
 									</td>
 								</tr>
 							</table>
 						</fieldset>
 
-						<div>
-							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت نام" />	
-						</div>			
 					</form>
 				</section>
 			</div>

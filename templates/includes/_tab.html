@@ -1,6 +1,42 @@
-<div id="tab">
-	<a href="/user-pannel/orderList" class="button">صف پردازش ({{session['temp_orders']}})</a>
-	<a href="/user-pannel/ordering" class="button">ثبت سفارش</a>
-	<a href="/user-pannel/inventory" class="button">انبارداری</a>
-	<a href="/user-pannel/accounting" class="button">حسابداری</a>
-</div>
+<fieldset class="fieldset-card">
+	<div id="tab">
+		<table>
+			<tr>
+				<td>
+					<a href="/home">داشبورد</a>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a href="/user-pannel/orderList">صف پردازش ({{session['temp_orders']}})</a>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a href="/user-pannel/ordering">ثبت سفارش</a>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a href="/user-pannel/inventory">انبارداری</a>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a href="/user-pannel/accounting">حسابداری</a>
+				</td>
+			</tr>
+			{% if session['role'] == 'admin' %}
+				<tr>
+					<td>
+						<a href="/register">ایجاد کاربری</a>
+					</td>
+				</tr>
+			{% endif %}
+		</table>
+		<!--<a href="/user-pannel/orderList" class="button">صف پردازش ({{session['temp_orders']}})</a>
+		<a href="/user-pannel/ordering" class="button">ثبت سفارش</a>
+		<a href="/user-pannel/inventory" class="button">انبارداری</a>
+		<a href="/user-pannel/accounting" class="button">حسابداری</a>-->
+	</div>
+</fieldset>

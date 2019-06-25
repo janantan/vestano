@@ -1,32 +1,34 @@
 <nav>
   <ul>
-    <li><a class="navbar-link home" href="/home">خانه</a></li>
-    <!---<li><a class="navbar-link blog" href="/blog">وبلاگ</a></li>--->
-    <li><a class="navbar-link expenses" href="/user-pannel/ordering">پنل کاربری</a></li>
-    <li><a class="navbar-link about" href="/about">درباره ما</a></li>
-  </ul>
-
-  <ul>
     <li>
       {% include 'includes/_logo.html' %}
     </li>
   </ul>
 
-  <ul class="social">
+  <!--<ul style="margin-right: 7vw;">
+    <li><a class="navbar-link home" href="/home">خانه</a></li>-->
+    <!---<li><a class="navbar-link blog" href="/blog">وبلاگ</a></li>--->
+    <!--<li><a class="navbar-link expenses" href="/user-pannel/ordering">پنل کاربری</a></li>
+    <li><a class="navbar-link about" href="/about">درباره ما</a></li>
+  </ul>-->
+
+  
+
+  <!--<ul class="social">
     <li><a class="navbar-link twitter" href="#"></a></li>
     <li><a class="navbar-link instagram" href="#"></a></li>
     <li><a class="navbar-link facebook" href="#"></a></li>
     <li><a class="navbar-link telegram" href="#"></a></li>
-  </ul>
+  </ul>-->
 
   <div id="registration">
     <ul>
       <li><a class="navbar-link logout" href="/logout">خروج</a></li>
       <!--<li><a class="navbar-link login" href="/login">ورود</a></li>-->
-      {% if session['role'] == 'admin' %}
+      <!--{% if session['role'] == 'admin' %}
         <li><a class="navbar-link register" href="/register">عضویت</a></li>
-      {% endif %}
-      <li class="alert-welcome"><a href="/change-password" style="color:#303f9f" title="تغییر کلمه عبور">{{session['message']}}</a></li>
+      {% endif %}-->
+      <li class="alert-welcome"><a href="/change-password" class="user-name" title="تغییر کلمه عبور">{{session['message']}}</a></li>
     </ul>
   </div>
 </nav>

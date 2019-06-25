@@ -191,7 +191,7 @@ def test_temp_order(temp_order):
     #print(client)
     products = client.factory.create('ns0:ProductsArray')
     order = temp_order
-    order['username'] = 'babalou'
+    order['username'] = 'jan'
     order['password'] = '123'
     for i in range(len(temp_order['products'])):
         products.Products.append(temp_order['products'][i])

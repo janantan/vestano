@@ -46,7 +46,7 @@ class SomeSoapService(spyne.Service):
         stateCode, cityCode, registerAddress, registerPostalCode, products, serviceType, payType, orderDate, orderTime):
         if username:
             if password:
-                user_result = cursor.users.find_one({"username": username})
+                user_result = cursor.api_users.find_one({"username": username})
                 if user_result:
                     if sha256_crypt.verify(password, user_result['password']):
                         p_list = []
@@ -69,20 +69,7 @@ class SomeSoapService(spyne.Service):
 
                             p_list.append(p_dict)
 
-                        #(sType, pType) = utils.typeOfServices(serviceType, payType)
-                        if serviceType==1:
-                            sType = u'پست پیشتاز'
-                        elif serviceType==2:
-                            sType = u'پست سفارشی'
-                        elif serviceType==3:
-                            sType = u'مطبئع'
-
-                        if payType==88:
-                            pType = u'ارسال رایگان'
-                        elif payType==1:
-                            pType = u'پرداخت در محل'
-                        elif payType==2:
-                            pType = u'پرداخت آنلاین'
+                        (sType, pType) = utils.typeOfServicesToString(serviceType, payType)
 
                         order_id = str(random2.randint(1000000, 9999999))
 
@@ -162,7 +149,6 @@ def token_required(f):
         try:
             data = jwt.decode(token, app.secret_key)
         except:
-            flash(u'توکن منقضی شده  است. لطفا مجددا وارد شوید.', 'danger')
             return redirect(url_for('logout'))            
 
         result = cursor.users.find_one({"user_id": data['user_id']})
@@ -176,7 +162,7 @@ def token_required(f):
                 flash(result['name'] + u' عزیز خوش آمدید', 'success-login')
         
         else:
-            flash('توکن معتبر نیست!', 'danger')
+            flash('Token is not valid!', 'danger')
             return redirect(request.referrer)
 
         return f(*args, **kwargs)
@@ -232,6 +218,7 @@ def home():
 @token_required
 def temp_orders():
     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+    print(session['temp_orders'])
 
     return render_template('user_pannel.html',
         item='orderList',
@@ -344,9 +331,12 @@ def ordering(item):
                 record['products'] = ordered_products
                 record['serviceType'] = sType
                 if len(request.form.getlist('free')):
-                    record['payType'] = 88
+                    record['payType'] = u'ارسال رایگان'
+                    pType = u'ارسال رایگان'
+                    pTypeCode = 88
                 else:
                     record['payType'] = pType
+                    pTypeCode = int(request.form.get('payType'))
 
                 price = 0
                 counts = 0
@@ -398,13 +388,13 @@ def ordering(item):
                 'registerAddress' : r['registerAddress'],
                 'registerPostalCode' : r['registerPostalCode'],
                 'products' : r['products'],
-                'serviceType' : r['serviceType'],
-                'payType' : r['payType'],
+                'serviceType' : int(request.form.get('serviceType')),
+                'payType' : pTypeCode,
                 'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
                 'orderTime': jdatetime.datetime.now().strftime('%M : %H')
                 }
 
-                #print(temp_order)
+                print(temp_order)
                 flash(u'ثبت شد!', 'success')
 
                 print(utils.test_temp_order(temp_order))
@@ -451,28 +441,34 @@ def about():
 @app.route('/register', methods=['GET', 'POST'])
 @token_required
 def register():
-    if request.method == 'POST':
-        users = {'created_date': datetime.datetime.now()}
-        users['name'] = request.form.get('name')
-        users['email'] = request.form.get('email')
-        users['phone'] = request.form.get('phone')
-        users['username'] = request.form.get('username')
-        users['role'] = request.form.get('role')
-        new_password = request.form.get('password')
-        confirm = request.form.get('confirm')
-        users['password'] = sha256_crypt.hash(str(request.form.get('password')))
-        
-        result = cursor.users.find_one({"username": users['username']})
+    if session['role'] == 'admin':
+        if request.method == 'POST':
+            users = {'created_date': datetime.datetime.now()}
+            users['name'] = request.form.get('name')
+            users['email'] = request.form.get('email')
+            users['phone'] = request.form.get('phone')
+            users['username'] = request.form.get('username')
+            users['role'] = request.form.get('role')
+            new_password = request.form.get('password')
+            confirm = request.form.get('confirm')
+            users['password'] = sha256_crypt.hash(str(request.form.get('password')))
+            
+            result = cursor.users.find_one({"username": users['username']})
 
-        if result:
-            flash(u'نام کاربری تکراری است. لطفا نام کاربری دیگری انتخاب کنید', 'danger')
-        else:
-            if new_password == confirm:
-                users['user_id'] = str(uuid.uuid4())
-                cursor.users.insert_one(users)
-                flash(u'ثبت نام شما با موفقیت انجام شد. لطفا وارد شوید', 'success')
+            if result:
+                flash(u'نام کاربری تکراری است. لطفا نام کاربری دیگری انتخاب کنید', 'danger')
             else:
-                flash(u'کلمه عبور مطابقت ندارد', 'error')
+                if new_password == confirm:
+                    users['user_id'] = str(uuid.uuid4())
+                    if request.form.get('role') == 'api':
+                        cursor.api_users.insert_one(users)
+                    else:
+                        cursor.users.insert_one(users)
+                    flash(u'ثبت نام شما با موفقیت انجام شد. لطفا وارد شوید', 'success')
+                else:
+                    flash(u'کلمه عبور مطابقت ندارد', 'error')
+    else:
+        flash(u'دسترسی لازم را ندارید!', 'danger')
 
     return render_template('register.html')
 

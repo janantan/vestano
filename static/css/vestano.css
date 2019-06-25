@@ -21,17 +21,17 @@ body, html {
 
 html {
     /*background: #fafafa;*/
-    background: cadetblue;
+    background: #0b4158;
     font-family: "BNazanin", Helvetica, Arial, sans-serif;
     font-size: 18px;
-    padding-top: 100px;
+    padding-top: 8vh;
 }
 
 a {
     color: #222222;
 }
 #main-header {
-    background: #fafafa;
+    /*background: #fafafa;*/
     padding: 15px 30px;
     /*box-shadow: 0 4px 2px -2px #aaa;*/
     box-shadow: 0 4px 2px -2px rgba(0,0,0,0.05);
@@ -59,8 +59,8 @@ a {
     /*display: block;*/
     text-decoration: none;
     border: 1px solid transparent;
-    font-weight: bold;
-    font-size: 15px;
+    font-size: 18px;
+    color: rgb(215, 212, 207);
 }
 
 /*sudo class*/
@@ -88,6 +88,11 @@ a {
 }
 
 #tab a {
+    text-decoration: none;
+}
+
+#tab a:hover {
+    font-size: 19px;
     text-decoration: none;
 }
 
@@ -127,7 +132,7 @@ a.button:active {
 
 #inventory tbody {
     display:block;
-    height:62vh;
+    height:76vh;
     overflow:auto;
 }
 
@@ -143,7 +148,7 @@ a.button:active {
 
 #ordering tbody {
     display:block;
-    height:60vh;
+    height:73vh;
     overflow:auto;
 }
 
@@ -190,7 +195,12 @@ a.button:active {
     width:18vw;
     height:38vh;
     background: none;
-    border: 2px solid gray;
+    border: 1px solid rgb(215, 212, 207);
+}
+
+#fp-login legend{
+    color: rgb(215, 212, 207);
+    font-weight: normal;
 }
 
 #fp-register {
@@ -203,25 +213,25 @@ a.button:active {
 #fp-message {
     position:fixed;
     text-align: center;
-    top:14vh;
-    left:35vw;
+    top:0.1vh;
+    right: 15vw;
     width:25vw;
 }
 
 #f-message {
     position:fixed;
     text-align: right;
-    top:11vh;
-    left:35vw;
+    top:0.1vh;
+    right: 15vw;
     width:25vw;
 }
 
 #username::placeholder {
-    color: black;
+    color: rgb(215, 212, 207);
 }
 
 #password::placeholder {
-    color: black;
+    color: rgb(215, 212, 207);
 } 
 
 .close-box {
@@ -240,8 +250,8 @@ a.button:active {
 
 #logo figure {
     position: fixed;
-    top: -40px;
-    right: 230px;
+    top: -4vh;
+    right: -3vw;
 }
 
 #first-statement figure {
@@ -276,7 +286,7 @@ a.button:active {
 }
 
 .container {
-    width: 95vw;
+    width: 98vw;
     margin: 0 auto;
 }
 
@@ -284,8 +294,36 @@ a.button:active {
     background: #fff;
     padding: 15px;
     border-radius: 5px;
+    border: 1px #e1e1e1;
+    margin-right: 14vw;
+}
+
+/*.card {
+    background: #fff;
+    padding: 15px;
+    border-radius: 5px;
     border: 1px solid #e1e1e1;
-    margin-top: 20px;
+    margin: 3vw 15vw 0 0;
+}*/
+
+.fieldset-card {
+    position: fixed;
+    width: 12vw;
+    height: 80vh;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px #e1e1e1;
+    margin-right: 2vh;
+    padding-right: 1vw;
+}
+
+.fieldset-card a {
+    color: #fafafa;
+    font-size: 17px;
+}
+
+.fieldset-card td {
+    height: 5vh;
 }
 
 .post-list {
@@ -393,6 +431,8 @@ a.button:active {
 .navbar-link.login {background-image: url(/static/img/icon/login.png);}
 .navbar-link.register {background-image: url(/static/img/icon/register.png);}
 
+.navbar-link.invent {background-image: url(/static/img/icon/inventory.png);}
+
 .navbar-link.twitter {background-image: url(/static/img/icon/twitter.png);}
 .navbar-link.instagram {background-image: url(/static/img/icon/instagram.png);}
 .navbar-link.facebook {background-image: url(/static/img/icon/facebook.png);}
@@ -460,6 +500,10 @@ a.button:active {
 .fieldset {
     padding: 10px;
     border: 1px solid #e1e1e1;
+}
+
+.fieldset legend {
+    font-weight: bold;
 }
 
 .p-fieldset {
@@ -558,6 +602,11 @@ a.button:active {
 
 .left {
     text-align: left;
+}
+
+.user-name {
+    font-size: 20px;
+    color: rgb(194, 145, 144) !important;
 }
 
 body > footer {
