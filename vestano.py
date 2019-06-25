@@ -198,7 +198,6 @@ def login():
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60)},
                     app.secret_key)
                 token = TOKEN.decode('UTF-8')
-                print(token)
                 return redirect(url_for('ordering', item='ordering'))
             else:
                 flash(u'کلمه عبور مطابقت ندارد', 'danger')
@@ -218,7 +217,6 @@ def home():
 @token_required
 def temp_orders():
     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-    print(session['temp_orders'])
 
     return render_template('user_pannel.html',
         item='orderList',
