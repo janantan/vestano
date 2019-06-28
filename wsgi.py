@@ -1,4 +1,4 @@
 from vestano import app as application
 
-if __name == "__main__":
+if __name__ == "__main__":
 	application.run()

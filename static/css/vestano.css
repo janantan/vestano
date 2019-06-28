@@ -541,12 +541,36 @@ a.button:active {
     text-align: center;
 }
 
+.vw22 {
+    width: 22vw !important;
+}
+
+.vw20 {
+    width: 20vw !important;
+}
+
+.vw18 {
+    width: 18vw !important;
+}
+
+.vw14 {
+    width: 14vw !important;
+}
+
+.vw13 {
+    width: 13vw !important;
+}
+
 .vw15 {
     width: 15vw !important;
 }
 
 .vw8 {
     width: 8vw !important;
+}
+
+.vw6 {
+    width: 6vw !important;
 }
 
 .vw12 {

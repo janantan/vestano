@@ -35,6 +35,11 @@ class Products(ComplexModel):
     percentDiscount = Integer
     description = Unicode
 
+class Codes(ComplexModel):
+    __namespace__ = "codes"
+    Name = Unicode
+    Code = Integer
+
 class SomeSoapService(spyne.Service):
     __service_url_path__ = '/soap/VestanoWebService'
     __in_protocol__ = Soap11(validator='lxml')
@@ -44,90 +49,116 @@ class SomeSoapService(spyne.Service):
         Array(Products), Integer, Integer, String, String, _returns=String)
     def NewOrder(username, password, vendorName, registerFirstName, registerLastName, registerCellNumber,
         stateCode, cityCode, registerAddress, registerPostalCode, products, serviceType, payType, orderDate, orderTime):
-        if username:
-            if password:
-                user_result = cursor.api_users.find_one({"username": username})
-                if user_result:
-                    if sha256_crypt.verify(password, user_result['password']):
-                        p_list = []
-                        price = 0
-                        count = 0
-                        weight = 0
-                        discount = 0
-                        for i in range(len(products)):
-                            p_dict = {}
-                            p_dict['productName'] = products[i].productName
-                            p_dict['count'] = products[i].count
-                            p_dict['price'] = products[i].price
-                            p_dict['weight'] = products[i].weight
-                            p_dict['percentDiscount'] = products[i].percentDiscount
-                            p_dict['description'] = products[i].description
-                            price = price + products[i].price*products[i].count
-                            count = count + products[i].count
-                            weight = weight + products[i].weight
-                            discount = discount + products[i].percentDiscount
-
-                            p_list.append(p_dict)
-
-                        (sType, pType) = utils.typeOfServicesToString(serviceType, payType)
-
-                        order_id = str(random2.randint(1000000, 9999999))
-
-                        input_data = {
-                        'vendorName' : vendorName,
-                        'orderId' : order_id,
-                        'registerFirstName' : registerFirstName,
-                        'registerLastName' : registerLastName,
-                        'registerCellNumber' : registerCellNumber,
-                        'stateCode' : stateCode,
-                        'cityCode' : cityCode,
-                        'registerAddress' : registerAddress,
-                        'registerPostalCode' : registerPostalCode,
-                        'products' : p_list,
-                        'serviceType' : sType,
-                        'payType' : pType,
-                        'record_date': orderDate,
-                        'record_time': orderTime,
-                        'status' : 'on process'
-                        }
-
-                        order = {
-                        'cityCode': cityCode,
-                        'price': price,
-                        'weight': weight,
-                        'count': count,
-                        'serviceType': serviceType,
-                        'payType': payType,
-                        'description': '',
-                        'percentDiscount': discount,
-                        'firstName': registerFirstName,
-                        'lastName': registerLastName,
-                        'address': registerAddress,
-                        'phoneNumber': '',
-                        'cellNumber': registerCellNumber,
-                        'postalCode': registerPostalCode,
-                        'products': p_list
-                        }
-
-                        print(order)
-                        print('%%%%%%%%%%%%%%%%%%%%%')
-
-                        cursor.temp_orders.insert_one(input_data)
-                        cursor.all_records.insert_one(input_data)
-                        #print(utils.SoapClient(order))
-                        return order_id
-                    else:
-                        print('The Password Does Not Match!')
-                        return(jsonify('The Password Does Not Match!'))
-                else:
-                    print('Not Signed up Username!')
-                    return(jsonify('Not Signed up Username!'))
-            else:
-                print('Missed Password Field!')
-                return(jsonify('Missed Password Field!'))
-        else:
+        if not username:
             print('Missed Username Field!')
-            return(jsonify('Missed Username Field!'))
+            return "4"
+        if not password:
+            print('Missed Password Field!')
+            return "3"
+        user_result = cursor.api_users.find_one({"username": username})
+        if user_result:
+            if sha256_crypt.verify(password, user_result['password']):
+                if not serviceType:
+                    return "0"
+                if not payType:
+                    return "0"
+                p_list = []
+                price = 0
+                count = 0
+                weight = 0
+                discount = 0
+                for i in range(len(products)):
+                    p_dict = {}
+                    p_dict['productName'] = products[i].productName
+                    p_dict['count'] = products[i].count
+                    p_dict['price'] = products[i].price
+                    p_dict['weight'] = products[i].weight
+                    p_dict['percentDiscount'] = products[i].percentDiscount
+                    p_dict['description'] = products[i].description
+                    price = price + products[i].price*products[i].count
+                    count = count + products[i].count
+                    weight = weight + products[i].weight
+                    discount = discount + products[i].percentDiscount
+
+                    p_list.append(p_dict)
+
+                (sType, pType) = utils.typeOfServicesToString(serviceType, payType)
+
+                order_id = str(random2.randint(1000000, 9999999))
+
+                input_data = {
+                'vendorName' : vendorName,
+                'orderId' : order_id,
+                'registerFirstName' : registerFirstName,
+                'registerLastName' : registerLastName,
+                'registerCellNumber' : registerCellNumber,
+                'stateCode' : stateCode,
+                'cityCode' : cityCode,
+                'registerAddress' : registerAddress,
+                'registerPostalCode' : registerPostalCode,
+                'products' : p_list,
+                'serviceType' : sType,
+                'payType' : pType,
+                'record_date': orderDate,
+                'record_time': orderTime,
+                'status' : 80
+                }
+
+                #order = {
+                #'cityCode': cityCode,
+                #'price': price,
+                #'weight': weight,
+                #'count': count,
+                #'serviceType': serviceType,
+                #'payType': payType,
+                #'description': '',
+                #'percentDiscount': discount,
+                #'firstName': registerFirstName,
+                #'lastName': registerLastName,
+                #'address': registerAddress,
+                #'phoneNumber': '',
+                #'cellNumber': registerCellNumber,
+                #'postalCode': registerPostalCode,
+                #'products': p_list
+                #}
+
+                if order_id :
+                    cursor.temp_orders.insert_one(input_data)
+                    cursor.all_records.insert_one(input_data)
+                    #cursor.status.insert_one(input_data)
+                    #print(utils.SoapClient(order))
+                    return order_id
+                else:
+                    print('Error in enterance data!')
+                    return "0"
+            else:
+                print('The Password Does Not Match!')
+                return "1"
+        else:
+            print('Not Signed up Username!')
+            return "2"
+
+    @spyne.srpc(String, String, _returns=Array(Codes))
+    def GetStates(username, password):
+        user_result = cursor.api_users.find_one({"username": username})
+        if user_result:
+            if sha256_crypt.verify(password, user_result['password']):
+                states_list = []
+                state_result = cursor.states.find()
+                for rec in state_result:
+                    states_list.append({'Name': rec['Name'], 'Code': rec['Code']})
+                return states_list
+
+    @spyne.srpc(String, String, Integer, _returns=Array(Codes))
+    def GetCities(username, password, stateCode):
+        user_result = cursor.api_users.find_one({"username": username})
+        if user_result:
+            if sha256_crypt.verify(password, user_result['password']):
+                cities_list = []
+                city_result = cursor.states.find_one({'Code': stateCode})
+                for rec in city_result['Cities']:
+                    cities_list.append({'Name': rec['Name'], 'Code': rec['Code']})
+                return cities_list
 
 def token_required(f):
     @wraps(f)
@@ -211,6 +242,7 @@ def login():
 def home():
     #parcelCode = '21868075911930365800'
     #utils.ReadyToShip(parcelCode)
+    utils.GetStatus(cursor)
     return render_template('home.html')
 
 @app.route('/user-pannel/orderList', methods=['GET', 'POST'])
@@ -262,19 +294,22 @@ def confirm_orders(code):
         'products': result['products']
         }
         #soap_result = utils.SoapClient(order)
-        soap_result = {'ErrorCode' :0, 'ParcelCode': '8002123658485689'}
+        soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011930748946'}
         print(soap_result)
         if not soap_result['ErrorCode']:
 
-            new_rec['status'] = 'ready to ship'
             new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
             print(new_rec['record_datetime'])
             new_rec['ParcelCode'] = soap_result['ParcelCode']
             new_rec['username'] = session['username']
 
             #utils.ReadyToShip(soap_result['ParcelCode'])
+            new_rec['status'] = utils.GetStatus_one(cursor, soap_result['ParcelCode'])
+            print(new_rec['status'])
 
             cursor.orders.insert_one(new_rec)
+            new_rec['last update'] = datetime.datetime.now()
+            cursor.status.insert_one(new_rec)
             cursor.temp_orders.remove({'orderId': code})
 
             session['temp_orders'] = cursor.temp_orders.estimated_document_count()
@@ -306,7 +341,7 @@ def ordering(item):
                 record['cityCode'] = int(request.form.get('cityCode'))
                 record['registerAddress'] = request.form.get('address')
                 record['registerPostalCode'] = request.form.get('postal_code')
-                record['status'] = 'ready to ship'
+                record['status'] = ''
 
                 for i in range (1, 100):
                     if request.form.get('product_'+str(i)):
@@ -373,19 +408,19 @@ def ordering(item):
                 #else:
                     #flash(u'خطایی رخ داده است!', 'error')
 
-                cursor.orders.insert_one(record)
+                #cursor.orders.insert_one(record)
 
                 r = cursor.orders.find_one({'orderId':record['orderId']})
                 temp_order = {
-                'vendorName' : u'رژیاپ',
-                'registerFirstName' : r['registerFirstName'],
-                'registerLastName' : r['registerLastName'],
-                'registerCellNumber' : r['registerCellNumber'],
-                'stateCode' : int(r['stateCode']),
-                'cityCode' : int(r['cityCode']),
-                'registerAddress' : r['registerAddress'],
-                'registerPostalCode' : r['registerPostalCode'],
-                'products' : r['products'],
+                'vendorName' : u'روژیاپ',
+                'registerFirstName' : record['registerFirstName'],
+                'registerLastName' : record['registerLastName'],
+                'registerCellNumber' : record['registerCellNumber'],
+                'stateCode' : int(record['stateCode']),
+                'cityCode' : int(record['cityCode']),
+                'registerAddress' : record['registerAddress'],
+                'registerPostalCode' : record['registerPostalCode'],
+                'products' : ordered_products,
                 'serviceType' : int(request.form.get('serviceType')),
                 'payType' : pTypeCode,
                 'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),

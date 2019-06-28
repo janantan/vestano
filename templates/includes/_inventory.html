@@ -2,8 +2,8 @@
 	<legend>لیست موجودی انبار:</legend>
 	<table id="inventory">
 		<thead>
-			<tr style="background: yellow;">
-				<th style="width: 50px;">
+			<tr style="background: yellow;" class="first-row">
+				<th style="width: 4vw;">
 					<span>ردیف</span>
 				</th>
 				<th class="vw15">
@@ -12,56 +12,80 @@
 				<th class="vw8">
 					<span>شناسه کالا</span>
 				</th>
-				<th>
+				<th class="vw10">
+					<span>شرکت فروشنده</span>
+				</th>
+				<th class="vw6">
 					<span>موجودی</span>
 				</th>
-				<th class="font12">
-					<span>ارسال شده</span>
+				<th class="font12 vw8">
+					<span>در صف پردازش</span>
 				</th>
-				<th class="font12">
+				<th class="font12 vw6">
 					<span>آماده ارسال</span>
 				</th>
-				<th class="font12">
-					<span>در دست بررسی</span>
+				<th class="font12 vw8">
+					<span>ارسال شده از وستانو</span>
 				</th>
-				<th class="font12">
+				<th class="font12 vw6">
+					<span>توزیع شده</span>
+				</th>
+				<th class="font12 vw6">
+					<span>تسویه شده</span>
+				</th>
+				<th class="font12 vw6">
 					<span>برگشتی</span>
 				</th>
-				<th class="vw8">
-					<span>تاریخ ثبت رکورد</span>
+				<th class="font12 vw6">
+					<span>در انتظار کالا</span>
 				</th>
-				<th style="width: 15px;"></th>
+				<th class="font12 vw6">
+					<span>سایر وضعیت ها</span>
+				</th>
+				<th style="width: 0.8vw;"></th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for rec in inventory %}
 				<tr class="rows">
-					<td style="width: 50px;">
+					<td style="width: 3.5vw;">
 						<span>{{loop.index}}</span>
 					</td>
-					<td class="vw15">
+					<td class="vw14">
 						<span>{{rec[0]}}</span>
 					</td>
 					<td class="vw8">
 						<span>{{rec[1]}}</span>
 					</td>
-					<td>
+					<td class="vw10">
+						<span>روژیاپ</span>
+					</td>
+					<td class="vw6">
 						<span>{{rec[2]}}</span>
 					</td>
-					<td>
+					<td class="vw8">
 						<span class="blue">5</span>
 					</td>
-					<td>
+					<td class="vw6">
 						<span>3</span>
 					</td>
-					<td>
+					<td class="vw8">
 						<span>4</span>
 					</td>
-					<td>
+					<td class="vw6">
+						<span>1</span>
+					</td>
+					<td class="vw6">
+						<span>4</span>
+					</td>
+					<td class="vw6">
+						<span>1</span>
+					</td>
+					<td class="vw6">
 						<span class="red">2</span>
 					</td>
-					<td class="vw8">
-						<span>{{rec[3]}}</span>
+					<td class="vw6">
+						<span>4</span>
 					</td>
 				</tr>
 			{% endfor %}

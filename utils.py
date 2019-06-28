@@ -16,7 +16,8 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-test_uri = 'http://127.0.0.1:5000/soap/VestanoWebService?wsdl'
+#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
 #imp = Import('http://schemas.xmlsoap.org/soap/encoding/', location='http://schemas.xmlsoap.org/soap/encoding/')
@@ -65,7 +66,7 @@ def inventory(cursor):
     result = cursor.vestano_inventory.find()
     inventory = []
     for r in result:
-        inventory.append((r['product'], r['product_id'], r['number'], r['record_datetime']))
+        inventory.append((r['productName'], r['productId'], r['count'], r['datetime'], r['percentDiscount']))
     return inventory
 
 def accounting(cursor):
@@ -76,12 +77,42 @@ def accounting(cursor):
         record.append((r['order_id'], int(r['total_cost']), int(r['vestano_post_cost']), r['record_datetime']))
     return record
 
+def inventory_onclick(cursor, Id, item):
+    if item == "inventory_count":
+        repo_rec = cursor.repo_records.find_one({'productId': Id})
+        result = (repo_rec['action'], repo_rec['datetime_rec'], repo_rec['counts'], repo_rec['receiver'],
+            repo_rec['vendorsAgent'])
+    elif item == 'productId':
+        pass
+    elif item == 'on_process':
+        rec = details(cursor, Id)
+        if not rec:
+            return None
+        result = (rec[0], rec[9], rec[2], rec[3], rec[4], rec[8], rec[6], rec[7])
+    elif item == 'ready_to_ship':
+        pass
+    elif item == 'posted_from_vestano':
+        pass
+    elif item == 'distributed':
+        pass
+    elif item == 'ponied_up':
+        pass
+    elif item == 'returned':
+        pass
+    elif item == 'wait_for_stuff':
+        pass
+    elif item == 'other':
+        pass
+
+
 def details(cursor, code):
     city = ""
     price = 0
     count = 0
     discount = 0
     r = cursor.temp_orders.find_one({'orderId': code})
+    if not r:
+        return None
     state_result = cursor.states.find_one({'Code': r['stateCode']})
     for rec in state_result['Cities']:
         if r['cityCode'] == rec['Code']:
@@ -148,8 +179,8 @@ def cities(cursor, code):
     return ans
 
 def Products(cursor, product):
-    result = cursor.vestano_inventory.find_one({'product': product})
-    ans = {'price':result['price'], 'weight':result['weight']}
+    result = cursor.vestano_inventory.find_one({'productName': product})
+    ans = {'price':result['price'], 'weight':result['weight'], 'discount':result['percentDiscount']}
     return ans
 
 def GetCities(stateId):
@@ -176,6 +207,44 @@ def GetStates():
         states_list.append(client.dict(item))
     return states_list
 
+def GetStatus(cursor):
+    client = Client(API_URI)
+    status_records = cursor.status.find()
+    for rec in status_records:
+        status = client.service.GetStatus(username = username, password = password,
+            parcelCode=rec['parcelCode'])
+        orders_records = cursor.orders.find_one({'parcelCode': rec['parcelCode']})
+        if orders_records['status'] != status:
+            cursor.orders.update_many(
+                {'parcelCode': rec['parcelCode']},
+                {'$set':{
+                'status': status,
+                'lastUpdate' : datetime.datetime.now()
+                }
+                }
+                )
+        if (status == 11) or (status == 71):
+            cursor.status.remove({'parcelCode': rec['parcelCode']})
+        elif rec['status'] != status:
+            cursor.status.update_many(
+                {'parcelCode': rec['parcelCode']},
+                {'$set':{
+                'status': status,
+                'lastUpdate' : datetime.datetime.now()
+                }
+                }
+                )
+
+        #print(status)
+    #print(client.service.GetStatus(username = username, password = password,
+            #parcelCode='21868000011930748946'))
+
+def GetStatus_one(cursor, parcelCode):
+    client = Client(API_URI)
+    status = client.service.GetStatus(username = username, password = password,
+            parcelCode=parcelCode)
+    return status
+
 def ReadyToShip(parcelCode):
     client = Client(API_URI)
     param = {
@@ -187,9 +256,19 @@ def ReadyToShip(parcelCode):
     client.service.ReadyToShip(**param)
 
 def test_temp_order(temp_order):
-    client = Client(test_uri, cache=None)
-    #print(client)
-    products = client.factory.create('ns0:ProductsArray')
+    client = Client(VESTANO_API, cache=None)
+    print(client)
+    print('&&&&&&&&&&&&&&&&&&&&')
+    print(Client(API_URI))
+    #codes = client.factory.create('ns0:CodesArray')
+    #print(codes)
+    #states = client.service.GetCities(username = 'jan', password = '123', stateCode=9)
+    #print(states)
+    #states_dict = client.dict(states)
+    #for i in range(len(states.Codes)):
+        #print(states.Codes[i].Code)
+
+    products = client.factory.create('ns1:ProductsArray')
     order = temp_order
     order['username'] = 'jan'
     order['password'] = '123'
@@ -198,10 +277,11 @@ def test_temp_order(temp_order):
     order['products'] = products
     print('**************')
     result = client.service.NewOrder(**order)
+    print('api result: ', result)
     return result
 
 def api_test():
-    client = Client(test_uri, cache=None)
+    client = Client(VESTANO_API, cache=None)
     client2 = Client(API_URI)
     param_list = []
     param = {
