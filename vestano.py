@@ -28,12 +28,10 @@ spyne = Spyne(app)
 #Create namespace
 class Products(ComplexModel):
     __namespace__ = "products"
-    productName = Unicode
+    productId = String
     count = Integer
     price = Integer
-    weight = Integer
     percentDiscount = Integer
-    description = Unicode
 
 class Codes(ComplexModel):
     __namespace__ = "codes"
@@ -51,17 +49,17 @@ class SomeSoapService(spyne.Service):
         stateCode, cityCode, registerAddress, registerPostalCode, products, serviceType, payType, orderDate, orderTime):
         if not username:
             print('Missed Username Field!')
-            return "4"
+            return 4
         if not password:
             print('Missed Password Field!')
-            return "3"
+            return 3
         user_result = cursor.api_users.find_one({"username": username})
         if user_result:
             if sha256_crypt.verify(password, user_result['password']):
                 if not serviceType:
-                    return "0"
+                    return 0
                 if not payType:
-                    return "0"
+                    return 0
                 p_list = []
                 price = 0
                 count = 0
@@ -69,15 +67,21 @@ class SomeSoapService(spyne.Service):
                 discount = 0
                 for i in range(len(products)):
                     p_dict = {}
-                    p_dict['productName'] = products[i].productName
+                    p_details = cursor.vestano_inventory.find_one({'productId': products[i].productId})
+                    print('p_details: ', p_details)
+                    if not p_details:
+                        print('Error in enterance data!')
+                        return 0
+                    p_dict['productId'] = products[i].productId
+                    p_dict['productName'] = p_details['productName']
                     p_dict['count'] = products[i].count
                     p_dict['price'] = products[i].price
-                    p_dict['weight'] = products[i].weight
+                    p_dict['weight'] = p_details['weight']
                     p_dict['percentDiscount'] = products[i].percentDiscount
-                    p_dict['description'] = products[i].description
+                    p_dict['description'] = p_details['description']
                     price = price + products[i].price*products[i].count
                     count = count + products[i].count
-                    weight = weight + products[i].weight
+                    weight = weight + p_details['weight']
                     discount = discount + products[i].percentDiscount
 
                     p_list.append(p_dict)
@@ -101,42 +105,30 @@ class SomeSoapService(spyne.Service):
                 'payType' : pType,
                 'record_date': orderDate,
                 'record_time': orderTime,
+                'parcelCode': '-',
                 'status' : 80
                 }
-
-                #order = {
-                #'cityCode': cityCode,
-                #'price': price,
-                #'weight': weight,
-                #'count': count,
-                #'serviceType': serviceType,
-                #'payType': payType,
-                #'description': '',
-                #'percentDiscount': discount,
-                #'firstName': registerFirstName,
-                #'lastName': registerLastName,
-                #'address': registerAddress,
-                #'phoneNumber': '',
-                #'cellNumber': registerCellNumber,
-                #'postalCode': registerPostalCode,
-                #'products': p_list
-                #}
 
                 if order_id :
                     cursor.temp_orders.insert_one(input_data)
                     cursor.all_records.insert_one(input_data)
-                    #cursor.status.insert_one(input_data)
-                    #print(utils.SoapClient(order))
+                    for i in range(len(input_data['products'])):
+                        vinvent = cursor.vestano_inventory.find_one({'productId':input_data['products'][i]['productId']})
+                        vinvent['status']['80']+= input_data['products'][i]['count']
+                        cursor.vestano_inventory.update_many(
+                            {'productId': vinvent['productId']},
+                            {'$set':{'status': vinvent['status']}}
+                            )
                     return order_id
                 else:
                     print('Error in enterance data!')
-                    return "0"
+                    return 0
             else:
                 print('The Password Does Not Match!')
-                return "1"
+                return 1
         else:
             print('Not Signed up Username!')
-            return "2"
+            return 2
 
     @spyne.srpc(String, String, _returns=Array(Codes))
     def GetStates(username, password):
@@ -190,6 +182,7 @@ def token_required(f):
                 session['message'] = result['name']
                 session['role'] = result['role']
                 session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+                session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
                 flash(result['name'] + u' عزیز خوش آمدید', 'success-login')
         
         else:
@@ -242,13 +235,15 @@ def login():
 def home():
     #parcelCode = '21868075911930365800'
     #utils.ReadyToShip(parcelCode)
-    utils.GetStatus(cursor)
+    #utils.GetStatus(cursor)
+    #utils.init_status_inventory()
     return render_template('home.html')
 
-@app.route('/user-pannel/orderList', methods=['GET', 'POST'])
+@app.route('/user-pannel/orderList', methods=['GET'])
 @token_required
 def temp_orders():
     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item='orderList',
@@ -257,14 +252,12 @@ def temp_orders():
         states = utils.states(cursor)
         )
 
-@app.route('/confirm-order/<code>', methods=['GET', 'POST'])
+@app.route('/confirm-order/<code>', methods=['GET'])
 @token_required
 def confirm_orders(code):
-    print(code)
     result = cursor.temp_orders.find_one({"orderId": code})
     if result:
         (sType, pType) = utils.typeOfServicesToCode(result['serviceType'], result['payType'])
-        print(sType, pType)
         new_rec = result
         price = 0
         count = 0
@@ -294,23 +287,50 @@ def confirm_orders(code):
         'products': result['products']
         }
         #soap_result = utils.SoapClient(order)
-        soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011930748946'}
-        print(soap_result)
+        #print('errorcode: ', soap_result['ErrorCode'])
+        soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408'}
+        if soap_result['ErrorCode'] == -6:
+            postal_code_db = cursor.postal_codes.find_one({'Code': result['stateCode']})
+            print("postal_code_db['Code']: ", postal_code_db['Code'])
+            postalCode_flag = 1
+            for i in range (len(postal_code_db['postalCodes'])):
+                if result['cityCode'] == postal_code_db['postalCodes'][i]['Code']:
+                    order['postalCode'] = postal_code_db['postalCodes'][i]['postalCode']
+                    new_rec['postalCode'] = postal_code_db['postalCodes'][i]['postalCode']
+                    postalCode_flag = 0
+                    break
+            if postalCode_flag:
+                order['postalCode'] = postal_code_db['refPostalCode']
+                new_rec['postalCode'] = postal_code_db['refPostalCode']
+
+            soap_result = utils.SoapClient(order)
+
+
+        
         if not soap_result['ErrorCode']:
 
             new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
-            print(new_rec['record_datetime'])
-            new_rec['ParcelCode'] = soap_result['ParcelCode']
+            new_rec['parcelCode'] = soap_result['ParcelCode']
             new_rec['username'] = session['username']
 
             #utils.ReadyToShip(soap_result['ParcelCode'])
             new_rec['status'] = utils.GetStatus_one(cursor, soap_result['ParcelCode'])
-            print(new_rec['status'])
+            new_rec['status_updated'] = False
 
             cursor.orders.insert_one(new_rec)
             new_rec['last update'] = datetime.datetime.now()
             cursor.status.insert_one(new_rec)
             cursor.temp_orders.remove({'orderId': code})
+
+            #update status in vestano_inventory
+            for i in range(len(new_rec['products'])):
+                vinvent = cursor.vestano_inventory.find_one({'productId':new_rec['products'][i]['productId']})
+                vinvent['status'][str(new_rec['status'])]+= new_rec['products'][i]['count']
+                vinvent['status']['80']-= new_rec['products'][i]['count']
+                cursor.vestano_inventory.update_many(
+                    {'productId': vinvent['productId']},
+                    {'$set':{'status': vinvent['status']}}
+                    )
 
             session['temp_orders'] = cursor.temp_orders.estimated_document_count()
             flash(u'سفارش تایید و ثبت شد!', 'success')
@@ -322,11 +342,107 @@ def confirm_orders(code):
     return render_template('user_pannel.html',
         item='orderList')
 
+@app.route('/user-pannel/canceled-orders', methods=['GET'])
+@token_required
+def canceled_orders():
+    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
+
+    return render_template('user_pannel.html',
+        item='cnlOrders',
+        inventory = utils.inventory(cursor),
+        canceled_orders = utils.canceled_orders(cursor),
+        states = utils.states(cursor)
+        )
+
+@app.route('/cancel-order/<orderId>', methods=['GET'])
+@token_required
+def cancel_orders(orderId):
+    print(orderId)
+    rec = cursor.temp_orders.find_one({'orderId': orderId})
+    cursor.canceled_orders.insert_one(rec)
+    for i in range(len(rec['products'])):
+        vinvent = cursor.vestano_inventory.find_one({'productId':rec['products'][i]['productId']})
+        vinvent['status']['80']-= rec['products'][i]['count']
+        cursor.vestano_inventory.update_many(
+            {'productId': vinvent['productId']},
+            {'$set':{'status': vinvent['status']}}
+            )
+    cursor.temp_orders.remove({'orderId': orderId})
+    return redirect(url_for('temp_orders'))
+
+@app.route('/edit-order/<orderId>', methods=['GET', 'POST'])
+@token_required
+def edit_orders(orderId):
+    edit_result = cursor.canceled_orders.find_one({'orderId': orderId})
+    state_result = cursor.states.find_one({'Code': edit_result['stateCode']})
+    stateName = state_result['Name']
+    for rec in state_result['Cities']:
+        if edit_result['cityCode'] == rec['Code']:
+            cityName = rec['Name']
+            break
+
+    (serviceType, payType) = utils.typeOfServicesToCode(edit_result['serviceType'], edit_result['payType'])
+
+    if request.method == 'POST':
+        temp_order_products = []
+        for i in range (1, 100):
+            if request.form.get('product_'+str(i)):
+                temp_order_product = {}
+                temp_order_product['productId'] = request.form.get('product_'+str(i))
+                temp_order_product['count'] = int(request.form.get('count_'+str(i)))
+                temp_order_product['price'] = int(request.form.get('price_'+str(i)))
+                temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+
+                temp_order_products.append(temp_order_product)
+
+        if len(request.form.getlist('free')):
+            (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')), 88)
+            pTypeCode = 88
+        else:
+            (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')),
+                int(request.form.get('payType')))
+            pTypeCode = int(request.form.get('payType'))
+
+        temp_order = {
+        'vendorName' : u'روژیاپ',
+        'registerFirstName' : request.form.get('first_name'),
+        'registerLastName' : request.form.get('last_name'),
+        'registerCellNumber' : request.form.get('cell_number'),
+        'stateCode' : int(request.form.get('stateCode')),
+        'cityCode' : int(request.form.get('cityCode')),
+        'registerAddress' : request.form.get('address'),
+        'registerPostalCode' : request.form.get('postal_code'),
+        'products' : temp_order_products,
+        'serviceType' : int(request.form.get('serviceType')),
+        'payType' : pTypeCode,
+        'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
+        'orderTime': jdatetime.datetime.now().strftime('%M : %H')
+        }
+
+        flash(u'ثبت شد!', 'success')
+
+        print(utils.test_temp_order(temp_order))
+
+        cursor.canceled_orders.remove({'orderId': orderId})
+
+
+    return render_template('includes/_editOrder.html',
+        inventory = utils.inventory(cursor),
+        states = utils.states(cursor),
+        data = edit_result,
+        stateName = stateName,
+        cityName = cityName,
+        sType=serviceType,
+        pType=payType
+        )
+
 @app.route('/user-pannel/<item>', methods=['GET', 'POST'])
 @token_required
 def ordering(item):
     if 'username' in session:
         session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+        session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
         ordered_products = []
         username = session['username']
         if item == 'ordering':
@@ -343,33 +459,40 @@ def ordering(item):
                 record['registerPostalCode'] = request.form.get('postal_code')
                 record['status'] = ''
 
+                temp_order_products = []
                 for i in range (1, 100):
                     if request.form.get('product_'+str(i)):
                         ordered_product = {}
-                        ordered_product['productName'] = request.form.get('product_'+str(i))
+                        temp_order_product = {}
+                        ordered_product['productId'] = request.form.get('product_'+str(i))
+                        temp_order_product['productId'] = request.form.get('product_'+str(i))
+                        o_r = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(i))})
+                        #ordered_product['productName'] = request.form.get('product_'+str(i))
+                        ordered_product['productName'] = o_r['productName']
                         ordered_product['count'] = int(request.form.get('count_'+str(i)))
+                        temp_order_product['count'] = int(request.form.get('count_'+str(i)))
                         ordered_product['price'] = int(request.form.get('price_'+str(i)))
+                        temp_order_product['price'] = int(request.form.get('price_'+str(i)))
                         ordered_product['weight'] = int(request.form.get('weight_'+str(i)))
-                        ordered_product['percentDiscount'] = 0
-                        ordered_product['description'] = u''
+                        ordered_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+                        temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+                        ordered_product['description'] = o_r['description']
 
                         ordered_products.append(ordered_product)
-                        print(ordered_products)
+                        temp_order_products.append(temp_order_product)
+                        #print(ordered_products)
 
-                print(request.form.get('serviceType'))
-                print(request.form.get('payType'))
-
-                (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')), int(request.form.get('payType')))
+                if len(request.form.getlist('free')):
+                    (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')), 88)
+                    pTypeCode = 88
+                else:
+                    (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')),
+                        int(request.form.get('payType')))
+                    pTypeCode = int(request.form.get('payType'))
 
                 record['products'] = ordered_products
                 record['serviceType'] = sType
-                if len(request.form.getlist('free')):
-                    record['payType'] = u'ارسال رایگان'
-                    pType = u'ارسال رایگان'
-                    pTypeCode = 88
-                else:
-                    record['payType'] = pType
-                    pTypeCode = int(request.form.get('payType'))
+                record['payType'] = pType
 
                 price = 0
                 counts = 0
@@ -420,14 +543,14 @@ def ordering(item):
                 'cityCode' : int(record['cityCode']),
                 'registerAddress' : record['registerAddress'],
                 'registerPostalCode' : record['registerPostalCode'],
-                'products' : ordered_products,
+                'products' : temp_order_products,
                 'serviceType' : int(request.form.get('serviceType')),
                 'payType' : pTypeCode,
                 'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
                 'orderTime': jdatetime.datetime.now().strftime('%M : %H')
                 }
 
-                print(temp_order)
+                #print(temp_order)
                 flash(u'ثبت شد!', 'success')
 
                 print(utils.test_temp_order(temp_order))
@@ -446,6 +569,7 @@ def ordering(item):
 @token_required
 def inventory(category):
     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item="inventory",
@@ -458,10 +582,10 @@ def inventory(category):
 @token_required
 def accounting():
     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item="accounting",
-        inventory = utils.inventory(cursor),
         accounting = utils.accounting(cursor),
         states = utils.states(cursor)
         )
@@ -469,6 +593,7 @@ def accounting():
 @app.route('/about')
 def about():
     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
     return render_template('about.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -537,6 +662,7 @@ def logout():
     session.pop('username', None)
     session.pop('message', None)
     session.pop('temp_orders', None)
+    session.pop('canceled_orders', None)
     session.pop('role', None)
     return redirect(url_for('login'))
 
@@ -555,13 +681,32 @@ def ajax():
         
     return jsonify(result)
 
-@app.route('/orders-details/<code>', methods=['GET', 'POST'])
+@app.route('/orders-details/<orderId>/<code>', methods=['GET', 'POST'])
 @token_required
-def details(code):
+def order_details(orderId, code):
 
     return render_template('includes/_orderDetails.html',
-        details = utils.details(cursor, code)
+        code = code,
+        details = utils.details(cursor, orderId, code)
         )
+
+@app.route('/inventory-details/<status>/<productId>', methods=['GET', 'POST'])
+@token_required
+def inventory_details(status, productId):
+
+    return render_template('includes/_inventoryDetails.html',
+        details = utils.inventory_details(cursor, status, productId)
+        )
+
+@app.route('/update-status', methods=['GET'])
+@token_required
+def update_status():
+    update = utils.GetStatus(cursor)
+    if update:
+        flash(u"تغییرات بروزرسانی شد.", 'success')
+    else:
+        flash(u"تغییری مشاهده نشد.", 'success')
+    return redirect(request.referrer)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug = True)

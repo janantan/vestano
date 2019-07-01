@@ -11,7 +11,9 @@
     </head>
     <body>
         <header id="main-header" class="clearfix">
-            {% include 'includes/_navbar.html' %}            
+            {% if 'username' in session %}
+                {% include 'includes/_navbar.html' %}            
+            {% endif %}
         </header>
 
         {% if request.url_rule.rule[1] %}

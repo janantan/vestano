@@ -10,6 +10,16 @@
         url("/static/fonts/BNazanin.ttf") format('truetype');
 }
 
+@font-face {
+    font-family: "B-Roya";
+    src:url("/static/fonts/B Roya.ttf") format('truetype'); 
+}
+
+@font-face {
+    font-family: "W-aban";
+    src:url("/static/fonts/W-aban.ttf") format('truetype'); 
+}
+
 div,ul,li,a,span,form,td,tr,table,h1, h2, h3, h4, h5, h6,tr,ol{
 direction: rtl;
 }
@@ -20,7 +30,7 @@ body, html {
 }
 
 html {
-    /*background: #fafafa;*/
+    /*background: #f1f1f1;*/
     background: #0b4158;
     font-family: "BNazanin", Helvetica, Arial, sans-serif;
     font-size: 18px;
@@ -185,7 +195,7 @@ a.button:active {
     left:0px;
     width:100%;
     height:100%;
-    opacity: 0.7;
+    opacity: 0.8;
     z-index:-1;
 }
 
@@ -194,14 +204,28 @@ a.button:active {
     top:17vh;
     right:10vw;
     width:18vw;
-    height:38vh;
+    height:45vh;
     background: none;
     border: 1px solid rgb(215, 212, 207);
+}
+
+#fp-vestano {
+    position: fixed;
+    top: 30vh;
+    left: 10vw;
+    background: none;
 }
 
 #fp-login legend{
     color: rgb(215, 212, 207);
     font-weight: normal;
+}
+
+#fp-login {
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 7px;
+    font-size: 18px;
 }
 
 #fp-register {
@@ -253,10 +277,6 @@ a.button:active {
     position: fixed;
     top: -3vh;
     right: -2vw;
-}
-
-#first-statement figure {
-    margin: -100px 0 0 0;
 }
 
 #first-statement figure img {
@@ -591,6 +611,10 @@ a.button:active {
 
 .font14 {
     font-size: 14px;
+}
+
+.font16 {
+    font-size: 16px;
 }
 
 .blue {

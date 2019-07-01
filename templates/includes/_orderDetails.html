@@ -10,7 +10,7 @@
     <body class="card" style="direction: rtl; margin: 0 auto;">
     	<fieldset class="fieldset" style="background-color: #bcd1fe">
     		<div>
-    			اطلاعات سفارش
+    			<span style="font-weight: bold;">اطلاعات سفارش</span>
     		</div>
 			<table id="temp-ord">
 				<tr>
@@ -69,9 +69,15 @@
 					<td>
 						<span class="blue bold">وضعیت:</span>
 					</td>
-					<td>
-						<span>در حال پردازش</span>
-					</td>
+					{% if code == 'temp' %}
+						<td>
+							<span>در حال پردازش</span>
+						</td>
+					{% elif code == 'cnl' %}
+						<td>
+							<span>لغو شده</span>
+						</td>
+					{% endif %}
 					<td>
 						<span class="blue bold">سرویس پستی:</span>
 					</td>
@@ -105,7 +111,7 @@
 				<table id="temp-ord-products">
 					<tr class="bg-yellow">
 						<td class="vw18 right">
-							<span>نام کالا</span>
+							<span>نام کالا </span><span class="font14" style="color: red;">(موجودی انبار)</span>
 						</td>
 						<td class="vw10">
 							<span>قیمت واحد</span>
@@ -129,7 +135,7 @@
 					{% for p in details[9] %}
 						<tr>
 							<td class="vw18 right font14">
-								<span>{{p['productName']}}</span>
+								<span>{{p['productName']}} </span><span style="color: red;">({{p['inventory_count']}})</span>
 							</td>
 							<td class="vw10">
 								<span>{{p['price']}}</span>
@@ -183,12 +189,18 @@
 				</table>
 			</fieldset>
 		</fieldset>
-		<div style="margin-top: 3vh;">
-			<a class="button" href="javascript:confirm('/confirm-order/{{details[13]}}')" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
-			<!--<a class="button" href="/confirm-order/{{details[13]}}" onclick="close_window();" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>-->
-			<a class="button" href="/cancel-order/{{details[13]}}" style="background-color: #f3f3f3;">بازگشت به فروشگاه</a>
-			<a class="button" href="/pending-order/{{details[13]}}" style="background-color: #f3f3f3;">عدم موجودی</a>
-		</div>
+		{% if code == 'temp' %}
+			<div style="margin-top: 3vh;">
+				<a class="button" href="javascript:confirm('/confirm-order/{{details[13]}}')" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
+				<a class="button" href="/cancel-order/{{details[13]}}" onclick="javascript:window.close()" title="ارسال به سفارشات لغو شده" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">لغو سفارش</a>
+				<a class="button" href="/pending-order/{{details[13]}}" title="ارسال به در انتظار کالا" style="background-color: #f3f3f3; float: left;">عدم موجودی</a>
+			</div>
+		{% elif code == 'cnl' %}
+			<div style="margin-top: 3vh;">
+				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3;">ویرایش سفارش</a>
+				<a class="button" href="javascript:delete('/delete-order/{{details[13]}}')" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">حذف سفارش</a>
+			</div>
+		{% endif %}
 
 		<script type="text/javascript">
 			function confirm(url) {
@@ -198,6 +210,26 @@
 
 				window.setTimeout(function(){
 					opener.location.href = '/user-pannel/orderList';
+					close();
+				}, 1000);
+			}
+			function cancel(url) {
+				const xhr = new XMLHttpRequest();
+				xhr.open('GET', url, true);
+				xhr.send();
+
+				window.setTimeout(function(){
+					opener.location.href = '/user-pannel/orderList';
+					close();
+				}, 1000);
+			}
+			function delete(url) {
+				const xhr = new XMLHttpRequest();
+				xhr.open('GET', url, true);
+				xhr.send();
+
+				window.setTimeout(function(){
+					opener.location.href = '/user-pannel/canceled-orders';
 					close();
 				}, 1000);
 			}

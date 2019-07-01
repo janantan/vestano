@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fa-IR" style="padding: 10px 10px;">
+    <head>
+        <title>شرکت وستانو</title>
+        <!--<meta charset="utf-8" />-->
+        <meta content="text/html;charset=UTF-8" http-equiv="Content-Type" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
+    </head>
+    <body class="card" style="direction: rtl; margin: 0 auto;">
+    	<fieldset class="fieldset font16" style="background-color: #bcd1fe">
+			<legend>جزئیات سفارشات:</legend>
+			<table id="inventory">
+				<thead>
+					<tr class="bg-yellow">
+						<th style="width: 4vw;">
+							<span>ردیف</span>
+						</th>
+						<th>
+							<span>شناسه سفارش</span>
+						</th>
+						<th class="vw22">
+							<span>بارکد مرسوله</span>
+						</th>
+						<th class="vw18">
+							<span>تاریخ سفارش</span>
+						</th>
+						<th class="vw15">
+							<span>خریدار</span>
+						</th>
+						<!--<th>
+							<span>تلفن همراه</span>
+						</th>
+						<th>
+							<span>سرویس پستی</span>
+						</th>
+						<th>
+							<span>نوع پرداخت</span>
+						</th>-->
+						<th>
+							<span>تعداد</span>
+						</th>
+						<th>
+							<span>قیمت</span>
+						</th>
+						<th class="vw22">
+							<span>مقصد</span>
+						</th>
+						<th>
+							<span>وضعیت</span>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for i in range(details|length) %}
+					<tr class="rows">
+						<td style="width: 4vw;">
+							<span>{{loop.index}}</span>
+						</td>
+						<td>
+							<span>{{details[i]['orderId']}}</span>
+						</td>
+						<td class="vw18">
+							<span>{{details[i]['parcelCode']}}</span>
+						</td>
+						<td class="vw18">
+							<span>{{details[i]['datetime']}}</span>
+						</td>
+						<td class="vw15">
+							<span>{{details[i]['name']}}</span>
+						</td>
+						<!--<td>
+							<span>{{details[i]['cellNumber']}}</span>
+						</td>
+						<td>
+							<span>{{details[i]['serviceType']}}</span>
+						</td>
+						<td>
+							<span>{{details[i]['payType']}}</span>
+						</td>-->
+						<td>
+							<span>{{details[i]['count']}}</span>
+						</td>
+						<td>
+							<span>{{details[i]['productsCost']}}</span>
+						</td>
+						<td class="vw22">
+							<span>{{details[i]['destination']}}</span>
+						</td>
+						<td>
+							<span>{{details[i]['status']}}</span>
+						</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</fieldset>
+    </body>
+</html>

@@ -65,7 +65,8 @@
                     <select id="product1" name="product_1" onchange="product('product1')" required>
                       <option value="" disabled selected>(انخاب کنید)</option>
                       {% for item in inventory %}
-                        <option value="{{item[0]}}">{{item[0]}}</option>
+                        <option value="{{item[1]}}">{{item[0]}}</option>
+                        }
                       {% endfor %}
                     </select>
                   </td>                  
@@ -97,10 +98,10 @@
               <table id="order-1">
                 <tr>
                   <td>
-                    <label><input type="radio" name="serviceType" value="2"/>سفارشی</label>
+                    <label><input type="radio" name="serviceType" value="2" required/>سفارشی</label>
                   </td>
                   <td>
-                    <label><input type="radio" name="serviceType" value="1"/>پیشتاز</label>
+                    <label><input type="radio" name="serviceType" value="1" required/>پیشتاز</label>
                   </td>
                   <td>
                     <label><input type="checkbox" name="free" value="88"/>ارسال رایگان</label>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fa-IR" style="padding: 10px 10px;">
+    <head>
+        <title>شرکت وستانو</title>
+        <!--<meta charset="utf-8" />-->
+        <meta content="text/html;charset=UTF-8" http-equiv="Content-Type" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
+    </head>
+    <body class="card" style="direction: rtl; margin: 0 auto;">
+      {% include 'includes/_messages.html' %}
+      <form method="POST" action="">
+        <fieldset style="margin-bottom: 0;">
+          <legend>ویرایش سفارش شماره {{data['orderId']}}</legend>
+          <table id="ordering">
+            <thead></thead>
+            <tbody>
+              <tr>
+                <td>
+                  <fieldset>
+                    <legend>اطلاعات</legend>
+                    <div>
+                      <label>سفارش دهنده</label>
+                      <input id="first_name" type="text" name="first_name" value="{{data['registerFirstName']}}" placeholder="نام" required />
+                      <input id="last_name" type="text" name="last_name" value="{{data['registerLastName']}}" placeholder="نام خانوادگی" required />
+                      <input id="cell_number" type="text" name="cell_number" value="{{data['registerCellNumber']}}" placeholder="شماره موبایل" />
+                    </div>
+                    <div>
+                      <label>آدرس</label>
+                      <select id="state" name="stateCode" onchange='cities()' required>
+                        <option value="{{data['stateCode']}}">{{stateName}}</option>
+                        {% for item in states %}
+                          <option value="{{item[0]}}">{{item[1]}}</option>
+                        {% endfor %}
+                      </select>
+                      <select id="city" name="cityCode" required>
+                        <option value="{{data['cityCode']}}">{{cityName}}</option>
+                      </select>
+                    </div>
+                    <div id="address">
+                      <textarea name="address" placeholder="نشانی دقیق" required> {{data['registerAddress']}}</textarea>
+                    </div>
+                    <div id="postal_code">
+                      <input id="postal_code" value="{{data['registerPostalCode']}}" type="text" name="postal_code" placeholder="کد پستی" />
+                    </div>
+                  </fieldset>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <fieldset>
+                    <legend>اقلام سفارش</legend>
+                    <table id="order-0">
+                      <tr>
+                        <th>
+                          <span>نام محصول</span>
+                        </th>
+                        <th>
+                          <span>تعداد</span>
+                        </th>
+                        <th>
+                          <span>قیمت</span>
+                        </th>
+                        <th>
+                          <span>درصد تخفیف</span>
+                        </th>
+                        <th>
+                          <span>وزن (گرم)</span>
+                        </th>
+                        <th>
+                          <span>عملیات</span>
+                        </th>
+                      </tr>
+                      {% for i in range(data['products']|length) %}
+                        <tr id="row{{i+1}}" class="order-0">
+                          <td>
+                            <select id="product{{i+1}}" name="product_{{i+1}}" onchange="product('product{{i+1}}')" required>
+                              <option value="{{data['products'][i]['productId']}}">{{data['products'][i]['productName']}}</option>
+                              {% for item in inventory %}
+                                <option value="{{item[1]}}">{{item[0]}}</option>
+                                }
+                              {% endfor %}
+                            </select>
+                          </td>                  
+                          <td>
+                            <input type="text" name="count_{{i+1}}" value="{{data['products'][i]['count']}}" size="4" required/>
+                          </td>
+                          <td>
+                            <input id="price{{i+1}}" type="text" name="price_{{i+1}}" value="{{data['products'][i]['price']}}" size="6" required/>
+                          </td>
+                          <td>
+                            <input id="discount{{i+1}}" type="text" name="discount_{{i+1}}" value="{{data['products'][i]['percentDiscount']}}" size="6" required/>
+                          </td>
+                          <td>
+                            <input id="weight{{i+1}}" type="text" name="weight_{{i+1}}" value="{{data['products'][i]['weight']}}" size="6" required/>
+                          </td>
+                          <td>
+                            <a href="javascript:addrow('row{{i+1}}','del')" title="حذف" class="del-box"> - </a>
+                            <a href="javascript:addrow('row{{i+1}}', 'add')" title="افزودن" class="add-box"> + </a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </table>
+                  </fieldset>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <fieldset>
+                    <legend>شیوه ارسال</legend>
+                    <table id="order-1">
+                      <tr>
+                        {% if sType==2 %}{% set ck2='checked' %}{% else %}{% set ck2ck2 = '' %}{% endif %}
+                        {% if sType==1 %}{% set ck1 = 'checked' %}{% else %}{% set ck1 = '' %}{% endif %}
+                        {% if pType==88 %}{% set ck88 = 'checked' %}{% else %}{% set ck88 = '' %}{% endif %}
+                        <td>
+                          <label><input type="radio" name="serviceType" value="2" {{ck2}} required/>سفارشی</label>
+                        </td>
+                        <td>
+                          <label><input type="radio" name="serviceType" value="1" {{ck1}} required/>پیشتاز</label>
+                        </td>
+                        <td>
+                          <label><input type="checkbox" name="free" value="88" {{ck88}}/>ارسال رایگان</label>
+                        </td>
+                      </tr>
+                    </table>
+                  </fieldset>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <fieldset>
+                    <legend>شیوه پرداخت</legend>
+                    <table id="order-1">
+                      <tr>
+                        {% if pType==1 %}{% set pck1 = 'checked' %}{% else %}{% set pck1 = '' %}{% endif %}
+                        {% if pType==2 %}{% set pck2 = 'checked' %}{% else %}{% set pck2 = '' %}{% endif %}
+                        <td>
+                          <label><input type="radio" name="payType" value="1" {{pck1}}/>پرداخت در محل</label>
+                        </td>
+                        <td>
+                          <label><input type="radio" name="payType" value="2" {{pck2}}/>پرداخت آنلاین</label>
+                        </td>
+                      </tr>
+                    </table>
+                  </fieldset>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-right: 15px;">
+            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت سفارش" /> 
+          </div>
+        </fieldset>
+      </form>
+
+      <script type="text/javascript">
+        var i = "{{data['products']|length + 1}}";
+        var i_list = ["row1"];
+        function addrow(id_name, action) {
+            var original = document.getElementById(id_name);
+          var clone = original.cloneNode(true); // "deep" clone
+          if (action == 'add'){
+            clone.id = "row" + ++i;
+            i_list.push(clone.id);
+            for (ii=0; ii<2; ii++) {
+              var pr = "product"+id_name.substring(3, id_name.length);
+              clone.innerHTML = clone.innerHTML.replace(pr, "product"+i);
+            }
+            var title = "product_"+id_name.substring(3, id_name.length);
+            clone.innerHTML = clone.innerHTML.replace(title, "product_"+i);
+            var attachments = "count_"+id_name.substring(3, id_name.length);
+            clone.innerHTML = clone.innerHTML.replace(attachments, "count_"+i);
+            var pri = "price_"+id_name.substring(3, id_name.length);
+            clone.innerHTML = clone.innerHTML.replace(pri, "price_"+i);
+            var dis = "discount_"+id_name.substring(3, id_name.length);
+            clone.innerHTML = clone.innerHTML.replace(dis, "discount_"+i);
+            var we = "weight_"+id_name.substring(3, id_name.length);
+            clone.innerHTML = clone.innerHTML.replace(we, "weight_"+i);
+            clone.innerHTML = clone.innerHTML.replace(id_name, clone.id);
+            var p = "price"+id_name.substring(3, id_name.length);
+            clone.innerHTML = clone.innerHTML.replace(p, "price"+i);
+            var d = "discount"+id_name.substring(3, id_name.length);
+            clone.innerHTML = clone.innerHTML.replace(d, "discount"+i);
+            var w = "weight"+id_name.substring(3, id_name.length);
+            clone.innerHTML = clone.innerHTML.replace(w, "weight"+i);
+            var str = "row"+id_name.substring(3, id_name.length);
+            clone.innerHTML = clone.innerHTML.replace(str, "row"+i);
+            original.parentNode.appendChild(clone);
+          } else {
+            if (i_list.length > 1) {
+              original.parentNode.removeChild(original);
+              i_list.splice(i_list.indexOf(id_name), 1);
+            }
+          }
+
+        }
+
+        function cities(){
+          var state_code = document.getElementById("state").value;
+          var city = document.getElementById("city");
+
+          if (state_code) {
+            const xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+
+                    var json = JSON.parse(this.responseText);
+
+
+                    city.options.length = 1;
+
+                    for (var i = 0; i < json.Name.length; i++) {
+                        var opt = document.createElement('option');
+                        opt.value = json.Code[i];
+                        opt.innerHTML = json.Name[i];
+                        city.appendChild(opt);
+                    }
+               }
+            }
+            xhr.open('GET', '/ajax?code=' + state_code, true);
+            xhr.send(); 
+          } else {
+            city.options.length = 1;
+          }
+        }
+
+        function product(id_name) {
+          var product_name = document.getElementById(id_name).value;
+
+          const xhr = new XMLHttpRequest();
+          xhr.onreadystatechange = function() {
+              if (this.readyState == 4 && this.status == 200) {
+
+                  var json = JSON.parse(this.responseText);
+                  document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
+                  document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
+                  document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
+             }
+          }
+          xhr.open('GET', '/ajax?code=' + product_name, true);
+          xhr.send();
+        }
+      </script>
+    </body>
+</html>

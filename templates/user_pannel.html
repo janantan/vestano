@@ -14,6 +14,8 @@
         <section>
           {% if item == "orderList" %}
             {% include 'includes/_tempOrders.html' %}
+          {% elif item == "cnlOrders" %}
+            {% include 'includes/_canceledOrders.html' %}
           {% elif item == "ordering" %}
             {% include 'includes/_ordering.html' %}
           {% elif item == "inventory" %}

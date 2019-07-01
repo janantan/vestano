@@ -9,17 +9,29 @@
 			<div onclick="defaultOpacity()">
 				<aside id="first-statement" class="clearfix">
 					<figure>
-						<img id="bg-img" src="/static/img/first page.jpg" alt="vestano company" height="600" />
+						<!--<img id="bg-img" src="/static/img/first page.jpg" alt="vestano company" height="600" />-->
+						<!--<img id="bg-img" src="/static/img/bgpic.jpg" alt="vestano company" height="600" />-->
 					</figure>
 				</aside>
+			</div>
+			<div>
+				<figure>
+					<img id="fp-vestano" src="/static/img/fp-vestano.png" alt="vestano post system" width="250" height="160" />
+				</figure>
+			</div>
+			<div style="position: fixed; top: 50vh; left: 5vw;">
+				<fieldset style="width: 20vw; height: 30vh; border: none;">
+					<p>
+					</p>
+				</fieldset>
 			</div>
 			{% include 'includes/_fpLogin.html' %}
 
 			<script type="text/javascript">
 				function defaultOpacity() {
-					document.getElementById("bg-img").style.opacity = "0.7";
+					document.getElementById("bg-img").style.opacity = "0.8";
 					document.getElementById("fp-login").style.background = "none";
-					document.getElementById("login").style.background = "none";
+					document.getElementById("fp-login-a").style.color = "#222";
 					document.getElementById("register").style.background = "none";
 					document.getElementById("register").style.background = "no-repeat left";
 					document.getElementById("register").style.backgroundImage = "url(/static/img/icon/register.png)";
