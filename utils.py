@@ -353,6 +353,8 @@ def GetStatus(cursor):
         status = client.service.GetStatus(username = username, password = password,
             parcelCode=rec['parcelCode'])
         orders_records = cursor.orders.find_one({'parcelCode': rec['parcelCode']})
+        if not orders_records:
+            return change_flag
         if orders_records['status'] != status:
             prev_status = orders_records['status']
             cursor.orders.update_many(
@@ -385,7 +387,7 @@ def GetStatus(cursor):
                 }
                 }
                 )
-        return change_flag
+    return change_flag
 
         #print(status)
     #print(client.service.GetStatus(username = username, password = password,

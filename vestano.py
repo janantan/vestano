@@ -264,6 +264,10 @@ def confirm_orders(code):
         weight = 0
         discount = 0
         for i in range(len(result['products'])):
+            inv = cursor.vestano_inventory.find_one({'productId':result['products'][i]['productId']})
+            if (inv['count'] - result['products'][i]['count']) < 0:
+                flash(u'موجودی انبار کافی نیست!', 'error')
+                return redirect(request.referrer)
             price = price + result['products'][i]['price']*result['products'][i]['count']
             count = count + result['products'][i]['count']
             weight = weight + result['products'][i]['weight']
@@ -358,7 +362,6 @@ def canceled_orders():
 @app.route('/cancel-order/<orderId>', methods=['GET'])
 @token_required
 def cancel_orders(orderId):
-    print(orderId)
     rec = cursor.temp_orders.find_one({'orderId': orderId})
     cursor.canceled_orders.insert_one(rec)
     for i in range(len(rec['products'])):
@@ -369,6 +372,29 @@ def cancel_orders(orderId):
             {'$set':{'status': vinvent['status']}}
             )
     cursor.temp_orders.remove({'orderId': orderId})
+    return redirect(url_for('temp_orders'))
+
+@app.route('/pending-order/<orderId>', methods=['GET'])
+@token_required
+def pending_orders(orderId):
+    rec = cursor.temp_orders.find_one({'orderId': orderId})
+    cursor.pending_orders.insert_one(rec)
+    for i in range(len(rec['products'])):
+        vinvent = cursor.vestano_inventory.find_one({'productId':rec['products'][i]['productId']})
+        vinvent['status']['80'] -= rec['products'][i]['count']
+        vinvent['status']['82'] += rec['products'][i]['count']
+        cursor.vestano_inventory.update_many(
+            {'productId': vinvent['productId']},
+            {'$set':{'status': vinvent['status']}}
+            )
+    cursor.temp_orders.remove({'orderId': orderId})
+    return redirect(url_for('temp_orders'))
+
+@app.route('/delete-order/<orderId>', methods=['GET'])
+@token_required
+def delete_order(orderId):
+    rec = cursor.canceled_orders.find_one({'orderId': orderId})
+    cursor.canceled_orders.remove({'orderId': orderId})
     return redirect(url_for('temp_orders'))
 
 @app.route('/edit-order/<orderId>', methods=['GET', 'POST'])
@@ -447,40 +473,16 @@ def ordering(item):
         username = session['username']
         if item == 'ordering':
             if request.method == 'POST':
-                record = {'record_datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
-                record['orderId'] = str(random2.randint(1000000, 9999999))
-                record['username'] = session['username']
-                record['registerFirstName'] = request.form.get('first_name')
-                record['registerLastName'] = request.form.get('last_name')
-                record['registerCellNumber'] = request.form.get('cell_number')
-                record['stateCode'] = int(request.form.get('stateCode'))
-                record['cityCode'] = int(request.form.get('cityCode'))
-                record['registerAddress'] = request.form.get('address')
-                record['registerPostalCode'] = request.form.get('postal_code')
-                record['status'] = ''
-
                 temp_order_products = []
                 for i in range (1, 100):
                     if request.form.get('product_'+str(i)):
-                        ordered_product = {}
                         temp_order_product = {}
-                        ordered_product['productId'] = request.form.get('product_'+str(i))
                         temp_order_product['productId'] = request.form.get('product_'+str(i))
-                        o_r = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(i))})
-                        #ordered_product['productName'] = request.form.get('product_'+str(i))
-                        ordered_product['productName'] = o_r['productName']
-                        ordered_product['count'] = int(request.form.get('count_'+str(i)))
                         temp_order_product['count'] = int(request.form.get('count_'+str(i)))
-                        ordered_product['price'] = int(request.form.get('price_'+str(i)))
                         temp_order_product['price'] = int(request.form.get('price_'+str(i)))
-                        ordered_product['weight'] = int(request.form.get('weight_'+str(i)))
-                        ordered_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
                         temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
-                        ordered_product['description'] = o_r['description']
 
-                        ordered_products.append(ordered_product)
                         temp_order_products.append(temp_order_product)
-                        #print(ordered_products)
 
                 if len(request.form.getlist('free')):
                     (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')), 88)
@@ -490,59 +492,15 @@ def ordering(item):
                         int(request.form.get('payType')))
                     pTypeCode = int(request.form.get('payType'))
 
-                record['products'] = ordered_products
-                record['serviceType'] = sType
-                record['payType'] = pType
-
-                price = 0
-                counts = 0
-                weight = 0
-                discount = 0
-                for i in range(len(ordered_products)):
-                    price = price + int(ordered_products[i]['price']) * int(ordered_products[i]['count'])
-                    counts = counts + int(ordered_products[i]['count'])
-                    weight = weight + int(ordered_products[i]['weight'])
-
-                order = {
-                'cityCode': record['cityCode'],
-                'price': price,
-                'weight': weight,
-                'count': counts,
-                'serviceType': record['serviceType'],
-                'payType': record['payType'],
-                'description': '',
-                'percentDiscount': 0,
-                'registerFirstName': record['registerFirstName'],
-                'registerLastName': record['registerLastName'],
-                'registerAddress': record['registerAddress'],
-                'registerPhoneNumber': '',
-                'registerCellNumber': record['registerCellNumber'],
-                'registerPostalCode': record['registerPostalCode'],
-                'products': ordered_products
-                }
-
-                #soap_result = utils.SoapClient(order)
-
-                #if not soap_result['ParcelCode']:
-                    #record['ParcelCode'] = soap_result['ParcelCode']
-                    #cursor.orders.insert_one(record)
-                    #flash(u'ثبت شد!', 'success')
-                    #return redirect(url_for('ordering', item='ordering'))
-                #else:
-                    #flash(u'خطایی رخ داده است!', 'error')
-
-                #cursor.orders.insert_one(record)
-
-                r = cursor.orders.find_one({'orderId':record['orderId']})
                 temp_order = {
                 'vendorName' : u'روژیاپ',
-                'registerFirstName' : record['registerFirstName'],
-                'registerLastName' : record['registerLastName'],
-                'registerCellNumber' : record['registerCellNumber'],
-                'stateCode' : int(record['stateCode']),
-                'cityCode' : int(record['cityCode']),
-                'registerAddress' : record['registerAddress'],
-                'registerPostalCode' : record['registerPostalCode'],
+                'registerFirstName' : request.form.get('first_name'),
+                'registerLastName' : request.form.get('last_name'),
+                'registerCellNumber' : request.form.get('cell_number'),
+                'stateCode' : int(request.form.get('stateCode')),
+                'cityCode' : int(request.form.get('cityCode')),
+                'registerAddress' : request.form.get('address'),
+                'registerPostalCode' : request.form.get('postal_code'),
                 'products' : temp_order_products,
                 'serviceType' : int(request.form.get('serviceType')),
                 'payType' : pTypeCode,
@@ -550,7 +508,6 @@ def ordering(item):
                 'orderTime': jdatetime.datetime.now().strftime('%M : %H')
                 }
 
-                #print(temp_order)
                 flash(u'ثبت شد!', 'success')
 
                 print(utils.test_temp_order(temp_order))

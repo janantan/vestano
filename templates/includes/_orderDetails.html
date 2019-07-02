@@ -191,19 +191,24 @@
 		</fieldset>
 		{% if code == 'temp' %}
 			<div style="margin-top: 3vh;">
-				<a class="button" href="javascript:confirm('/confirm-order/{{details[13]}}')" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
-				<a class="button" href="/cancel-order/{{details[13]}}" onclick="javascript:window.close()" title="ارسال به سفارشات لغو شده" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">لغو سفارش</a>
-				<a class="button" href="/pending-order/{{details[13]}}" title="ارسال به در انتظار کالا" style="background-color: #f3f3f3; float: left;">عدم موجودی</a>
+				<a class="button" href="/confirm-order/{{details[13]}}" onclick="window.close()" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
+				<a class="button" href="/cancel-order/{{details[13]}}" onclick="window.close()" title="ارسال به سفارشات لغو شده" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">لغو سفارش</a>
+				<a class="button" href="/pending-order/{{details[13]}}" onclick="window.close()" title="ارسال به در انتظار کالا" style="background-color: #f3f3f3; float: left;">عدم موجودی</a>
 			</div>
 		{% elif code == 'cnl' %}
 			<div style="margin-top: 3vh;">
 				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3;">ویرایش سفارش</a>
-				<a class="button" href="javascript:delete('/delete-order/{{details[13]}}')" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">حذف سفارش</a>
+				<a class="button" href="/delete-order/{{details[13]}}" onclick="window.close()" title="حذف کامل سفارش" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">حذف سفارش</a>
 			</div>
 		{% endif %}
 
 		<script type="text/javascript">
-			function confirm(url) {
+			function close() {
+				window.setTimeout(function(){
+					window.close();
+				}, 1000);
+			}
+ 			function confirm(url) {
 				const xhr = new XMLHttpRequest();
 				xhr.open('GET', url, true);
 				xhr.send();
@@ -218,9 +223,9 @@
 				xhr.open('GET', url, true);
 				xhr.send();
 
-				window.setTimeout(function(){
-					opener.location.href = '/user-pannel/orderList';
-					close();
+				setTimeout(function(){
+					var ww = window.open(window.location, '_self');
+					ww.close();
 				}, 1000);
 			}
 			function delete(url) {
