@@ -1,0 +1,76 @@
+<fieldset class="fieldset">
+	<legend>سفارشات آماده ارسال:</legend>
+	<table id="inventory">
+		<thead>
+			<tr style="background: yellow;">
+				<th style="width: 50px;">
+					<span>ردیف</span>
+				</th>
+				<th>
+					<span>شناسه سفارش</span>
+				</th>
+				<th>
+					<span>شرکت فروشنده</span>
+				</th>
+				<th>
+					<span>نام خریدار</span>
+				</th>
+				<th>
+					<span>استان</span>
+				</th>
+				<th>
+					<span>تاریخ سفارش</span>
+				</th>
+				<th>
+					<span>ساعت سفارش</span>
+				</th>
+				<th>
+					<span>نحوه پرداخت</span>
+				</th>
+				<th>
+					<span>شماره تلفن همراه</span>
+				</th>
+				<th>
+					<span>اقدام</span>
+				</th>
+				<th style="width: 15px;"></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for rec in readyToShip_orders %}
+				<tr class="rows">
+					<td style="width: 50px;">
+						<span>{{loop.index}}</span>
+					</td>
+					<td>
+						<span>{{rec[0]}}</span>
+					</td>
+					<td>
+						<span>{{rec[1]}}</span>
+					</td>
+					<td>
+						<span>{{rec[2]}}</span>
+					</td>
+					<td>
+						<span>{{rec[3]}}</span>
+					</td>
+					<td>
+						<span>{{rec[4]}}</span>
+					</td>
+					<td>
+						<span>{{rec[5]}}</span>
+					</td>
+					<td>
+						<span>{{rec[6]}}</span>
+					</td>
+					<td>
+						<span>{{rec[7]}}</span>
+					</td>
+					<td>
+						<a href="javascript:window.open('/orders-details/{{rec[0]}}/rts', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</fieldset>

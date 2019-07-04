@@ -1,16 +1,25 @@
 <!DOCTYPE html>
-<html lang="fa-IR">
+{% if request.url_rule.rule[1] %}
+    <html lang="fa-IR">
+{% else %}
+    <html style="background: #f0f0f0 !important;" lang="fa-IR">
+{% endif %}
     <head>
         <title>سامانه پستی وستانو</title>
         <!--<meta charset="utf-8" />-->
         <meta content="text/html;charset=UTF-8" http-equiv="Content-Type" />
         <meta name="description" content="سامانه پستی وستانو"  />
         <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <!--<script src='https://www.google.com/recaptcha/api.js'></script>-->
         <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
-        <link rel="shortcut icon" href="{{ url_for('static', filename='icon.ico') }}">
+        <link rel="shortcut icon" type="image/x-ico" href="/static/icon.ico" />
     </head>
     <body>
-        <header id="main-header" class="clearfix">
+        {% if request.url_rule.rule[1] %}
+            <header id="main-header" class="clearfix">
+        {% else %}
+            <header style="background: #fafafa; position: fixed; top: 0; right: 0; left: 0;" class="clearfix">
+        {% endif %}
             {% if 'username' in session %}
                 {% include 'includes/_navbar.html' %}            
             {% endif %}

@@ -12,7 +12,7 @@
 
 @font-face {
     font-family: "B-Roya";
-    src:url("/static/fonts/B Roya.ttf") format('truetype'); 
+    src:url("/static/fonts/B-Roya.ttf") format('truetype'); 
 }
 
 @font-face {
@@ -42,7 +42,8 @@ a {
 }
 #main-header {
     /*background: #fafafa;*/
-    background: gainsboro;
+    /*background: gainsboro;*/
+    background: linear-gradient(to right, #0b4158 , gainsboro);
     padding: 15px 30px;
     /*box-shadow: 0 4px 2px -2px #aaa;*/
     box-shadow: 0 4px 2px -2px rgba(0,0,0,0.05);
@@ -71,7 +72,7 @@ a {
     text-decoration: none;
     border: 1px solid transparent;
     font-size: 18px;
-    /*color: rgb(215, 212, 207);*/
+    color: rgb(215, 212, 207);
 }
 
 /*sudo class*/
@@ -115,6 +116,8 @@ a.button {
     display: inline-block;
     text-decoration: none;
     background-color: #eee;
+    font-family: "BNazanin";
+    font-size: 17px;
     margin: 5px 0;
     padding: 5px 7px;
     margin-bottom: 10px;
@@ -167,8 +170,18 @@ a.button:active {
     width: 100vw;
 }
 
+#order-0 thead tr {
+    display:block;
+}
+
 #order-0 tbody {
     height: 15vh;
+    display:block;
+    overflow:auto;
+}
+
+#order-0 tbody td {
+    width: 100vw;
 }
 
 #order-1 tbody {
@@ -200,19 +213,27 @@ a.button:active {
 }
 
 #fp-login {
-    position:fixed;
+    position:absolute;
     top:17vh;
-    right:10vw;
-    width:18vw;
-    height:45vh;
+    right:15vw;
+    width:21vw;
+    height:48vh;
     background: none;
     border: 1px solid rgb(215, 212, 207);
+}
+
+#social {
+    position: fixed;
+    top:67vh;
+    right:29vw;
+    margin-top: 4vh;
+    float: left;
 }
 
 #fp-vestano {
     position: fixed;
     top: 30vh;
-    left: 10vw;
+    left: 17vw;
     background: none;
 }
 
@@ -238,26 +259,26 @@ a.button:active {
 #fp-message {
     position:fixed;
     text-align: center;
-    top:9vh;
-    right: 28vw;
+    top:6vh;
+    right: 37.5vw;
     width:25vw;
 }
 
 #f-message {
     position:fixed;
-    text-align: right;
-    top:9vh;
-    right: 28vw;
+    text-align: center;
+    top:8.3vh;
+    right: 37.5vw;
     width:25vw;
 }
 
-#username::placeholder {
+/*#username::placeholder {
     color: rgb(215, 212, 207);
 }
 
 #password::placeholder {
     color: rgb(215, 212, 207);
-} 
+}*/
 
 .close-box {
     float: left;
@@ -433,13 +454,14 @@ a.button:active {
 }
 
 .social-link {
-    background: no-repeat right center;
-    padding-right: 20vw;                
+    background: no-repeat center;
+    padding-right: 3vw;                
 }
 .social-link.twitter {background-image: url(/static/img/icon/twitter.png);}
 .social-link.instagram {background-image: url(/static/img/icon/instagram.png);}
 .social-link.facebook {background-image: url(/static/img/icon/facebook.png);}
 .social-link.telegram {background-image: url(/static/img/icon/telegram.png);}
+.social-link.whatsapp {background-image: url(/static/img/icon/whatsapp.png);}
 
 .navbar-link {
     background: no-repeat right center;
@@ -448,7 +470,7 @@ a.button:active {
 .navbar-link.blog {background-image: url(/static/img/icon/blog.png);}
 .navbar-link.expenses {background-image: url(/static/img/icon/bank_card.png);}
 .navbar-link.about {background-image: url(/static/img/icon/about.png);}
-.navbar-link.logout {background-image: url(/static/img/icon/logout.png);}
+.navbar-link.logout {background-image: url(/static/img/logout.png);}
 .navbar-link.login {background-image: url(/static/img/icon/login.png);}
 .navbar-link.register {background-image: url(/static/img/icon/register.png);}
 
@@ -509,6 +531,14 @@ a.button:active {
     font-family: "BNazanin";
 }
 
+#description {
+    width: 40%;
+    height: 22vh;
+    color: black;
+    font-size: 16px;
+    font-family: "B-Roya";
+}
+
 #order tr th {
     width: 20vw;
 }
@@ -521,6 +551,11 @@ a.button:active {
 .fieldset {
     padding: 10px;
     border: 1px solid #e1e1e1;
+}
+
+.fieldset input {
+    font-family: B-Roya;
+    font-size: 16px;
 }
 
 .fieldset legend {
@@ -605,6 +640,30 @@ a.button:active {
     width: 18vw !important;
 }
 
+.mrg-vh12 {
+    margin-top: 12vh;
+}
+
+.mrg-vh4 {
+    margin-top: 4vh;
+}
+
+.mrg-vh3 {
+    margin-top: 3vh;
+}
+
+.mrg-vh2 {
+    margin-top: 2vh;
+}
+
+.mrg-vh1 {
+    margin-top: 1vh;
+}
+
+.mrg-vw2 {
+    margin-right: 2vw;
+}
+
 .font12 {
     font-size: 12px;
 }
@@ -656,8 +715,8 @@ a.button:active {
 .user-name {
     font-size: 20px;
     margin-left: 20px;
-    /*color: rgb(194, 145, 144) !important;*/
-    color: #0b4158 !important;
+    color: rgb(194, 145, 144) !important;
+    /*color: #0b4158 !important;*/
 }
 
 body > footer {

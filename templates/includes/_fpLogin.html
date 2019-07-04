@@ -3,22 +3,31 @@
     <div id="login-form" onclick="changeOpacity()">
       <section>
         <form method="post" action="">
-          <fieldset id="fp-login" style="text-align: center; font-family: B-Roya;">
-            <legend style="font-size: 17px; text-align: right;">لطفا وارد  شوید</legend>
+          <fieldset id="fp-login" style="text-align: center; font-family: B-Roya; background: rgb(62,109,134);">
+            <!--<legend style="font-size: 17px; text-align: right;">لطفا وارد  شوید</legend>-->
             <div style="margin-top: 3vh;">
-              <input id="username" style="padding-left: 25px; margin-top: 2vh; color: rgb(215, 212, 207); border-color: gray; background:no-repeat left; background-image: url(/static/img/icon/login.png); font-family: B-Roya; size: 10;" placeholder="نام کاربری" type="text" name="username" required />
+              <input id="username" style="padding-left: 25px; margin-top: 2vh; background:no-repeat left rgb(220,220,220); background-image: url(/static/img/icon/login2.png); font-family: B-Roya; font-size: 16px;" placeholder="نام کاربری" type="text" name="username" required size="35" />
             </div>
 
             <div>
-              <input id="password" style="padding-left: 25px; margin-top: 2vh; color: rgb(215, 212, 207); border-color: gray; background:no-repeat left; background-image: url(/static/img/icon/password.png); font-family: B-Roya; size: 10;" placeholder="کلمه عبور" type="password" name="password" required />
+              <input id="password" style="padding-left: 25px; margin-top: 2vh; background:no-repeat left rgb(220,220,220); background-image: url(/static/img/icon/password2.png); font-family: B-Roya; font-size: 16px;" placeholder="کلمه عبور" type="password" name="password" required size="35" />
             </div>
+            <!--<div style="margin-top: 4vh; text-align: center;">
+              {{ recaptcha }}
+            </div>-->
             <div style="margin-top: 4vh;">
-              <input id="login" type="submit" style="background: rgb(165,170,190); margin-top: 4vh; border-color: gray; background-color: rgb(215, 212, 207); font-size: 16px; padding:5px 10px; font-family: B-Roya;" value="ورود" />
+              <input id="login" type="submit" style="background: rgb(165,170,190); margin-top: 8vh; border-color: gray; background-color: rgb(215, 212, 207); font-size: 16px; padding:5px 10px; font-family: B-Roya;" value="وارد شوید" />
             </div>
+            <!--<div class="g-recaptcha" data-sitekey="6Lfi0asUAAAAAMVupPmpT2zoD7a658YabVNZ107F"></div>-->
             <div style="margin-top: 4vh;">
               <a id="fp-login-a" href="#" style="text-decoration: none;"><span>کلمه عبور را فراموش کرده ام!</span></a>
             </div>
           </fieldset>
+          <div style="position: fixed; top:67vh; right:32vw; margin-top: 4vh; float: left;" >
+            <a class="social-link telegram" href="#"></a>
+            <!--<a class="social-link whatsapp" href="#"></a>-->
+            <a class="social-link instagram" href="#"></a>
+          </div>
         </form>
       </section>
     </div>
@@ -27,10 +36,10 @@
 
 <script type="text/javascript">
   function changeOpacity() {
-    document.getElementById("fp-login").style.opacity = "0.9";
-    document.getElementById("fp-login").style.border = "2px solid gray";
-    document.getElementById("fp-login").style.background = "rgb(64,69,71)";
-    document.getElementById("fp-login-a").style.color = "rgb(140,129,111)";
-    document.getElementById("register").style.backgroundColor = "rgb(165,170,190)";
+    //document.getElementById("fp-login").style.opacity = "0.9";
+    //document.getElementById("fp-login").style.border = "2px solid gray";
+    //document.getElementById("fp-login").style.background = "rgb(64,69,71)";
+    //document.getElementById("fp-login-a").style.color = "rgb(140,129,111)";
+    //document.getElementById("register").style.backgroundColor = "rgb(165,170,190)";
   }
 </script>

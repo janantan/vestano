@@ -24,7 +24,7 @@ src = r'E:\projects\VESTANO\Vestano\file.xlsx'
 file = utils.exel(src)
 
 for i in range(1, file.nrows):
-	records = {'datetime' : jdatetime.datetime.now().strftime('%d / %m / %Y')}
+	records = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
 	pid = file.cell(i, 0).value
 	records['productId'] = pid[3:]
 	records['productName'] = file.cell(i, 1).value

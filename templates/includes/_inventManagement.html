@@ -1,0 +1,238 @@
+<fieldset class="fieldset" style="background: #fafafa">
+  <legend>مدیریت انبار:</legend>
+  {% include 'includes/_inventoryTab.html' %}
+  {% if sub_item == 'new' %}
+    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230);">
+      <form method="POST" action="">
+        <div class="mrg-vh1">
+          <label>نام کالا</label>
+          <input id="productName" type="text" name="productName" placeholder="" size="50" required />
+          <select id="vendor" name="vendor" class="mrg-vw2" required>
+            <option value="" disabled selected>شرکت فروشنده</option>
+            <option value="روژیاپ">روژیاپ</option>
+          </select>
+        </div>
+        <div class="mrg-vh2">
+          <label>مشخصات</label>
+          <input id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
+          <input id="weight" type="number" name="weight" placeholder="وزن (گرم)" required />
+          <input id="count" type="number" name="count" placeholder="تعداد موجودی (عدد)" required />
+          <input id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)"  />
+        </div>
+        <div class="mrg-vh2">
+          <label>توضیحات</label>
+          <textarea id="description" name="description" placeholder=""></textarea>
+        </div>
+        <div class="mrg-vh4">
+          <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت محصول " />
+        </div>
+      </form>
+    </fieldset>
+  {% elif sub_item == 'inc' %}
+    <fieldset class="fieldset mrg-vh2" style="height: 65vh; background: rgb(255,255,230);">
+      <form method="POST" action="">
+        <div id="fetch_stuff" class="mrg-vh1">
+          <label>شناسه کالا</label>
+          <input id="productId" type="text" name="p_Id" placeholder="" size="30" required />
+          <a class="button" href="#" onclick="javascript:fetch_stuff('productId')" style="margin-right: 4vw; background-color: #f3f3f3;">بررسی</a>
+        </div>
+        <fieldset id="features" class="fieldset mrg-vh2" style="border: none; display: none; background: rgb(255,255,230);">
+          <div class="mrg-vh2">
+            <label style="display:inline-block;">شناسه کالا</label>
+            <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" placeholder="" readonly="readonly" required size="30" />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">نام کالا</label>
+            <input style="margin:0 4vw;" id="productName" type="text" name="productName" placeholder="" size="30" disabled required />
+            <label style="display:inline-block;">شرکت فروشنده</label>
+            <select style="margin:0 4vw;" id="vendor" name="vendor" disabled style="margin-right: 2vw;" required>
+              <option value="" disabled selected>شرکت فروشنده</option>
+                <option value="روژیاپ">روژیاپ</option>
+            </select>
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">قیمت</label>
+            <input style="margin: 0 4.5vw;" id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
+            <label style="display:inline-block; margin-right: 3vw;">وزن</label>
+            <input style="margin:0 7vw;" id="weight" type="number" name="weight" placeholder="وزن (گرم)" required />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">تعداد</label>
+            <input style="margin: 0 4.5vw;" id="count" type="number" name="count" placeholder="تعداد ورودی جدید" required />
+            <label style="display:inline-block; margin-right: 3vw;">درصد تخفیف</label>
+            <input style="margin:0 3.7vw;" id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)" required  />
+          </div>
+          <div class="mrg-vh12">
+            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت محصول " />
+          </div>
+        </fieldset>
+      </form>
+    </fieldset>
+  {% elif sub_item == 'pack' %}
+    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230);">
+      <form method="POST" action="" style="margin-block-end: 0;">
+        <div class="mrg-vh1">
+          <label>نام بسته</label>
+          <input id="packName" type="text" name="packName" placeholder="" size="50" required />
+          <select id="vendor" name="vendor" class="mrg-vw2" required>
+            <option value="" disabled selected>شرکت فروشنده</option>
+            <option value="روژیاپ">روژیاپ</option>
+          </select>
+        </div>
+        <div>
+          <fieldset class="fieldset" style="padding:0; margin-bottom:0;">
+            <legend>اقلام موجود در بسته</legend>
+            <table id="order-0">
+              <tr>
+                <th>
+                  <span>نام محصول</span>
+                </th>
+                <th>
+                  <span>تعداد</span>
+                </th>
+                <th>
+                  <span>قیمت</span>
+                </th>
+                <th>
+                  <span>درصد تخفیف</span>
+                </th>
+                <th>
+                  <span>وزن (گرم)</span>
+                </th>
+                <th>
+                  <span>عملیات</span>
+                </th>
+              </tr>
+              <tr id="row1" class="order-0">
+                <td>
+                  <select id="product1" name="product_1" onchange="product('product1')" required>
+                    <option value="" disabled selected>(انخاب کنید)</option>
+                    {% for item in inventory %}
+                      <option value="{{item[1]}}">{{item[0]}}</option>
+                      }
+                    {% endfor %}
+                  </select>
+                </td>                  
+                <td>
+                  <input type="text" name="count_1" size="4" value="1" required/>
+                </td>
+                <td>
+                  <input id="price1" type="text" name="price_1" size="6" required/>
+                </td>
+                <td>
+                  <input id="discount1" type="text" name="discount_1" size="6" required/>
+                </td>
+                <td>
+                  <input id="weight1" type="text" name="weight_1" size="6" required/>
+                </td>
+                <td>
+                  <a href="javascript:addrow('row1','del')" title="حذف" class="del-box"> - </a>
+                  <a href="javascript:addrow('row1', 'add')" title="افزودن" class="add-box"> + </a>
+                </td>
+              </tr>
+            </table>
+          </fieldset>
+        </div>
+        <div class="mrg-vh1">
+          <label>سایر مشخصات</label>
+          <input id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
+          <input class="mrg-vw2" id="count" type="number" name="count" placeholder="تعداد موجودی (عدد)" required />
+          <input class="mrg-vw2" id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)"  />
+        </div>
+        <div class="mrg-vh1">
+          <label>توضیحات</label>
+          <textarea id="description" style="height: 8vh;" name="description" placeholder=""></textarea>
+        </div>
+        <div class="mrg-vh1">
+          <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ایجاد بسته" />
+        </div>
+      </form>
+    </fieldset>
+  {% elif sub_item == 'release' %}
+  {% elif sub_item == 'search' %}
+  {% endif %}
+</fieldset>
+
+<script type="text/javascript">
+  var i=1;
+  var i_list = ["row1"];
+  function addrow(id_name, action) {
+      var original = document.getElementById(id_name);
+    var clone = original.cloneNode(true); // "deep" clone
+    if (action == 'add'){
+      clone.id = "row" + ++i;
+      i_list.push(clone.id);
+      for (ii=0; ii<2; ii++) {
+        var pr = "product"+id_name.substring(3, id_name.length);
+        clone.innerHTML = clone.innerHTML.replace(pr, "product"+i);
+      }
+      var title = "product_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(title, "product_"+i);
+      var attachments = "count_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(attachments, "count_"+i);
+      var pri = "price_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(pri, "price_"+i);
+      var dis = "discount_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(dis, "discount_"+i);
+      var we = "weight_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(we, "weight_"+i);
+      clone.innerHTML = clone.innerHTML.replace(id_name, clone.id);
+      var p = "price"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(p, "price"+i);
+      var d = "discount"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(d, "discount"+i);
+      var w = "weight"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(w, "weight"+i);
+      var str = "row"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(str, "row"+i);
+      original.parentNode.appendChild(clone);
+    } else {
+      if (i_list.length > 1) {
+        original.parentNode.removeChild(original);
+        i_list.splice(i_list.indexOf(id_name), 1);
+      }
+    }
+
+  }
+
+  function product(id_name) {
+    var product_name = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+            document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
+            document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
+            document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
+
+  function fetch_stuff(element_id) {
+    var product_id = document.getElementById(element_id).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById('fetch_stuff').style.display = 'none';
+          document.getElementById('features').style.display = 'block';
+
+          var json = JSON.parse(this.responseText);
+          document.getElementById('p_Id').value = json.productId
+          document.getElementById('productName').value = json.productName
+          document.getElementById('vendor').value = json.vendor
+          document.getElementById('price').value = json.price
+          document.getElementById('weight').value = json.weight
+          document.getElementById('percentDiscount').value = json.percentDiscount
+       }
+    }
+    xhr.open('GET', '/fetch-stuff?code=' + product_id, true);
+    xhr.send();
+  }
+
+</script>

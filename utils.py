@@ -6,6 +6,8 @@ import re
 import json
 import collections
 import xlrd
+import datetime
+import jdatetime
 from suds.client import Client
 from suds.xsd.doctor import Import, ImportDoctor
 from pymongo import MongoClient
@@ -62,6 +64,23 @@ def temp_orders(cursor):
             state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
     return temp
 
+def today_orders(cursor):
+    result = cursor.temp_orders.find()
+    today = []
+    for r in result:
+        if r['datetime'] == jdatetime.datetime.today().strftime('%Y/%m/%d'):
+            state_result = cursor.states.find_one({'Code': r['stateCode']})
+            today.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+                state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
+    result2 = cursor.orders.find()
+    for r2 in result2:
+        if r2['datetime'] == jdatetime.datetime.today().strftime('%Y/%m/%d'):
+            state_result = cursor.states.find_one({'Code': r2['stateCode']})
+            today.append((r2['orderId'], r2['vendorName'], r2['registerFirstName']+' '+r2['registerLastName'],
+                state_result['Name'],r2['record_date'],r2['record_time'], r2['serviceType'], r2['registerCellNumber']))
+    count = len(today)
+    return {'today': today, 'count': count}
+
 def canceled_orders(cursor):
     result = cursor.canceled_orders.find()
     cnl = []
@@ -70,6 +89,15 @@ def canceled_orders(cursor):
         cnl.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
     return cnl
+
+def readyToShip_orders(cursor):
+    result = cursor.ready_to_ship.find()
+    rts = []
+    for r in result:
+        state_result = cursor.states.find_one({'Code': r['stateCode']})
+        rts.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+            state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
+    return rts
 
 def inventory(cursor):
     result = cursor.vestano_inventory.find()
@@ -142,6 +170,12 @@ def details(cursor, orderId, code):
     discount = 0
     if code == 'temp':
         r = cursor.temp_orders.find_one({'orderId': orderId})
+    if code == 'rts':
+        r = cursor.ready_to_ship.find_one({'orderId': orderId})
+    elif code == 'today':
+        r = cursor.temp_orders.find_one({'orderId': orderId})
+        if not r:
+            r = cursor.orders.find_one({'orderId': orderId})
     elif code == 'cnl':
         r = cursor.canceled_orders.find_one({'orderId': orderId})
     if not r:
@@ -151,6 +185,9 @@ def details(cursor, orderId, code):
         if r['cityCode'] == rec['Code']:
             city = rec['Name']
             break
+
+    status = statusToString(r['status'])
+
     i = 0
     for p in r['products']:
         price = price + p['price']*p['count']
@@ -163,7 +200,7 @@ def details(cursor, orderId, code):
     details = (r['orderId'], r['vendorName'], r['record_time']+' - '+r['record_date'],
         r['registerFirstName']+' '+r['registerLastName'], r['registerCellNumber'], r['registerPostalCode'],
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
-        r['products'],count, price, discount, orderId)
+        r['products'],count, price, discount, orderId, status)
     return details
 
 def inventory_details(cursor, status, productId):
@@ -173,7 +210,7 @@ def inventory_details(cursor, status, productId):
     if int(status) == 80:
         product_result = cursor.temp_orders.find()
     elif int(status) == 82:
-        pass
+        product_result = cursor.pending_orders.find()
     elif int(status) in [2, 81, 7, 71, 11]:
         product_result = cursor.orders.find()
     else:
@@ -355,6 +392,8 @@ def GetStatus(cursor):
         orders_records = cursor.orders.find_one({'parcelCode': rec['parcelCode']})
         if not orders_records:
             return change_flag
+        if status == 2:
+            return change_flag
         if orders_records['status'] != status:
             prev_status = orders_records['status']
             cursor.orders.update_many(
@@ -469,6 +508,20 @@ def api_test():
     client.service.datetime(v=ns2)
     #client.service.datetime('jan', '123')
 
+def AddStuff(record):
+    client = Client(API_URI)
+    stuff_id = client.service.AddStuff(
+        username = username,
+        password = password,
+        name = record['productName'],
+        price = int(record['price']),
+        weight = int(record['weight']),
+        count = int(record['count']),
+        description = record['description'],
+        percentDiscount = int(record['percentDiscount'])
+        )
+    return stuff_id
+
 
 def SoapClient(order):
     #client = Client(API_URI, doctor=ImportDoctor(imp))
@@ -487,18 +540,6 @@ def SoapClient(order):
         )
 
     #bills = client.service.Billing(username = username, password = password)
-
-    #products = {}
-    #stuff_id = client.service.AddStuff(
-        #username = username,
-        #password = password,
-        #name = order['products']['productName'][i],
-        #price = int(order['products']['price'][i]),
-        #weight = int(order['products']['weight'][i]),
-        #count = int(order['products']['count'][i]),
-        #description = order['description'],
-        #percentDiscount = order['percentDiscount']
-        #)
     for i in range(len(order['products'])):
 
         stuff = {
@@ -570,3 +611,23 @@ def init_status_inventory():
             }
             }
             )
+
+def add_empty_status():
+    status = {}
+    status['1'] = 0
+    status['2'] = 0
+    status['3'] = 0
+    status['4'] = 0
+    status['5'] = 0
+    status['6'] = 0
+    status['7'] = 0
+    status['8'] = 0
+    status['9'] = 0
+    status['10'] = 0
+    status['11'] = 0
+    status['70'] = 0
+    status['71'] = 0
+    status['80'] = 0
+    status['81'] = 0
+    status['82'] = 0
+    return status

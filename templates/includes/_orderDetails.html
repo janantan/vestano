@@ -69,13 +69,13 @@
 					<td>
 						<span class="blue bold">وضعیت:</span>
 					</td>
-					{% if code == 'temp' %}
-						<td>
-							<span>در حال پردازش</span>
-						</td>
-					{% elif code == 'cnl' %}
+					{% if code == 'cnl' %}
 						<td>
 							<span>لغو شده</span>
+						</td>
+					{% else %}
+						<td>
+							<span>{{details[14]}}</span>
 						</td>
 					{% endif %}
 					<td>
@@ -199,6 +199,10 @@
 			<div style="margin-top: 3vh;">
 				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3;">ویرایش سفارش</a>
 				<a class="button" href="/delete-order/{{details[13]}}" onclick="window.close()" title="حذف کامل سفارش" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">حذف سفارش</a>
+			</div>
+		{% elif code == 'rts' %}
+			<div style="margin-top: 3vh;">
+				<a class="button" href="/finish-process/{{details[13]}}" onclick="window.close()" title="پایان فرایند سفارش" style="background-color: #f3f3f3;">پایان فرایند</a>
 			</div>
 		{% endif %}
 

@@ -14,10 +14,16 @@
         <section>
           {% if item == "orderList" %}
             {% include 'includes/_tempOrders.html' %}
+          {% elif item == "readyToShip" %}
+            {% include 'includes/_readyToShip.html' %}
+          {% elif item == "todayOrders" %}
+            {% include 'includes/_todayOrders.html' %}
           {% elif item == "cnlOrders" %}
             {% include 'includes/_canceledOrders.html' %}
           {% elif item == "ordering" %}
             {% include 'includes/_ordering.html' %}
+          {% elif item == "inventManagement" %}
+            {% include 'includes/_inventManagement.html' %}
           {% elif item == "inventory" %}
             {% include 'includes/_inventory.html' %}
           {% elif item == "accounting" %}

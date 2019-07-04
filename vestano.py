@@ -1,6 +1,7 @@
 #coding: utf-8
 from flask import Flask, render_template, flash, redirect, url_for, session, request, jsonify
 from flask import Response, logging, Markup, abort, after_this_request, make_response
+#from flask_recaptcha import ReCaptcha
 from pymongo import MongoClient
 from passlib.hash import sha256_crypt
 from functools import wraps
@@ -8,6 +9,7 @@ from flask_spyne import Spyne
 from spyne.protocol.soap import Soap11
 from spyne.model.primitive import Unicode, Integer, String
 from spyne.model.complex import Array, Iterable, ComplexModel
+import requests
 import random2
 import uuid
 import jwt
@@ -22,6 +24,12 @@ cursor = utils.config_mongodb()
 app = Flask(__name__)
 
 app.secret_key = 'secret@vestano@password_hash@840'
+#app.config.update({
+    #'RECAPTCHA_ENABLED': True,
+    #'RECAPTCHA_SITE_KEY': '6Lc-0asUAAAAAMBA5mQR2Svai9uFEtNJe5gvu8_z',
+    #'RECAPTCHA_SECRET_KEY': '6Lc-0asUAAAAAG3ukYfT0Gwd4llqFCyYTmfcvRul'
+    #})
+#recaptcha = ReCaptcha(app=app)
 
 spyne = Spyne(app)
 
@@ -106,12 +114,12 @@ class SomeSoapService(spyne.Service):
                 'record_date': orderDate,
                 'record_time': orderTime,
                 'parcelCode': '-',
+                'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
                 'status' : 80
                 }
 
                 if order_id :
                     cursor.temp_orders.insert_one(input_data)
-                    cursor.all_records.insert_one(input_data)
                     for i in range(len(input_data['products'])):
                         vinvent = cursor.vestano_inventory.find_one({'productId':input_data['products'][i]['productId']})
                         vinvent['status']['80']+= input_data['products'][i]['count']
@@ -119,6 +127,8 @@ class SomeSoapService(spyne.Service):
                             {'productId': vinvent['productId']},
                             {'$set':{'status': vinvent['status']}}
                             )
+                    cursor.today_orders.insert_one(input_data)
+                    cursor.all_records.insert_one(input_data)
                     return order_id
                 else:
                     print('Error in enterance data!')
@@ -171,6 +181,10 @@ def token_required(f):
 
         try:
             data = jwt.decode(token, app.secret_key)
+            session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+            session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
+            session['today_orders'] = utils.today_orders(cursor)['count']
+            session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
         except:
             return redirect(url_for('logout'))            
 
@@ -183,6 +197,7 @@ def token_required(f):
                 session['role'] = result['role']
                 session['temp_orders'] = cursor.temp_orders.estimated_document_count()
                 session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
+                session['today_orders'] = cursor.today_orders.estimated_document_count()
                 flash(result['name'] + u' عزیز خوش آمدید', 'success-login')
         
         else:
@@ -217,12 +232,29 @@ def login():
 
         if result:
             if sha256_crypt.verify(password, result['password']):
+
+                #if recaptcha.verify():
+                
+                #r = requests.post('https://www.google.com/recaptcha/api/siteverify', 
+                    #data = {
+                    #'secret' : '6Lca0qsUAAAAAJP-OpE0-WLpaxV09r4VzPvA3ycd',
+                    #'response' : request.form['g-recaptcha-response']
+                    #})
+
+                #google_response = json.loads(r.text)
+                #print('JSON: ', google_response)
+
+                #if google_response['success']:
+                    #print('SUCCESS')
+
                 session['loged_in'] = True
                 TOKEN = jwt.encode({'user_id':result['user_id'],
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60)},
                     app.secret_key)
                 token = TOKEN.decode('UTF-8')
                 return redirect(url_for('ordering', item='ordering'))
+            #else:
+                #flash(u'معتبر نیست!', 'danger')
             else:
                 flash(u'کلمه عبور مطابقت ندارد', 'danger')
         else:
@@ -242,8 +274,6 @@ def home():
 @app.route('/user-pannel/orderList', methods=['GET'])
 @token_required
 def temp_orders():
-    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item='orderList',
@@ -322,6 +352,7 @@ def confirm_orders(code):
             new_rec['status_updated'] = False
 
             cursor.orders.insert_one(new_rec)
+            cursor.ready_to_ship.insert_one(new_rec)
             new_rec['last update'] = datetime.datetime.now()
             cursor.status.insert_one(new_rec)
             cursor.temp_orders.remove({'orderId': code})
@@ -336,7 +367,6 @@ def confirm_orders(code):
                     {'$set':{'status': vinvent['status']}}
                     )
 
-            session['temp_orders'] = cursor.temp_orders.estimated_document_count()
             flash(u'سفارش تایید و ثبت شد!', 'success')
         else:
             flash(u'خطایی رخ داده است!', 'error')
@@ -346,11 +376,55 @@ def confirm_orders(code):
     return render_template('user_pannel.html',
         item='orderList')
 
+@app.route('/user-pannel/ready-to-ship', methods=['GET'])
+@token_required
+def readyToShip_orders():
+
+    return render_template('user_pannel.html',
+        item='readyToShip',
+        inventory = utils.inventory(cursor),
+        readyToShip_orders = utils.readyToShip_orders(cursor),
+        states = utils.states(cursor)
+        )
+
+@app.route('/user-pannel/today-orders', methods=['GET'])
+@token_required
+def today_orders():
+
+    return render_template('user_pannel.html',
+        item='todayOrders',
+        inventory = utils.inventory(cursor),
+        today_orders = utils.today_orders(cursor)['today'],
+        states = utils.states(cursor)
+        )
+
+@app.route('/finish-process/<orderId>', methods=['GET'])
+@token_required
+def finish_process(orderId):
+    new_rec = cursor.ready_to_ship.find_one({'orderId': orderId})
+    cursor.orders.update_many(
+        {'orderId': orderId},
+        {'$set':{'status': 81}}
+        )
+    cursor.status.update_many(
+        {'orderId': orderId},
+        {'$set':{'status': 81}}
+        )
+    cursor.ready_to_ship.remove({'orderId': orderId})
+    for i in range(len(new_rec['products'])):
+        vinvent = cursor.vestano_inventory.find_one({'productId':new_rec['products'][i]['productId']})
+        vinvent['status'][str(new_rec['status'])] -= new_rec['products'][i]['count']
+        vinvent['status']['81'] += new_rec['products'][i]['count']
+        cursor.vestano_inventory.update_many(
+            {'productId': vinvent['productId']},
+            {'$set':{'status': vinvent['status']}}
+            )
+
+    return redirect(request.referrer)
+
 @app.route('/user-pannel/canceled-orders', methods=['GET'])
 @token_required
 def canceled_orders():
-    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item='cnlOrders',
@@ -378,6 +452,7 @@ def cancel_orders(orderId):
 @token_required
 def pending_orders(orderId):
     rec = cursor.temp_orders.find_one({'orderId': orderId})
+    rec['status'] = 82
     cursor.pending_orders.insert_one(rec)
     for i in range(len(rec['products'])):
         vinvent = cursor.vestano_inventory.find_one({'productId':rec['products'][i]['productId']})
@@ -467,8 +542,6 @@ def edit_orders(orderId):
 @token_required
 def ordering(item):
     if 'username' in session:
-        session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-        session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
         ordered_products = []
         username = session['username']
         if item == 'ordering':
@@ -522,11 +595,107 @@ def ordering(item):
         states = utils.states(cursor)
         )
 
+@app.route('/user-pannel/inventory-management/<sub_item>', methods=['GET', 'POST'])
+@token_required
+def inventory_management(sub_item):
+    productId_result = ""
+    if request.method == 'POST':
+        if sub_item == 'new':
+            record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
+            record['productName'] = request.form.get('productName')
+            record['price'] = int(request.form.get('price'))
+            record['weight'] = int(request.form.get('weight'))
+            record['count'] = int(request.form.get('count'))
+            if request.form.get('percentDiscount'):
+                record['percentDiscount'] = int(request.form.get('percentDiscount'))
+            else:
+                record['percentDiscount'] = 0
+            record['description'] = request.form.get('description')
+            record['vendor'] = request.form.get('vendor')
+            record['productId'] = str(utils.AddStuff(record))
+            record['status'] = utils.add_empty_status()
+
+            cursor.vestano_inventory.insert_one(record)
+            flash(u'محصول جدید ثبت شد. شناسه کالا: ' + str(record['productId']), 'success')
+
+        if sub_item == 'inc':
+            result = cursor.vestano_inventory.find_one({'productId': request.form.get('productId')})
+            print(result)
+            cursor.vestano_inventory.update_many(
+                {'productId': request.form.get('productId')},
+                {'$set':{
+                'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'price': int(request.form.get('price')),
+                'count': result['count'] + int(request.form.get('count')),
+                'percentDiscount': int(request.form.get('percentDiscount'))
+                }
+                }
+                )
+            flash(u'ثبت شد!', 'success')
+
+        if sub_item == 'pack':
+            record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
+            record['productName'] = request.form.get('packName')
+            record['price'] = int(request.form.get('price'))
+            #record['weight'] = int(request.form.get('weight'))
+            record['count'] = int(request.form.get('count'))
+            if request.form.get('percentDiscount'):
+                record['percentDiscount'] = int(request.form.get('percentDiscount'))
+            else:
+                record['percentDiscount'] = 0
+            record['description'] = request.form.get('description')
+            record['vendor'] = request.form.get('vendor')
+
+            pack_products = []
+            weight = 0
+            for i in range (1, 100):
+                if request.form.get('product_'+str(i)):
+                    pack_product = {}
+                    pack_product['productId'] = request.form.get('product_'+str(i))
+                    pack_product['count'] = int(request.form.get('count_'+str(i)))
+                    pack_product['weight'] = int(request.form.get('weight_'+str(i)))
+                    pack_product['price'] = int(request.form.get('price_'+str(i)))
+                    pack_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+                    weight += int(request.form.get('weight_'+str(i)))
+                    pack_products.append(pack_product)
+                    vi_result = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(i))})
+                    if vi_result:
+                        if (int(request.form.get('count_'+str(i))))*(record['count']) > vi_result['count']:
+                            flash(u'موجودی کالای ' + vi_result['productName'] +u' کافی نیست!', 'danger')
+                            return redirect(request.referrer)
+
+            for j in range(1, 100):
+                if request.form.get('product_'+str(j)):
+                    vi_result = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(j))})
+                    if vi_result:
+                        cursor.vestano_inventory.update_many(
+                            {'productId': request.form.get('product_'+str(j))},
+                            {'$set': {
+                            'count' : vi_result['count'] - (int(request.form.get('count_'+str(j))))*(record['count'])
+                            }
+                            }
+                            )
+
+            record['pack_products'] = pack_products
+            record['weight'] = weight
+            record['productId'] = str(utils.AddStuff(record))
+            record['status'] = utils.add_empty_status()
+            print(record)
+            cursor.vestano_inventory.insert_one(record)
+            flash(u'بسته جدید ایجاد شد. شناسه کالا: ' + str(record['productId']), 'success')
+
+
+    return render_template('user_pannel.html',
+        item='inventManagement',
+        inventory = utils.inventory(cursor),
+        sub_item=sub_item,
+        productId_result=productId_result
+        )
+
+
 @app.route('/user-pannel/inventory/<category>', methods=['GET', 'POST'])
 @token_required
 def inventory(category):
-    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item="inventory",
@@ -549,8 +718,7 @@ def accounting():
 
 @app.route('/about')
 def about():
-    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
+
     return render_template('about.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -620,6 +788,7 @@ def logout():
     session.pop('message', None)
     session.pop('temp_orders', None)
     session.pop('canceled_orders', None)
+    session.pop('today_orders', None)
     session.pop('role', None)
     return redirect(url_for('login'))
 
@@ -632,6 +801,24 @@ def ajax():
         else:
             result = utils.Products(cursor, data)
 
+    else:
+        flash(u'لطفا ابتدا وارد شوید', 'error')
+        return redirect(request.referrer)
+        
+    return jsonify(result)
+
+@app.route('/fetch-stuff', methods=['GET'])
+def fetch_stuff():
+    if 'username' in session:
+        product_id = request.args.get('code')
+        print(product_id)
+        result = cursor.vestano_inventory.find_one({'productId': product_id})
+        if not result:
+            flash(u'شناسه کالا در انبار ثبت نشده است!', 'error')
+            return redirect(request.referrer)
+        else:
+            del result["_id"]
+            print(result)
     else:
         flash(u'لطفا ابتدا وارد شوید', 'error')
         return redirect(request.referrer)
