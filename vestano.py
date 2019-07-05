@@ -320,9 +320,9 @@ def confirm_orders(code):
         'postalCode': result['registerPostalCode'],
         'products': result['products']
         }
-        #soap_result = utils.SoapClient(order)
-        #print('errorcode: ', soap_result['ErrorCode'])
-        soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408'}
+        soap_result = utils.SoapClient(order)
+        print('errorcode: ', soap_result['ErrorCode'])
+        #soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408'}
         if soap_result['ErrorCode'] == -6:
             postal_code_db = cursor.postal_codes.find_one({'Code': result['stateCode']})
             print("postal_code_db['Code']: ", postal_code_db['Code'])
@@ -614,6 +614,14 @@ def inventory_management(sub_item):
             record['vendor'] = request.form.get('vendor')
             record['productId'] = str(utils.AddStuff(record))
             record['status'] = utils.add_empty_status()
+            record['record'] = []
+            first_add = {
+            'action': 'add',
+            'datetime' : record['datetime'],
+            'count': int(request.form.get('count')),
+            'person': session['username']
+            }
+            record['record'].append(first_add)
 
             cursor.vestano_inventory.insert_one(record)
             flash(u'محصول جدید ثبت شد. شناسه کالا: ' + str(record['productId']), 'success')
@@ -621,13 +629,21 @@ def inventory_management(sub_item):
         if sub_item == 'inc':
             result = cursor.vestano_inventory.find_one({'productId': request.form.get('productId')})
             print(result)
+            add = {
+            'action': 'add',
+            'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+            'count': int(request.form.get('count')),
+            'person': session['username']
+            }
+            result['record'].append(add)
             cursor.vestano_inventory.update_many(
                 {'productId': request.form.get('productId')},
                 {'$set':{
-                'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'datetime': add['datetime'],
                 'price': int(request.form.get('price')),
                 'count': result['count'] + int(request.form.get('count')),
-                'percentDiscount': int(request.form.get('percentDiscount'))
+                'percentDiscount': int(request.form.get('percentDiscount')),
+                'record': result['record']
                 }
                 }
                 )
@@ -668,22 +684,58 @@ def inventory_management(sub_item):
                 if request.form.get('product_'+str(j)):
                     vi_result = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(j))})
                     if vi_result:
+                        dec = {
+                        'action': 'to_pack',
+                        'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                        'count': (int(request.form.get('count_'+str(j))))*(record['count']),
+                        'person': session['username']
+                        }
+                        vi_result['record'].append(dec)
                         cursor.vestano_inventory.update_many(
                             {'productId': request.form.get('product_'+str(j))},
                             {'$set': {
-                            'count' : vi_result['count'] - (int(request.form.get('count_'+str(j))))*(record['count'])
+                            'count' : vi_result['count'] - (int(request.form.get('count_'+str(j))))*(record['count']),
+                            'record': vi_result['record']
                             }
                             }
                             )
+
+            record['record'] = []
+            first_add = {
+            'action': 'add',
+            'datetime' : record['datetime'],
+            'count': int(request.form.get('count')),
+            'person': session['username']
+            }
+            record['record'].append(first_add)
 
             record['pack_products'] = pack_products
             record['weight'] = weight
             record['productId'] = str(utils.AddStuff(record))
             record['status'] = utils.add_empty_status()
-            print(record)
             cursor.vestano_inventory.insert_one(record)
             flash(u'بسته جدید ایجاد شد. شناسه کالا: ' + str(record['productId']), 'success')
 
+        if sub_item == 'release':
+            result = cursor.vestano_inventory.find_one({'productId': request.form.get('product')})
+            print(result)
+            dec = {
+            'action': 'release',
+            'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+            'count': int(request.form.get('count')),
+            'person': session['username']
+            }
+            result['record'].append(dec)
+            cursor.vestano_inventory.update_many(
+                {'productId': request.form.get('product')},
+                {'$set':{
+                'datetime': dec['datetime'],
+                'count': result['count'] - int(request.form.get('count')),
+                'record': result['record']
+                }
+                }
+                )
+            flash(u'ثبت شد!', 'success')
 
     return render_template('user_pannel.html',
         item='inventManagement',
@@ -815,13 +867,13 @@ def fetch_stuff():
         result = cursor.vestano_inventory.find_one({'productId': product_id})
         if not result:
             flash(u'شناسه کالا در انبار ثبت نشده است!', 'error')
-            return redirect(request.referrer)
+            return False
         else:
             del result["_id"]
             print(result)
     else:
         flash(u'لطفا ابتدا وارد شوید', 'error')
-        return redirect(request.referrer)
+        return False
         
     return jsonify(result)
 

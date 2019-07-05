@@ -355,7 +355,15 @@ def cities(cursor, code):
 
 def Products(cursor, product):
     result = cursor.vestano_inventory.find_one({'productId': product})
-    ans = {'productId':product, 'price':result['price'], 'weight':result['weight'], 'discount':result['percentDiscount']}
+    ans = {
+    'productName': result['productName'],
+    'productId': product,
+    'count': result['count'],
+    'vendor': result['vendor'],
+    'price': result['price'],
+    'weight': result['weight'],
+    'discount': result['percentDiscount']
+    }
     return ans
 
 def GetCities(stateId):
@@ -371,6 +379,17 @@ def GetCities(stateId):
     for item in cities_dict['City']:
         cities_list.append(client.dict(item))
     return cities_list
+
+def updateCities(cursor):
+    state_result = cursor.states.find()
+    for r in state_result:
+        cursor.states.update_many(
+            {'Code': r['Code']},
+            {'$set':{
+            'Cities': GetCities(r['Code'])
+            }
+            }
+            )
 
 def GetStates():
     client = Client(API_URI)

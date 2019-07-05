@@ -35,6 +35,14 @@ for i in range(1, file.nrows):
 	records['recordDate'] = file.cell(i, 6).value
 	records['description'] = file.cell(i, 7).value
 	records['vendor'] = u'روژیاپ'
+	records['record'] = []
+	add = {}
+	add['action'] = 'add'
+	add['datetime'] = records['datetime']
+	add['count'] = records['count']
+	add['person'] = 'firs_init'
+	records['record'].append(add)
+	print(records)
 
 	cursor.vestano_inventory.insert_one(records)
 

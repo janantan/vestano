@@ -18,7 +18,7 @@ def config_mongodb(host):
     cur = MongoClient(uri)['vestano']
     return cur
 
-cursor = config_mongodb('127.0.0.1')
+local_cursor = config_mongodb('127.0.0.1')
 
 server = SSHTunnelForwarder(
     MONGO_HOST,
@@ -33,8 +33,10 @@ server.start()
 client = MongoClient('127.0.0.1', server.local_bind_port)
 host_cursor = client[MONGO_DB]
 
-#l_p_r = l_cursor.postal_codes.find()
+
+
+#l_p_r = local_cursor.postal_codes.find()
 #for rec in l_p_r:
-	#db.postal_codes.insert_one(rec)
+	#host_cursor.postal_codes.insert_one(rec)
 
 server.stop()

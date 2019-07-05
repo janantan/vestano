@@ -640,8 +640,16 @@ a.button:active {
     width: 18vw !important;
 }
 
+.mrg-vh20 {
+    margin-top: 20vh;
+}
+
 .mrg-vh12 {
     margin-top: 12vh;
+}
+
+.mrg-vh8 {
+    margin-top: 8vh;
 }
 
 .mrg-vh4 {
@@ -662,6 +670,10 @@ a.button:active {
 
 .mrg-vw2 {
     margin-right: 2vw;
+}
+
+.mrg-vw20 {
+    margin-right: 20vw;
 }
 
 .font12 {
@@ -696,6 +708,11 @@ a.button:active {
     font-weight: bold;
 }
 
+.search-row td {
+    text-align: center;
+    height: 8vh;
+}
+
 #temp-ord td {
     height: 8vh;
 }
@@ -718,6 +735,49 @@ a.button:active {
     color: rgb(194, 145, 144) !important;
     /*color: #0b4158 !important;*/
 }
+
+
+
+
+
+
+
+#myInput {
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 1vh 1vw 1vh 3vw;
+  border: none;
+  border-bottom: 1px solid #eee;
+}
+
+#myInput:focus {outline: 3px solid #eee;}
+
+.dropdown-content {
+  /*display: none;*/
+  position: absolute;
+  background-color: #fff;
+  overflow: auto;
+  border: 1px solid #e1e1e1;
+  z-index: 1;
+}
+
+.dropdown-content a {
+  padding: 12px 0;
+  font-size: 15px;
+  text-decoration: none;
+  text-align: right;
+  width: 13.5vw;
+  display: block;
+}
+
+.dropdown a:hover {background-color: #eee;}
+
+.show {display: block;}
+
+
+
+
+
 
 body > footer {
     direction: ltr;

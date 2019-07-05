@@ -31,19 +31,20 @@
   {% elif sub_item == 'inc' %}
     <fieldset class="fieldset mrg-vh2" style="height: 65vh; background: rgb(255,255,230);">
       <form method="POST" action="">
-        <div id="fetch_stuff" class="mrg-vh1">
-          <label>شناسه کالا</label>
-          <input id="productId" type="text" name="p_Id" placeholder="" size="30" required />
-          <a class="button" href="#" onclick="javascript:fetch_stuff('productId')" style="margin-right: 4vw; background-color: #f3f3f3;">بررسی</a>
+        <div class="mrg-vh1">
+          <label>کالای مورد نظر را انتخاب کنید:</label>
+          <select id="product" name="product" onchange="product1('product')" required>
+            <option value="" disabled selected>(انخاب کنید)</option>
+            {% for item in inventory %}
+              <option value="{{item[1]}}">{{item[0]}}</option>
+              }
+            {% endfor %}
+          </select>
         </div>
-        <fieldset id="features" class="fieldset mrg-vh2" style="border: none; display: none; background: rgb(255,255,230);">
-          <div class="mrg-vh2">
-            <label style="display:inline-block;">شناسه کالا</label>
-            <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" placeholder="" readonly="readonly" required size="30" />
-          </div>
+        <fieldset id="features" class="fieldset mrg-vh2" style="height: 50vh; border: none; background: rgb(255,255,230); display: none;">
           <div class="mrg-vh4">
-            <label style="display:inline-block;">نام کالا</label>
-            <input style="margin:0 4vw;" id="productName" type="text" name="productName" placeholder="" size="30" disabled required />
+            <label style="display:inline-block;">شناسه کالا</label>
+            <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" placeholder="" disabled required size="20" />
             <label style="display:inline-block;">شرکت فروشنده</label>
             <select style="margin:0 4vw;" id="vendor" name="vendor" disabled style="margin-right: 2vw;" required>
               <option value="" disabled selected>شرکت فروشنده</option>
@@ -53,16 +54,20 @@
           <div class="mrg-vh4">
             <label style="display:inline-block;">قیمت</label>
             <input style="margin: 0 4.5vw;" id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
-            <label style="display:inline-block; margin-right: 3vw;">وزن</label>
+            <label style="display:inline-block; margin-right: 2.1vw;">وزن</label>
             <input style="margin:0 7vw;" id="weight" type="number" name="weight" placeholder="وزن (گرم)" required />
           </div>
           <div class="mrg-vh4">
-            <label style="display:inline-block;">تعداد</label>
-            <input style="margin: 0 4.5vw;" id="count" type="number" name="count" placeholder="تعداد ورودی جدید" required />
-            <label style="display:inline-block; margin-right: 3vw;">درصد تخفیف</label>
+            <label style="display:inline-block;">موجودی فعلی</label>
+            <input style="margin: 0 1.5vw;" id="exist_count" type="number" name="exist_count" placeholder="تعداد ورودی جدید" disabled required />
+            <label style="display:inline-block; margin-right: 5vw;">درصد تخفیف</label>
             <input style="margin:0 3.7vw;" id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)" required  />
           </div>
-          <div class="mrg-vh12">
+          <div class="mrg-vh8">
+            <label style="display:inline-block;">ورودی جدید</label>
+            <input style="margin: 0 2vw;" id="count" type="number" name="count" placeholder="تعداد ورودی جدید" required />
+          </div>
+          <div class="mrg-vh4">
             <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت محصول " />
           </div>
         </fieldset>
@@ -149,7 +154,100 @@
       </form>
     </fieldset>
   {% elif sub_item == 'release' %}
+    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 65vh;">
+      <form method="POST" action="">
+        <div class="mrg-vh1">
+          <label>کالای مرجوعی را انتخاب کنید:</label>
+          <select id="product" name="product" onchange="product2('product')" required>
+            <option value="" disabled selected>(انخاب کنید)</option>
+            {% for item in inventory %}
+              <option value="{{item[1]}}">{{item[0]}}</option>
+              }
+            {% endfor %}
+          </select>
+        </div>
+        <fieldset id="features" class="fieldset mrg-vh2" style="height: 50vh; border: none; background: rgb(255,255,230); display: none;">
+          <div>
+            <label>موجودی فعلی</label>
+            <input id="exist_count" type="text" name="exist_count" placeholder="" size="20" disabled />
+            <select id="vendor" name="vendor" class="mrg-vw2" disabled>
+              <option value="" disabled selected>شرکت فروشنده</option>
+              <option value="روژیاپ">روژیاپ</option>
+            </select>
+          </div>
+          <div class="mrg-vh8">
+            <label>تعداد مرجوعی کالا</label>
+            <input id="count" type="number" name="count" placeholder="تعداد مرجوعی (عدد)" required />
+          </div>
+          <div class="mrg-vh12">
+            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت مرجوعی" />
+          </div>
+        </fieldset>
+      </form>
+    </fieldset>
   {% elif sub_item == 'search' %}
+    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 65vh;" onclick="notShow()">
+      <div class="mrg-vh1">
+        <label>نام کالا را وارد کنید:</label>
+        <div class="dropdown mrg-vh4">
+          <!--<button onclick="search()" class="dropbtn">جستجو</button>-->
+          <div id="myDropdown" class="dropdown-content">
+            <input type="text" placeholder="جستجو .." id="myInput" onclick="show()" onkeyup="filter()" size="28">
+            <table id="inventory" style="display: none;">
+              <tbody style="height: 45vh; width: 15vw;">
+                {% for item in inventory %}
+                  <tr>
+                    <td>
+                      <a href="#" onclick="searchFunction('{{item[1]}}')">{{item[0]}}</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="mrg-vh4 mrg-vw20">
+        <fieldset id="search-result" class="fieldset" style="border: none; display: none;">
+          <table class="search-row">
+            <tr style="background: yellow;">
+              <th class="vw15">
+                <span>عنوان کالا</span>
+              </th>
+              <th class="vw8">
+                <span>شناسه کالا</span>
+              </th>
+              <th class="vw10">
+                <span>شرکت فروشنده</span>
+              </th>
+              <th class="vw6">
+                <span>موجودی</span>
+              </th>
+              <th class="vw8">
+                <span>سابقه</span>
+              </th>
+            </tr>
+            <tr>
+              <td class="vw15">
+                <span id="p_name"></span>
+              </td>
+              <td class="vw8">
+                <span id="p_id"></span>
+              </td>
+              <td class="vw10">
+                <span id="vendor"></span>
+              </td>
+              <td class="vw6">
+                <span id="count"></span>
+              </td>
+              <td class="vw8">
+                <span>جزئیات</span>
+              </td>
+            </tr>
+          </table>
+        </fieldset>
+      </div>
+    </fieldset>
   {% endif %}
 </fieldset>
 
@@ -195,6 +293,48 @@
 
   }
 
+  function product1(id_name) {
+    var product_name = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+
+            document.getElementById('features').style.display = 'block';
+
+            
+            document.getElementById('p_Id').value = json.productId
+            document.getElementById('vendor').value = json.vendor
+            document.getElementById('price').value = json.price
+            document.getElementById('weight').value = json.weight
+            document.getElementById('exist_count').value = json.count
+            document.getElementById('percentDiscount').value = json.discount
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
+  function product2(id_name) {
+    var product_name = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+
+            document.getElementById('features').style.display = 'block';
+            document.getElementById('exist_count').value = json.count
+            document.getElementById('vendor').value = json.vendor
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
   function product(id_name) {
     var product_name = document.getElementById(id_name).value;
 
@@ -203,6 +343,7 @@
         if (this.readyState == 4 && this.status == 200) {
 
             var json = JSON.parse(this.responseText);
+            
             document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
             document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
             document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
@@ -212,26 +353,49 @@
     xhr.send();
   }
 
+  function show() {
+    //document.getElementById("inventory").classList.toggle("show");
+    document.getElementById("inventory").style.display = 'block';
+  }
 
-  function fetch_stuff(element_id) {
-    var product_id = document.getElementById(element_id).value;
+  function notShow() {
+    //document.getElementById("inventory").style.display = 'none';
+  }
 
+  function filter() {
+    var input, filter, ul, tr, a, i;
+    input = document.getElementById("myInput");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("myDropdown");
+    a = div.getElementsByTagName("a");
+    tr = div.getElementsByTagName("tr");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+
+  function searchFunction(product_id) {
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-          document.getElementById('fetch_stuff').style.display = 'none';
-          document.getElementById('features').style.display = 'block';
 
-          var json = JSON.parse(this.responseText);
-          document.getElementById('p_Id').value = json.productId
-          document.getElementById('productName').value = json.productName
-          document.getElementById('vendor').value = json.vendor
-          document.getElementById('price').value = json.price
-          document.getElementById('weight').value = json.weight
-          document.getElementById('percentDiscount').value = json.percentDiscount
+            var json = JSON.parse(this.responseText);
+
+            document.getElementById('search-result').style.display = 'block';
+            document.getElementById("inventory").style.display = 'none';
+
+            document.getElementById('p_name').innerHTML = json.productName
+            document.getElementById('p_id').innerHTML = json.productId
+            document.getElementById('vendor').innerHTML = json.vendor
+            document.getElementById('count').innerHTML = json.count
        }
     }
-    xhr.open('GET', '/fetch-stuff?code=' + product_id, true);
+    xhr.open('GET', '/ajax?code=' + product_id, true);
     xhr.send();
   }
 
