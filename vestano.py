@@ -894,6 +894,17 @@ def inventory_details(status, productId):
         details = utils.inventory_details(cursor, status, productId)
         )
 
+@app.route('/inventory-enterance-details/<productId>', methods=['GET', 'POST'])
+@token_required
+def enterance_details(productId):
+    product = cursor.vestano_inventory.find_one({'productId': productId})
+
+    return render_template('includes/_enteranceDetails.html',
+        details = product['record'],
+        productName = product['productName'],
+        productId = productId
+        )
+
 @app.route('/update-status', methods=['GET'])
 @token_required
 def update_status():

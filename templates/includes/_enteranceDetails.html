@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fa-IR" style="padding: 10px 10px;">
+    <head>
+        <title>شرکت وستانو</title>
+        <!--<meta charset="utf-8" />-->
+        <meta content="text/html;charset=UTF-8" http-equiv="Content-Type" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
+    </head>
+    <body class="card" style="direction: rtl; margin: 0 auto;">
+    	<fieldset class="fieldset font16" style="background-color: #bcd1fe">
+			<div style="margin-bottom: 4vh;">
+				<span class="bold">سابقه ورود و خروج {{productName}} ({{productId}})</span>
+			</div>
+			<table id="inventory">
+				<thead>
+					<tr class="bg-yellow">
+						<th style="width: 4vw;">
+							<span>ردیف</span>
+						</th>
+						<th class="vw22">
+							<span>تاریخ رکورد</span>
+						</th>
+						<th class="vw18">
+							<span>ورود | خروج</span>
+						</th>
+						<th class="vw22">
+							<span>رویداد</span>
+						</th>
+						<th class="vw15">
+							<span>تعداد</span>
+						</th>
+						<th class="vw18">
+							<span>نام کاربری </span>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for i in range(details|length) %}
+					<tr class="rows">
+						<td style="width: 4vw;">
+							<span>{{loop.index}}</span>
+						</td>
+						<td class="vw22">
+							<span style="direction: rtl;">{{details[i]['datetime']}}</span>
+						</td>
+						{% if details[i]['action']=='add' %}
+							<td class="vw18">
+								<span class="blue">ورود</span>
+							</td>
+							<td class="vw22">
+								<span>افزودن به انبار</span>
+							</td>
+						{% elif details[i]['action']=='to_pack' %}
+							<td class="vw18">
+								<span class="red">خروج</span>
+							</td>
+							<td class="vw22">
+								<span>تبدیل به بسته</span>
+							</td>
+						{% elif details[i]['action']=='release' %}
+							<td class="vw18">
+								<span class="red">خروج</span>
+							</td>
+							<td class="vw22">
+								<span>مرجوعی</span>
+							</td>
+						{% endif %}
+						<td class="vw15">
+							<span>{{details[i]['count']}}</span>
+						</td>
+						<td class="vw18">
+							<span>{{details[i]['person']}}</span>
+						</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</fieldset>
+    </body>
+</html>

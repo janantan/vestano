@@ -265,7 +265,6 @@ def inventory_details(cursor, status, productId):
 
     return r_list
 
-
 def typeOfServicesToString(serviceType, payType):
     if serviceType==1:
         sType = u'پست پیشتاز'
