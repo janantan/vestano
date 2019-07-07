@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fa-IR" style="padding: 10px 10px;">
     <head>
-        <title>شرکت وستانو</title>
+        <title>سامانه پستی وستانو</title>
         <!--<meta charset="utf-8" />-->
         <meta content="text/html;charset=UTF-8" http-equiv="Content-Type" />
         <meta name="viewport" content="width=device-width,initial-scale=1.0" />
@@ -18,7 +18,7 @@
 						<span class="blue bold">بارکد مرسوله:</span>
 					</td>
 					<td class="vw12">
-						<span> - </span>
+						<span class="font14"> {{details[16]}} </span>
 					</td>
 					<td>
 						<span class="blue bold">شناسه سفارش:</span>
@@ -91,10 +91,10 @@
 						<span>{{details[7]}}</span>
 					</td>
 					<td>
-						<span class="blue bold">هزینه ارسال:</span>
+						<span class="blue bold">کارمزد:</span>
 					</td>
 					<td>
-						<span> - </span>
+						<span> {{details[15]}} ریال </span>
 					</td>
 				</tr>
 				<tr>
@@ -133,10 +133,29 @@
 						</td>
 					</tr>
 					{% for p in details[9] %}
-						<tr>
-							<td class="vw18 right font14">
-								<span>{{p['productName']}} </span><span style="color: red;">({{p['inventory_count']}})</span>
-							</td>
+						<tr class="rows">
+							{% if p['if_pack'] %}
+								<td class="vw18 right font14">
+									<table>
+										<tr>
+											<td class="right">
+												<span>{{p['productName']}} </span><span style="color: red;">({{p['inventory_count']}})</span><span> شامل:</span>
+											</td>
+										</tr>
+										{% for pp in p['pack_products'] %}
+											<tr>
+												<td class="right">
+													<span class="font14" style="margin-right: 1vw;">{{pp['count']}} عدد {{pp['productName']}} </span><span style="color: red;">({{pp['invent_count']}})</span>
+												</td>
+											</tr>
+										{% endfor %}
+									</table>
+								</td>
+							{% else %}
+								<td class="vw18 right font14">
+									<span>{{p['productName']}} </span><span style="color: red;">({{p['inventory_count']}})</span>
+								</td>
+							{% endif %}
 							<td class="vw10">
 								<span>{{p['price']}}</span>
 							</td>
@@ -177,68 +196,48 @@
 							<td>
 								<span>{{details[11]-(details[11]*details[12]/100)}}</span>
 							</td>
+							<td class="vw18 bg-green">
+								<span>{{details[11]-(details[11]*details[12]/100) + details[15]}} ریال</span>
+							</td>
 						{% else %}
 							<td>
 								<span>{{details[11]}}</span>
 							</td>
+							<td class="vw18 bg-green">
+								<span>{{details[11] + details[15]}} ریال</span>
+							</td>
 						{% endif %}
-						<td class="vw18 bg-green">
-							<span>{{details[11]}}</span>
-						</td>
 					</tr>
 				</table>
 			</fieldset>
 		</fieldset>
 		{% if code == 'temp' %}
 			<div style="margin-top: 3vh;">
-				<a class="button" href="/confirm-order/{{details[13]}}" onclick="window.close()" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
-				<a class="button" href="/cancel-order/{{details[13]}}" onclick="window.close()" title="ارسال به سفارشات لغو شده" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">لغو سفارش</a>
-				<a class="button" href="/pending-order/{{details[13]}}" onclick="window.close()" title="ارسال به در انتظار کالا" style="background-color: #f3f3f3; float: left;">عدم موجودی</a>
+				<a class="button" href="javascript:processFunction('/confirm-order/{{details[13]}}')" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
+				<a class="button" href="javascript:processFunction('/cancel-order/{{details[13]}}')" title="ارسال به سفارشات لغو شده" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">لغو سفارش</a>
+				<a class="button" href="javascript:processFunction('/pending-order/{{details[13]}}')" title="ارسال به در انتظار کالا" style="background-color: #f3f3f3; float: left;">عدم موجودی</a>
 			</div>
 		{% elif code == 'cnl' %}
 			<div style="margin-top: 3vh;">
 				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3;">ویرایش سفارش</a>
-				<a class="button" href="/delete-order/{{details[13]}}" onclick="window.close()" title="حذف کامل سفارش" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">حذف سفارش</a>
+				<a class="button" href="javascript:processFunction('/delete-order/{{details[13]}}')" title="حذف کامل سفارش" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">حذف سفارش</a>
 			</div>
 		{% elif code == 'rts' %}
 			<div style="margin-top: 3vh;">
-				<a class="button" href="/finish-process/{{details[13]}}" onclick="window.close()" title="پایان فرایند سفارش" style="background-color: #f3f3f3;">پایان فرایند</a>
+				<a class="button" href="javascript:processFunction('/finish-process/{{details[13]}}')" title="پایان فرایند سفارش" style="background-color: #f3f3f3;">پایان فرایند</a>
 			</div>
 		{% endif %}
 
 		<script type="text/javascript">
-			function close() {
-				window.setTimeout(function(){
-					window.close();
-				}, 1000);
-			}
- 			function confirm(url) {
+
+ 			function processFunction(url) {
+ 				//var str = window.location.href
+ 				//alert(window.location.href)
 				const xhr = new XMLHttpRequest();
 				xhr.open('GET', url, true);
 				xhr.send();
-
 				window.setTimeout(function(){
 					opener.location.href = '/user-pannel/orderList';
-					close();
-				}, 1000);
-			}
-			function cancel(url) {
-				const xhr = new XMLHttpRequest();
-				xhr.open('GET', url, true);
-				xhr.send();
-
-				setTimeout(function(){
-					var ww = window.open(window.location, '_self');
-					ww.close();
-				}, 1000);
-			}
-			function delete(url) {
-				const xhr = new XMLHttpRequest();
-				xhr.open('GET', url, true);
-				xhr.send();
-
-				window.setTimeout(function(){
-					opener.location.href = '/user-pannel/canceled-orders';
 					close();
 				}, 1000);
 			}

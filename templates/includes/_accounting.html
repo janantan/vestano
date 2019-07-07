@@ -3,70 +3,165 @@
 	<table id="inventory">
 		<thead>
 			<tr style="background: yellow;">
-				<th style="width: 50px;">
+				<th class="font12" style="width: 4vw;">
 					<span>ردیف</span>
 				</th>
-				<th class="vw8">
+				<th class="vw8 font12">
 					<span>شناسه سفارش</span>
 				</th>
-				<th class="vw12">
+				<th class="vw12 font12">
 					<span>کد رهگیری</span>
 				</th>
-				<th class="vw8 font12">
+				<th class="vw10 font12">
 					<span>مبلغ تمام شده کالا</span>
 				</th>
-				<th class="font12">
+				<th class="vw8 font12">
 					<span>هزینه ارسال</span>
 				</th>
-				<th class="font12">
+				<th class="vw8 font12">
 					<span>ارزش افزوده</span>
 				</th>
-				<th class="font12">
-					<span>هزینه پست</span>
+				<th class="vw8 font12">
+					<span>حق ثبت</span>
+				</th>
+				<th class="vw8 font12">
+					<span>کارمزد</span>
 				</th>
 				<th class="font12">
-					<span>بستانکار | بدهکار</span>
+					<span>بستانکار|بدهکار فروشگاه</span>
 				</th>
-				<th class="vw8">
-					<span>تاریخ ثبت رکورد</span>
+				<th class="font12">
+					<span>بستانکار|بدهکار پست</span>
 				</th>
-				<th style="width: 15px;"></th>
+				<th class="font12">
+					<span>بستانکار|بدهکار وستانو</span>
+				</th>
+				<th class="vw8 font12">
+					<span>پرداخت</span>
+				</th>
+				<th style="width: 1vw;"></th>
 			</tr>
 		</thead>
 		<tbody>
-			{% for rec in accounting %}
+			{% for rec in accounting['record'] %}
 				<tr class="rows">
-					<td style="width: 50px;">
+					<td style="width: 3.5vw;">
 						<span>{{loop.index}}</span>
 					</td>
 					<td class="vw8">
 						<span>{{rec[0]}}</span>
 					</td>
 					<td class="vw12">
-						<!--<span>{{rec[1]}}</span>-->
-						<span>21868000411926025734</span>
+						<a href="javascript:window.open('/orders-details/{{rec[0]}}/accounting', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
 					</td>
 					<td class="vw8">
-						<!--<span>{{rec[2]}}</span>-->
-						<span>{{rec[1]}}</span>
-					</td>
-					<td>
-						<span class="red">6050</span>
-					</td>
-					<td>
-						<span  class="red">544</span>
-					</td>
-					<td>
-						<span class="blue">{{rec[2]}}</span>
-					</td>
-					<td>
-						<span class="blue">3405</span>
+						<span>{{rec[2]}}</span>
 					</td>
 					<td class="vw8">
 						<span>{{rec[3]}}</span>
 					</td>
+					<td class="vw8">
+						<span >{{rec[4]}}</span>
+					</td>
+					<td class="vw8">
+						<span >{{rec[5]}}</span>
+					</td>
+					<td class="vw8">
+						<span >{{rec[6]}}</span>
+					</td>
+					{% if rec[7] < 0 %}
+						<td>
+							<span class="red">{{0-rec[7]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span class="blue">{{rec[7]}}</span>
+						</td>
+					{% endif %}
+					{% if rec[8] < 0 %}
+						<td>
+							<span class="red">{{0-rec[8]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span class="blue">{{rec[8]}}</span>
+						</td>
+					{% endif %}
+					{% if rec[9] < 0 %}
+						<td>
+							<span class="red">{{0-rec[9]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span class="blue">{{rec[9]}}</span>
+						</td>
+					{% endif %}
+					<td class="vw12">
+						<span class="font12">{{rec[10]}}</span>
+					</td>
 				</tr>
 			{% endfor %}
+			<tr style="background: rgb(255,255,180);">
+				<td colspan="3">
+					<span>مجموع</span>
+				</td>
+				<td>
+					<span>{{accounting['totalCosts'][0]}}</span>
+				</td>
+				<td>
+					<span>{{accounting['totalCosts'][1]}}</span>
+				</td>
+				<td>
+					<span>{{accounting['totalCosts'][2]}}</span>
+				</td>
+				<td>
+					<span>{{accounting['totalCosts'][3]}}</span>
+				</td>
+				<td>
+					<span >{{accounting['totalCosts'][4]}}</span>
+				</td>
+				{% if accounting['totalCosts'][5] < 0 %}
+					<td>
+						<span class="red">{{0 - accounting['totalCosts'][5]}}</span>
+					</td>
+				{% else %}
+					<td>
+						<span class="blue">{{accounting['totalCosts'][5]}}</span>
+					</td>
+				{% endif %}
+				{% if accounting['totalCosts'][6] < 0 %}
+					<td>
+						<span class="red">{{0 - accounting['totalCosts'][6]}}</span>
+					</td>
+				{% else %}
+					<td>
+						<span class="blue">{{accounting['totalCosts'][6]}}</span>
+					</td>
+				{% endif %}
+				{% if accounting['totalCosts'][7] < 0 %}
+					<td>
+						<span class="red">{{0 - accounting['totalCosts'][7]}}</span>
+					</td>
+				{% else %}
+					<td>
+						<span class="blue">{{accounting['totalCosts'][7]}}</span>
+					</td>
+				{% endif %}
+			</tr>
 		</tbody>
 	</table>
 </fieldset>
+
+<script type="text/javascript">
+	function ToRial(str) {
+
+		str = str.replace(/\,/g, '');
+		    var objRegex = new RegExp('(-?[0-9]+)([0-9]{3})');
+
+		    while (objRegex.test(str)) {
+		        str = str.replace(objRegex, '$1,$2');
+		    }
+
+		return str;
+	}
+</script>

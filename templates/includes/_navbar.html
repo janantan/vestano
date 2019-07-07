@@ -26,6 +26,7 @@
       {% if 'username' in session %}
         <li><a class="navbar-link logout" href="/logout">خروج</a></li>
       {% endif %}
+      <li><a class="user-name">{{session['jdatetime']}}</a></li>
       <!--<li><a class="navbar-link login" href="/login">ورود</a></li>-->
       <!--{% if session['role'] == 'admin' %}
         <li><a class="navbar-link register" href="/register">عضویت</a></li>

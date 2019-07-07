@@ -42,7 +42,7 @@ for i in range(1, file.nrows):
 	add['count'] = records['count']
 	add['person'] = 'firs_init'
 	records['record'].append(add)
-	print(records)
+	#print(records)
 
 	cursor.vestano_inventory.insert_one(records)
 

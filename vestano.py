@@ -16,7 +16,7 @@ import jwt
 import datetime
 import jdatetime
 import json
-import utils
+import utils, config
 
 #Config mongodb
 cursor = utils.config_mongodb()
@@ -195,6 +195,7 @@ def token_required(f):
                 session['username'] = username
                 session['message'] = result['name']
                 session['role'] = result['role']
+                session['jdatetime'] = jdatetime.datetime.today().strftime('%d / %m / %Y')
                 session['temp_orders'] = cursor.temp_orders.estimated_document_count()
                 session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
                 session['today_orders'] = cursor.today_orders.estimated_document_count()
@@ -321,7 +322,7 @@ def confirm_orders(code):
         'products': result['products']
         }
         soap_result = utils.SoapClient(order)
-        print('errorcode: ', soap_result['ErrorCode'])
+        #print('errorcode: ', soap_result['ErrorCode'])
         #soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408'}
         if soap_result['ErrorCode'] == -6:
             postal_code_db = cursor.postal_codes.find_one({'Code': result['stateCode']})
@@ -351,6 +352,16 @@ def confirm_orders(code):
             new_rec['status'] = utils.GetStatus_one(cursor, soap_result['ParcelCode'])
             new_rec['status_updated'] = False
 
+            costs = {
+            'price': price,
+            'PostDeliveryPrice': soap_result['PostDeliveryPrice'],
+            'VatTax': soap_result['VatTax'],
+            'registerCost': config.registerCost,
+            'wage': config.wage
+            }
+
+            new_rec['costs'] = costs
+
             cursor.orders.insert_one(new_rec)
             cursor.ready_to_ship.insert_one(new_rec)
             new_rec['last update'] = datetime.datetime.now()
@@ -367,11 +378,16 @@ def confirm_orders(code):
                     {'$set':{'status': vinvent['status']}}
                     )
 
-            flash(u'سفارش تایید و ثبت شد!', 'success')
+            utils.removeFromInventory(cursor, new_rec['orderId'])
+
+            flash(u'سفارش تایید و آماده ارسال شد!', 'success')
+            return redirect(request.referrer)
         else:
             flash(u'خطایی رخ داده است!', 'error')
+            return redirect(request.referrer)
     else:
         flash(u'خطایی رخ داده است! (شناسه سفارش)', 'error')
+        return redirect(request.referrer)
 
     return render_template('user_pannel.html',
         item='orderList')
@@ -419,7 +435,7 @@ def finish_process(orderId):
             {'productId': vinvent['productId']},
             {'$set':{'status': vinvent['status']}}
             )
-
+    flash(u'فرآیند سفارش با موفقیت به پایان رسید!', 'success')
     return redirect(request.referrer)
 
 @app.route('/user-pannel/canceled-orders', methods=['GET'])
@@ -446,7 +462,8 @@ def cancel_orders(orderId):
             {'$set':{'status': vinvent['status']}}
             )
     cursor.temp_orders.remove({'orderId': orderId})
-    return redirect(url_for('temp_orders'))
+    flash(u'سفارش مورد نظر لغو شد!', 'danger')
+    return redirect(request.referrer)
 
 @app.route('/pending-order/<orderId>', methods=['GET'])
 @token_required
@@ -463,14 +480,16 @@ def pending_orders(orderId):
             {'$set':{'status': vinvent['status']}}
             )
     cursor.temp_orders.remove({'orderId': orderId})
-    return redirect(url_for('temp_orders'))
+    flash(u'سفارش در انتظار کالا قرار گرفت.', 'danger')
+    return redirect(request.referrer)
 
 @app.route('/delete-order/<orderId>', methods=['GET'])
 @token_required
 def delete_order(orderId):
     rec = cursor.canceled_orders.find_one({'orderId': orderId})
     cursor.canceled_orders.remove({'orderId': orderId})
-    return redirect(url_for('temp_orders'))
+    flash(u'سفارش حذف شد!', 'danger')
+    return redirect(request.referrer)
 
 @app.route('/edit-order/<orderId>', methods=['GET', 'POST'])
 @token_required
@@ -526,6 +545,7 @@ def edit_orders(orderId):
         print(utils.test_temp_order(temp_order))
 
         cursor.canceled_orders.remove({'orderId': orderId})
+        #return redirect(request.referrer)
 
 
     return render_template('includes/_editOrder.html',
@@ -627,7 +647,7 @@ def inventory_management(sub_item):
             flash(u'محصول جدید ثبت شد. شناسه کالا: ' + str(record['productId']), 'success')
 
         if sub_item == 'inc':
-            result = cursor.vestano_inventory.find_one({'productId': request.form.get('productId')})
+            result = cursor.vestano_inventory.find_one({'productId': request.form.get('product')})
             print(result)
             add = {
             'action': 'add',
@@ -635,9 +655,10 @@ def inventory_management(sub_item):
             'count': int(request.form.get('count')),
             'person': session['username']
             }
+            print(add)
             result['record'].append(add)
             cursor.vestano_inventory.update_many(
-                {'productId': request.form.get('productId')},
+                {'productId': request.form.get('product')},
                 {'$set':{
                 'datetime': add['datetime'],
                 'price': int(request.form.get('price')),
@@ -680,25 +701,25 @@ def inventory_management(sub_item):
                             flash(u'موجودی کالای ' + vi_result['productName'] +u' کافی نیست!', 'danger')
                             return redirect(request.referrer)
 
-            for j in range(1, 100):
-                if request.form.get('product_'+str(j)):
-                    vi_result = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(j))})
-                    if vi_result:
-                        dec = {
-                        'action': 'to_pack',
-                        'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
-                        'count': (int(request.form.get('count_'+str(j))))*(record['count']),
-                        'person': session['username']
-                        }
-                        vi_result['record'].append(dec)
-                        cursor.vestano_inventory.update_many(
-                            {'productId': request.form.get('product_'+str(j))},
-                            {'$set': {
-                            'count' : vi_result['count'] - (int(request.form.get('count_'+str(j))))*(record['count']),
-                            'record': vi_result['record']
-                            }
-                            }
-                            )
+            #for j in range(1, 100):
+                #if request.form.get('product_'+str(j)):
+                    #vi_result = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(j))})
+                    #if vi_result:
+                        #dec = {
+                        #'action': 'to_pack',
+                        #'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                        #'count': (int(request.form.get('count_'+str(j))))*(record['count']),
+                        #'person': session['username']
+                        #}
+                        #vi_result['record'].append(dec)
+                        #cursor.vestano_inventory.update_many(
+                            #{'productId': request.form.get('product_'+str(j))},
+                            #{'$set': {
+                            #'count' : vi_result['count'] - (int(request.form.get('count_'+str(j))))*(record['count']),
+                            #'record': vi_result['record']
+                            #}
+                            #}
+                            #)
 
             record['record'] = []
             first_add = {
@@ -759,13 +780,10 @@ def inventory(category):
 @app.route('/user-pannel/accounting', methods=['GET', 'POST'])
 @token_required
 def accounting():
-    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item="accounting",
-        accounting = utils.accounting(cursor),
-        states = utils.states(cursor)
+        accounting = utils.accounting(cursor)
         )
 
 @app.route('/about')
@@ -842,6 +860,7 @@ def logout():
     session.pop('canceled_orders', None)
     session.pop('today_orders', None)
     session.pop('role', None)
+    session.pop('jdatetime', None)
     return redirect(url_for('login'))
 
 @app.route('/ajax', methods=['GET', 'POST'])

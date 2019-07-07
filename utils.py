@@ -12,6 +12,7 @@ from suds.client import Client
 from suds.xsd.doctor import Import, ImportDoctor
 from pymongo import MongoClient
 from passlib.hash import sha256_crypt
+import config
 
 
 MONGO_HOST = "localhost"
@@ -103,37 +104,90 @@ def inventory(cursor):
     result = cursor.vestano_inventory.find()
     inventory = []
     for r in result:
-        #temp_orders = cursor.temp_orders.find()
-        #for trec in temp_orders:
-            #for j in range(len(trec['products'])):
-                #if trec['products'][j]['productId'] == r['productId']:
-                    #r['status'][str(trec['status'])]+= trec['products'][j]['count']
-                    #cursor.vestano_inventory.update_many(
-                        #{'productId': r['productId']},
-                        #{'$set':{'status': r['status']}}
-                        #)
-        #product_result = cursor.orders.find()
-        #for rec in product_result:
-            #for i in range(len(rec['products'])):
-                #if rec['products'][i]['productId'] == r['productId']:
-                    #r['status'][str(rec['status'])]+= rec['products'][i]['count']
-                    #cursor.vestano_inventory.update_many(
-                        #{'productId': r['productId']},
-                        #{'$set':{'status': r['status']}}
-                        #)
         st = r['status']
         other_status_count = sum(st.values())-st['80']-st['2']-st['81']-st['7']-st['71']-st['11']-st['82']
         inventory.append((r['productName'], r['productId'], r['count'], r['datetime'],
             r['percentDiscount'], r['status'], other_status_count))
     return inventory
 
+def removeFromInventory(cursor, orderId):
+    order_result = cursor.orders.find_one({'orderId': orderId})
+    for rec in order_result['products']:
+        p = cursor.vestano_inventory.find_one({'productId': rec['productId']})
+        if 'pack_products' in p.keys():
+            for pp in p['pack_products']:
+                vinvent = cursor.vestano_inventory.find_one({'productId': pp['productId']})
+                cursor.vestano_inventory.update_many(
+                    {'productId': pp['productId']},
+                    {'$set':{
+                    'count': vinvent['count'] - (rec['count']*pp['count'])
+                    }
+                    }
+                    )
+        
+        else:
+            cursor.vestano_inventory.update_many(
+                {'productId': rec['productId']},
+                {'$set':{
+                'count': p['count'] - rec['count']
+                }
+                }
+                )
+        
+    
+
 def accounting(cursor):
-    result = cursor.accounting.find()
+    result = cursor.orders.find()
     record = []
+    price = 0
+    PostDeliveryPrice = 0
+    VatTax = 0
+    registerCost = 0
+    wage = 0
+    t_vendor_account = 0
+    t_post_account = 0
+    t_vestano_account = 0
     for r in result:
-        #record.append((r['order_id'], r['parcel_code'], int(r['total_cost']), int(r['vestano_post_cost']), int(r['delivery_cost']), int(r['vat_tax']), r['record_datetime']))
-        record.append((r['order_id'], int(r['total_cost']), int(r['vestano_post_cost']), r['record_datetime']))
-    return record
+        state_result = cursor.states.find_one({'Code': r['stateCode']})
+        for rec in state_result['Cities']:
+            if r['cityCode'] == rec['Code']:
+                city = rec['Name']
+                break
+
+        (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+        if pType == 2:
+            vendor_account = config.wage
+            post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+        else:
+            vendor_account = 0 - (r['costs']['price'] - config.wage)
+            post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+        vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+        t_vendor_account += vendor_account
+        t_post_account += post_account
+        t_vestano_account += vestano_account
+
+        price += r['costs']['price']
+        PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+        VatTax += r['costs']['VatTax']
+        registerCost += r['costs']['registerCost']
+        wage += r['costs']['wage']
+
+        status = statusToString(r['status'])
+
+        protducts_list = []
+        for p in r['products']:
+            protducts_list.append(p['productName'])
+
+        record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+        r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+        r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'], protducts_list))
+
+    totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage,t_vendor_account ,t_post_account ,t_vestano_account)
+    acounting = {'record': record, 'totalCosts': totalCosts}
+
+    return acounting
 
 def inventory_onclick(cursor, Id, item):
     if item == "inventory_count":
@@ -170,8 +224,10 @@ def details(cursor, orderId, code):
     discount = 0
     if code == 'temp':
         r = cursor.temp_orders.find_one({'orderId': orderId})
-    if code == 'rts':
+    elif code == 'rts':
         r = cursor.ready_to_ship.find_one({'orderId': orderId})
+    elif code == 'accounting':
+        r = cursor.orders.find_one({'orderId': orderId})
     elif code == 'today':
         r = cursor.temp_orders.find_one({'orderId': orderId})
         if not r:
@@ -188,19 +244,36 @@ def details(cursor, orderId, code):
 
     status = statusToString(r['status'])
 
+    if 'parcelCode' in r.keys():
+        parcelCode = r['parcelCode']
+    else:
+        parcelCode = "-"
+
     i = 0
     for p in r['products']:
+        r['products'][i]['if_pack'] = False
+        r['products'][i]['pack_products'] = []
         price = price + p['price']*p['count']
         count = count + p['count']
         discount = discount + p['percentDiscount']
         vinvent = cursor.vestano_inventory.find_one({'productId': p['productId']})
         r['products'][i]['inventory_count'] = vinvent['count']
+        
+        #if order is a pack product: fetch the count of each pack's item from inventory
+        if 'pack_products' in vinvent.keys():
+            r['products'][i]['if_pack'] = True
+            r['products'][i]['pack_products'] = vinvent['pack_products']
+            for j in range(len(r['products'][i]['pack_products'])):
+                pp_vinvent = cursor.vestano_inventory.find_one({'productId': r['products'][i]['pack_products'][j]['productId']})
+                r['products'][i]['pack_products'][j]['invent_count'] = pp_vinvent['count']
+                r['products'][i]['pack_products'][j]['productName'] = pp_vinvent['productName']
+        
         i += 1
 
     details = (r['orderId'], r['vendorName'], r['record_time']+' - '+r['record_date'],
         r['registerFirstName']+' '+r['registerLastName'], r['registerCellNumber'], r['registerPostalCode'],
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
-        r['products'],count, price, discount, orderId, status)
+        r['products'],count, price, discount, orderId, status, config.wage, parcelCode)
     return details
 
 def inventory_details(cursor, status, productId):
@@ -605,6 +678,7 @@ def SoapClient(order):
 
 def init_status_inventory():
     status = {}
+    status['0'] = 0
     status['1'] = 0
     status['2'] = 0
     status['3'] = 0
@@ -632,6 +706,7 @@ def init_status_inventory():
 
 def add_empty_status():
     status = {}
+    status['0'] = 0
     status['1'] = 0
     status['2'] = 0
     status['3'] = 0

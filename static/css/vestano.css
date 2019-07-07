@@ -731,7 +731,7 @@ a.button:active {
 
 .user-name {
     font-size: 20px;
-    margin-left: 20px;
+    margin-left: 2vw;
     color: rgb(194, 145, 144) !important;
     /*color: #0b4158 !important;*/
 }
