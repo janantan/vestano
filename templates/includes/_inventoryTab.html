@@ -1,10 +1,13 @@
+{% set case = "background:#eee;" %}
 {% set new = "background:#eee;" %}
 {% set inc = "background:#eee;" %}
 {% set pack = "background:#eee;" %}
 {% set release = "background:#eee;" %}
 {% set search = "background:#eee;" %}
 
-{% if "new" in request.base_url %}
+{% if "case" in request.base_url %}
+	{% set case = "background:yellow;" %}
+{% elif "new" in request.base_url %}
 	{% set new = "background:yellow;" %}
 {% elif "inc" in request.base_url %}
 	{% set inc = "background:yellow;" %}
@@ -16,6 +19,7 @@
 	{% set search = "background:yellow;" %}
 {% endif %}
 <div id="tab">
+	<a href="/user-pannel/inventory-management/case" style={{case}} class="button">افزودن کالای موردی</a>
 	<a href="/user-pannel/inventory-management/new" style={{new}} class="button">افزودن کالای جدید</a>
 	<a href="/user-pannel/inventory-management/inc" style={{inc}} class="button">افزودن کالای موجود</a>
 	<a href="/user-pannel/inventory-management/pack" style={{pack}} class="button">ایجاد بسته</a>

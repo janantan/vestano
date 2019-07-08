@@ -62,7 +62,8 @@ def temp_orders(cursor):
     for r in result:
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         temp.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
-            state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            statusToString(r['status'])))
     return temp
 
 def today_orders(cursor):
@@ -72,13 +73,15 @@ def today_orders(cursor):
         if r['datetime'] == jdatetime.datetime.today().strftime('%Y/%m/%d'):
             state_result = cursor.states.find_one({'Code': r['stateCode']})
             today.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
-                state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
+                state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+                statusToString(r['status'])))
     result2 = cursor.orders.find()
     for r2 in result2:
         if r2['datetime'] == jdatetime.datetime.today().strftime('%Y/%m/%d'):
             state_result = cursor.states.find_one({'Code': r2['stateCode']})
             today.append((r2['orderId'], r2['vendorName'], r2['registerFirstName']+' '+r2['registerLastName'],
-                state_result['Name'],r2['record_date'],r2['record_time'], r2['serviceType'], r2['registerCellNumber']))
+                state_result['Name'],r2['record_date'],r2['record_time'], r2['payType'], r2['registerCellNumber'],
+                statusToString(r2['status'])))
     count = len(today)
     return {'today': today, 'count': count}
 
@@ -88,7 +91,8 @@ def canceled_orders(cursor):
     for r in result:
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         cnl.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
-            state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            statusToString(r['status'])))
     return cnl
 
 def readyToShip_orders(cursor):
@@ -97,7 +101,8 @@ def readyToShip_orders(cursor):
     for r in result:
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         rts.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
-            state_result['Name'],r['record_date'],r['record_time'], r['serviceType'], r['registerCellNumber']))
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            statusToString(r['status'])))
     return rts
 
 def inventory(cursor):
@@ -110,29 +115,75 @@ def inventory(cursor):
             r['percentDiscount'], r['status'], other_status_count))
     return inventory
 
+def case_inventory(cursor):
+    result = cursor.case_inventory.find()
+    inventory = []
+    for r in result:
+        st = r['status']
+        other_status_count = sum(st.values())-st['80']-st['2']-st['81']-st['7']-st['71']-st['11']-st['82']
+        inventory.append((r['productName'], r['productId'], r['count'], r['datetime'],
+            r['percentDiscount'], r['status'], other_status_count))
+    return inventory
+
 def removeFromInventory(cursor, orderId):
     order_result = cursor.orders.find_one({'orderId': orderId})
     for rec in order_result['products']:
-        p = cursor.vestano_inventory.find_one({'productId': rec['productId']})
-        if 'pack_products' in p.keys():
-            for pp in p['pack_products']:
-                vinvent = cursor.vestano_inventory.find_one({'productId': pp['productId']})
-                cursor.vestano_inventory.update_many(
-                    {'productId': pp['productId']},
+        if order_result['vendorName'] == u'سفارش موردی':
+            p = cursor.case_inventory.find_one({'productId': rec['productId']})
+            if 'pack_products' in p.keys():
+                for pp in p['pack_products']:
+                    vinvent = cursor.case_inventory.find_one({'productId': pp['productId']})
+                    cursor.case_inventory.update_many(
+                        {'productId': pp['productId']},
+                        {'$set':{
+                        'count': vinvent['count'] - (rec['count']*pp['count'])
+                        }
+                        }
+                        )
+                    cursor.case_inventory.update_many(
+                        {'productId': rec['productId']},
+                        {'$set':{
+                        'count': p['count'] - rec['count']
+                        }
+                        }
+                        )
+            
+            else:
+                cursor.case_inventory.update_many(
+                    {'productId': rec['productId']},
                     {'$set':{
-                    'count': vinvent['count'] - (rec['count']*pp['count'])
+                    'count': p['count'] - rec['count']
                     }
                     }
                     )
-        
         else:
-            cursor.vestano_inventory.update_many(
-                {'productId': rec['productId']},
-                {'$set':{
-                'count': p['count'] - rec['count']
-                }
-                }
-                )
+            p = cursor.vestano_inventory.find_one({'productId': rec['productId']})
+            if 'pack_products' in p.keys():
+                for pp in p['pack_products']:
+                    vinvent = cursor.vestano_inventory.find_one({'productId': pp['productId']})
+                    cursor.vestano_inventory.update_many(
+                        {'productId': pp['productId']},
+                        {'$set':{
+                        'count': vinvent['count'] - (rec['count']*pp['count'])
+                        }
+                        }
+                        )
+                    cursor.vestano_inventory.update_many(
+                        {'productId': rec['productId']},
+                        {'$set':{
+                        'count': p['count'] - rec['count']
+                        }
+                        }
+                        )
+            
+            else:
+                cursor.vestano_inventory.update_many(
+                    {'productId': rec['productId']},
+                    {'$set':{
+                    'count': p['count'] - rec['count']
+                    }
+                    }
+                    )
         
     
 
@@ -256,7 +307,10 @@ def details(cursor, orderId, code):
         price = price + p['price']*p['count']
         count = count + p['count']
         discount = discount + p['percentDiscount']
-        vinvent = cursor.vestano_inventory.find_one({'productId': p['productId']})
+        if r['vendorName'] == u'سفارش موردی':
+            vinvent = cursor.case_inventory.find_one({'productId': p['productId']})
+        else:
+            vinvent = cursor.vestano_inventory.find_one({'productId': p['productId']})
         r['products'][i]['inventory_count'] = vinvent['count']
         
         #if order is a pack product: fetch the count of each pack's item from inventory
@@ -264,7 +318,10 @@ def details(cursor, orderId, code):
             r['products'][i]['if_pack'] = True
             r['products'][i]['pack_products'] = vinvent['pack_products']
             for j in range(len(r['products'][i]['pack_products'])):
-                pp_vinvent = cursor.vestano_inventory.find_one({'productId': r['products'][i]['pack_products'][j]['productId']})
+                if r['vendorName'] == u'سفارش موردی':
+                    pp_vinvent = cursor.case_inventory.find_one({'productId': r['products'][i]['pack_products'][j]['productId']})
+                else:
+                    pp_vinvent = cursor.vestano_inventory.find_one({'productId': r['products'][i]['pack_products'][j]['productId']})
                 r['products'][i]['pack_products'][j]['invent_count'] = pp_vinvent['count']
                 r['products'][i]['pack_products'][j]['productName'] = pp_vinvent['productName']
         
@@ -497,14 +554,24 @@ def GetStatus(cursor):
                 }
                 )
             for i in range(len(orders_records['products'])):
-                vinvent = cursor.vestano_inventory.find_one({'productId':orders_records['products'][i]['productId']})
-                vinvent['status'][str(status)]+= orders_records['products'][i]['count']
-                vinvent['status'][str(prev_status)]-= orders_records['products'][i]['count']
-                print(vinvent['status'])
-                cursor.vestano_inventory.update_many(
-                    {'productId': vinvent['productId']},
-                    {'$set':{'status': vinvent['status']}}
-                    )
+                if orders_records['vendorName'] == u'سفارش موردی':
+                    vinvent = cursor.case_inventory.find_one({'productId':orders_records['products'][i]['productId']})
+                    vinvent['status'][str(status)]+= orders_records['products'][i]['count']
+                    vinvent['status'][str(prev_status)]-= orders_records['products'][i]['count']
+                    print(vinvent['status'])
+                    cursor.case_inventory.update_many(
+                        {'productId': vinvent['productId']},
+                        {'$set':{'status': vinvent['status']}}
+                        )
+                else:
+                    vinvent = cursor.vestano_inventory.find_one({'productId':orders_records['products'][i]['productId']})
+                    vinvent['status'][str(status)]+= orders_records['products'][i]['count']
+                    vinvent['status'][str(prev_status)]-= orders_records['products'][i]['count']
+                    print(vinvent['status'])
+                    cursor.vestano_inventory.update_many(
+                        {'productId': vinvent['productId']},
+                        {'$set':{'status': vinvent['status']}}
+                        )
             change_flag = 1
         if (status == 11) or (status == 71):
             cursor.status.remove({'parcelCode': rec['parcelCode']})
@@ -541,8 +608,8 @@ def ReadyToShip(parcelCode):
 
 def test_temp_order(temp_order):
     client = Client(VESTANO_API, cache=None)
-    print(client)
-    print('&&&&&&&&&&&&&&&&&&&&')
+    #print(client)
+    #print('&&&&&&&&&&&&&&&&&&&&')
     #print(Client(API_URI))
     #codes = client.factory.create('ns0:CodesArray')
     #print(codes)

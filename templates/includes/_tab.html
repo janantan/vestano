@@ -4,6 +4,7 @@
 {% set to = "color:#fafafa;" %}
 {% set cnl = "color:#fafafa;" %}
 {% set ord = "color:#fafafa;" %}
+{% set case = "color:#fafafa;" %}
 {% set sts = "color:#fafafa;" %}
 {% set mng = "color:#fafafa;" %}
 {% set inv = "color:#fafafa;" %}
@@ -22,6 +23,8 @@
 	{% set cnl = "color:yellow;" %}
 {% elif "ordering" in request.base_url %}
 	{% set ord = "color:yellow;" %}
+{% elif "case-orders" in request.base_url %}
+	{% set case = "color:yellow;" %}
 {% elif "update-status" in request.base_url %}
 	{% set sts = "color:yellow;" %}
 {% elif "inventory-management" in request.base_url %}
@@ -65,6 +68,11 @@
 			<tr>
 				<td>
 					<a style={{ord}} href="/user-pannel/ordering">ثبت سفارش</a>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a style={{case}} href="/user-pannel/case-orders">ثبت سفارش موردی</a>
 				</td>
 			</tr>
 			<tr>

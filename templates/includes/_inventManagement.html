@@ -1,7 +1,33 @@
 <fieldset class="fieldset" style="background: #fafafa">
   <legend>مدیریت انبار:</legend>
   {% include 'includes/_inventoryTab.html' %}
-  {% if sub_item == 'new' %}
+  {% if sub_item == 'case' %}
+    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230);">
+      <form method="POST" action="">
+        <div class="mrg-vh1">
+          <label>نام کالا</label>
+          <input id="productName" type="text" name="productName" placeholder="" size="50" required />
+          <select id="vendor" name="vendor" class="mrg-vw2" required>
+            <option value="سفارش موردی">سفارش موردی</option>
+          </select>
+        </div>
+        <div class="mrg-vh2">
+          <label>مشخصات</label>
+          <input id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
+          <input id="weight" type="number" name="weight" placeholder="وزن (گرم)" required />
+          <input id="count" type="number" name="count" placeholder="تعداد موجودی (عدد)" required />
+          <input id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)"  />
+        </div>
+        <div class="mrg-vh2">
+          <label>توضیحات</label>
+          <textarea id="description" name="description" placeholder=""></textarea>
+        </div>
+        <div class="mrg-vh4">
+          <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت محصول " />
+        </div>
+      </form>
+    </fieldset>
+  {% elif sub_item == 'new' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230);">
       <form method="POST" action="">
         <div class="mrg-vh1">

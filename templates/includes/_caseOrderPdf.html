@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html style="background: #fff; padding-top: 0;" lang="fa-IR">
+    <head>
+        <title>سامانه پستی وستانو</title>
+        <!--<meta charset="utf-8" />-->
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="http://vestanops.com/static/css/vestano.css" />
+        <!--<link rel="stylesheet" type="text/css" href="E:/projects/VESTANO/Vestano/static/css/vestano.css" />-->
+        <!--<link rel="stylesheet" type="text/css" href="root/vestano/static/css/vestano.css" />-->
+    </head>
+    <body class="card" style="direction: rtl; margin: 0 auto; font-family: initial; font-size: 16px;">
+    	
+    	<fieldset class="fieldset" style="margin: 50px 10px; padding: 0; border: none; border-bottom: 2px solid red;">
+    		<div style="float: left; margin: 30px 50px;">
+	    		<span>{{datetime}}</span>
+	    	</div>
+    		<div>
+				<figure>
+					<img id="factor-vestano" src="http://vestanops.com/static/img/fp-vestano2.png" alt="vestano post system" width="125" height="80" style="position: relative; right: 5px;" />
+				</figure>
+			</div>
+    	</fieldset>
+    	<table>
+    		<tr>
+    			<td>
+    				<fieldset class="fieldset" style="margin: 10px 10px; border: none;">
+    					<table style="border: 1px solid gray;">
+    						<tr>
+    							<td style="width: 100px; height: 40px;">
+    								<span>فرستنده:</span>
+    							</td>
+    							<td style="width: 400px;">
+    								<span>{{sender}}</span>
+    							</td>
+    						</tr>
+			    			<tr>
+			    				<td style="width: 100px; height: 40px;">
+			    					<span>گیرنده:</span>
+			    				</td>
+			    				<td style="width: 400px;">
+			    					<span>{{receiver}}</span>
+			    				</td>
+			    				<td style="width: 100px;">
+			    					<span>شماره تماس:</span>
+			    				</td>
+			    				<td style="width: 100px;">
+			    					<span>{{cellNumber}}</span>
+			    				</td>
+			    			</tr>
+			    			<tr>
+			    				<td style="height: 40px;">
+			    					<span>نشانی:</span>
+			    				</td>
+			    				<td>
+			    					<span>{{destination}}</span>
+			    				</td>
+			    				<td>
+			    					<span>کد پستی:</span>
+			    				</td>
+			    				<td>
+			    					<span>{{postalCode}}</span>
+			    				</td>
+			    			</tr>
+			    		</table>
+    				</fieldset>
+    			</td>
+    			<td>
+    				<fieldset class="fieldset" style="margin: 10px 0; border: none;">
+    					<table style="border: 1px solid gray;">
+    						<tr>
+    							<td style="width: 150px; height: 40px;">
+    								<span>تاریخ:</span>
+    							</td>
+    							<td style="width: 150px; height: 40px;">
+    								<span>{{session['jdatetime']}}</span>
+    							</td>
+    						</tr>
+    						<tr>
+    							<td style="height: 40px;"></td><td></td>
+    						</tr>
+    						<tr>
+    							<td style="height: 40px;">
+    								<span>شماره پیگیری:</span>
+    							</td>
+    							<td style="height: 40px;">
+    								<span>{{orderId}}</span>
+    							</td>
+    						</tr>
+    					</table>
+    				</fieldset>
+    			</td>
+    		</tr>
+    	</table>
+    	<fieldset class="fieldset" style="margin: 50px 10px; border: none;">
+    		<legend>مشخصات مرسوله:</legend>
+			<table style="text-align: center; border: 1px solid gray;">
+				<tr style="border: 1px solid black;">
+					<th style="height: 60px; width: 260px; background: yellow;">
+						<span>بارکد</span>
+					</th>
+					<th style="height: 60px; width: 100px; background: yellow;">
+						<span>وزن</span>
+					</th>
+					<th style="height: 60px; width: 140px; background: yellow;">
+						<span>هزینه بسته بندی</span>
+					</th>
+					<th style="height: 60px; width: 140px; background: yellow;">
+						<span>هزینه ارسال</span>
+					</th>
+					<th style="height: 60px; width: 140px; background: yellow;">
+						<span>هزینه جمع آوری</span>
+					</th>
+					<th style="height: 60px; width: 150px; background: yellow;">
+						<span>مجموع</span>
+					</th>
+				</tr>
+				<tr style="border: 1px solid black;">
+					<td style="height: 60px;">
+						<span>{{parcelCode}}</span>
+					</td>
+					<td>
+						<span>{{weight}} گرم</span>
+					</td>
+					<td>
+						<span>{{packing}}</span>
+					</td>
+					<td>
+						<span>{{deliveryPrice}}</span>
+					</td>
+					<td>
+						<span>{{gathering}}</span>
+					</td>
+					<td>
+						<span>{{packing + deliveryPrice + gathering}}</span>
+					</td>
+				</tr>
+			</table>
+		</fieldset>
+    </body>
+</html>

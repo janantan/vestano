@@ -12,9 +12,11 @@ from spyne.model.complex import Array, Iterable, ComplexModel
 import requests
 import random2
 import uuid
+import os
 import jwt
 import datetime
 import jdatetime
+import pdfkit
 import json
 import utils, config
 
@@ -75,8 +77,12 @@ class SomeSoapService(spyne.Service):
                 discount = 0
                 for i in range(len(products)):
                     p_dict = {}
-                    p_details = cursor.vestano_inventory.find_one({'productId': products[i].productId})
-                    print('p_details: ', p_details)
+                    #print(vendorName)
+                    if vendorName == u'سفارش موردی':
+                        p_details = cursor.case_inventory.find_one({'productId': products[i].productId})
+                    else:
+                        p_details = cursor.vestano_inventory.find_one({'productId': products[i].productId})
+                    #print('p_details: ', p_details)
                     if not p_details:
                         print('Error in enterance data!')
                         return 0
@@ -121,7 +127,10 @@ class SomeSoapService(spyne.Service):
                 if order_id :
                     cursor.temp_orders.insert_one(input_data)
                     for i in range(len(input_data['products'])):
-                        vinvent = cursor.vestano_inventory.find_one({'productId':input_data['products'][i]['productId']})
+                        if vendorName == u'سفارش موردی':
+                            vinvent = cursor.case_inventory.find_one({'productId':input_data['products'][i]['productId']})
+                        else:
+                            vinvent = cursor.vestano_inventory.find_one({'productId':input_data['products'][i]['productId']})
                         vinvent['status']['80']+= input_data['products'][i]['count']
                         cursor.vestano_inventory.update_many(
                             {'productId': vinvent['productId']},
@@ -266,10 +275,6 @@ def login():
 @app.route('/home', methods=['GET'])
 @token_required
 def home():
-    #parcelCode = '21868075911930365800'
-    #utils.ReadyToShip(parcelCode)
-    #utils.GetStatus(cursor)
-    #utils.init_status_inventory()
     return render_template('home.html')
 
 @app.route('/user-pannel/orderList', methods=['GET'])
@@ -295,7 +300,11 @@ def confirm_orders(code):
         weight = 0
         discount = 0
         for i in range(len(result['products'])):
-            inv = cursor.vestano_inventory.find_one({'productId':result['products'][i]['productId']})
+            if result['vendorName'] == u'سفارش موردی':
+                inv = cursor.case_inventory.find_one({'productId':result['products'][i]['productId']})
+            else:
+                inv = cursor.vestano_inventory.find_one({'productId':result['products'][i]['productId']})
+
             if (inv['count'] - result['products'][i]['count']) < 0:
                 flash(u'موجودی انبار کافی نیست!', 'error')
                 return redirect(request.referrer)
@@ -321,9 +330,9 @@ def confirm_orders(code):
         'postalCode': result['registerPostalCode'],
         'products': result['products']
         }
-        soap_result = utils.SoapClient(order)
+        #soap_result = utils.SoapClient(order)
         #print('errorcode: ', soap_result['ErrorCode'])
-        #soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408'}
+        soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408', 'PostDeliveryPrice':50000, 'VatTax':9000}
         if soap_result['ErrorCode'] == -6:
             postal_code_db = cursor.postal_codes.find_one({'Code': result['stateCode']})
             print("postal_code_db['Code']: ", postal_code_db['Code'])
@@ -331,12 +340,12 @@ def confirm_orders(code):
             for i in range (len(postal_code_db['postalCodes'])):
                 if result['cityCode'] == postal_code_db['postalCodes'][i]['Code']:
                     order['postalCode'] = postal_code_db['postalCodes'][i]['postalCode']
-                    new_rec['postalCode'] = postal_code_db['postalCodes'][i]['postalCode']
+                    new_rec['registerPostalCode'] = postal_code_db['postalCodes'][i]['postalCode']
                     postalCode_flag = 0
                     break
             if postalCode_flag:
                 order['postalCode'] = postal_code_db['refPostalCode']
-                new_rec['postalCode'] = postal_code_db['refPostalCode']
+                new_rec['registerPostalCode'] = postal_code_db['refPostalCode']
 
             soap_result = utils.SoapClient(order)
 
@@ -370,13 +379,53 @@ def confirm_orders(code):
 
             #update status in vestano_inventory
             for i in range(len(new_rec['products'])):
-                vinvent = cursor.vestano_inventory.find_one({'productId':new_rec['products'][i]['productId']})
-                vinvent['status'][str(new_rec['status'])]+= new_rec['products'][i]['count']
-                vinvent['status']['80']-= new_rec['products'][i]['count']
-                cursor.vestano_inventory.update_many(
-                    {'productId': vinvent['productId']},
-                    {'$set':{'status': vinvent['status']}}
-                    )
+                if new_rec['vendorName'] == u'سفارش موردی':
+                    vinvent = cursor.case_inventory.find_one({'productId':new_rec['products'][i]['productId']})
+                    vinvent['status'][str(new_rec['status'])]+= new_rec['products'][i]['count']
+                    vinvent['status']['80']-= new_rec['products'][i]['count']
+                    cursor.case_inventory.update_many(
+                        {'productId': vinvent['productId']},
+                        {'$set':{'status': vinvent['status']}}
+                        )
+                else:
+                    vinvent = cursor.vestano_inventory.find_one({'productId':new_rec['products'][i]['productId']})
+                    vinvent['status'][str(new_rec['status'])]+= new_rec['products'][i]['count']
+                    vinvent['status']['80']-= new_rec['products'][i]['count']
+                    cursor.vestano_inventory.update_many(
+                        {'productId': vinvent['productId']},
+                        {'$set':{'status': vinvent['status']}}
+                        )
+
+            if new_rec['vendorName'] == u'سفارش موردی':
+                case_result = cursor.case_orders.find_one({'orderId': new_rec['orderId']})
+                state_result = cursor.states.find_one({'Code': new_rec['stateCode']})
+                for c in state_result['Cities']:
+                    if c['Code'] == new_rec['cityCode']:
+                        city = c['Name']
+                        break
+                print('before pdf')
+                data = (new_rec['parcelCode'], case_result['senderFirstName']+' '+case_result['senderLastName'],
+                    case_result['receiverFirstName']+' '+case_result['receiverLastName'],
+                    state_result['Name']+' / '+city, weight, config.caseOrdersPacking,
+                    soap_result['PostDeliveryPrice'], config.gathering)
+                print(data)
+                print(new_rec.keys())
+                pdfkit.from_string(render_template('includes/_caseOrderPdf.html',
+                    datetime = jdatetime.datetime.now().strftime('%H:%M %Y/%m/%d'),
+                    orderId = new_rec['orderId'],
+                    parcelCode = new_rec['parcelCode'],
+                    sender = case_result['senderFirstName']+' '+case_result['senderLastName'],
+                    receiver = case_result['receiverFirstName']+' '+case_result['receiverLastName'],
+                    cellNumber = case_result['receiverCellNumber'],
+                    destination = state_result['Name']+' / '+city+' / '+case_result['registerAddress'],
+                    postalCode = new_rec['registerPostalCode'],
+                    weight = weight,
+                    packing = config.caseOrdersPacking,
+                    deliveryPrice = soap_result['PostDeliveryPrice'],
+                    gathering = config.gathering
+                    ), 'static/pdf/caseOrders/orderId_ '+new_rec['orderId']+'.pdf')
+                os.startfile('E:/projects/VESTANO/Vestano/static/pdf/caseOrders/orderId_ '+new_rec['orderId']+'.pdf')
+                print('after pdf')
 
             utils.removeFromInventory(cursor, new_rec['orderId'])
 
@@ -615,11 +664,116 @@ def ordering(item):
         states = utils.states(cursor)
         )
 
+@app.route('/user-pannel/case-orders', methods=['GET', 'POST'])
+@token_required
+def case_orders():
+    if 'username' in session:
+        ordered_products = []
+        username = session['username']
+        if request.method == 'POST':
+            temp_order_products = []
+            for i in range (1, 100):
+                if request.form.get('product_'+str(i)):
+                    temp_order_product = {}
+                    temp_order_product['productId'] = request.form.get('product_'+str(i))
+                    temp_order_product['count'] = int(request.form.get('count_'+str(i)))
+                    temp_order_product['price'] = int(request.form.get('price_'+str(i)))
+                    temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+
+                    temp_order_products.append(temp_order_product)
+
+            if len(request.form.getlist('free')):
+                (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')), 88)
+                pTypeCode = 88
+            else:
+                (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')),
+                    int(request.form.get('payType')))
+                pTypeCode = int(request.form.get('payType'))
+
+            temp_order = {
+            'vendorName' : u'سفارش موردی',
+            'registerFirstName' : request.form.get('r_first_name'),
+            'registerLastName' : request.form.get('r_last_name'),
+            'registerCellNumber' : request.form.get('r_cell_number'),
+            'stateCode' : int(request.form.get('stateCode')),
+            'cityCode' : int(request.form.get('cityCode')),
+            'registerAddress' : request.form.get('address'),
+            'registerPostalCode' : request.form.get('postal_code'),
+            'products' : temp_order_products,
+            'serviceType' : int(request.form.get('serviceType')),
+            'payType' : pTypeCode,
+            'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
+            'orderTime': jdatetime.datetime.now().strftime('%M : %H')
+            }
+
+            orderId = utils.test_temp_order(temp_order)
+
+            case_order = {
+            'vendorName' : u'سفارش موردی',
+            'senderFirstName' : request.form.get('s_first_name'),
+            'senderLastName' : request.form.get('s_last_name'),
+            'senderCellNumber' : request.form.get('s_cell_number'),
+            'receiverFirstName' : request.form.get('r_first_name'),
+            'receiverLastName' : request.form.get('r_last_name'),
+            'receiverCellNumber' : request.form.get('r_cell_number'),
+            'stateCode' : int(request.form.get('stateCode')),
+            'cityCode' : int(request.form.get('cityCode')),
+            'registerAddress' : request.form.get('address'),
+            'registerPostalCode' : request.form.get('postal_code'),
+            'products' : temp_order_products,
+            'serviceType' : int(request.form.get('serviceType')),
+            'payType' : pTypeCode,
+            'username' : session['username'],
+            'orderId' : orderId,
+            'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
+            'orderTime': jdatetime.datetime.now().strftime('%M : %H')
+            }
+
+            cursor.case_orders.insert_one(case_order)
+
+            flash(u'ثبت شد!', 'success')
+
+            return redirect(url_for('case_orders'))
+    else:
+        flash(u'لطفا ابتدا وارد شوید', 'error')
+        return redirect(request.referrer)
+    return render_template('user_pannel.html',
+        item='case-orders',
+        inventory = utils.case_inventory(cursor),
+        states = utils.states(cursor)
+        )
+
 @app.route('/user-pannel/inventory-management/<sub_item>', methods=['GET', 'POST'])
 @token_required
 def inventory_management(sub_item):
     productId_result = ""
     if request.method == 'POST':
+        if sub_item == 'case':
+            record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
+            record['productName'] = request.form.get('productName')
+            record['price'] = int(request.form.get('price'))
+            record['weight'] = int(request.form.get('weight'))
+            record['count'] = int(request.form.get('count'))
+            if request.form.get('percentDiscount'):
+                record['percentDiscount'] = int(request.form.get('percentDiscount'))
+            else:
+                record['percentDiscount'] = 0
+            record['description'] = request.form.get('description')
+            record['vendor'] = request.form.get('vendor')
+            record['productId'] = str(utils.AddStuff(record))
+            record['status'] = utils.add_empty_status()
+            record['record'] = []
+            first_add = {
+            'action': 'add',
+            'datetime' : record['datetime'],
+            'count': int(request.form.get('count')),
+            'person': session['username']
+            }
+            record['record'].append(first_add)
+
+            cursor.case_inventory.insert_one(record)
+            flash(u'محصول جدید ثبت شد. شناسه کالا: ' + str(record['productId']), 'success')
+
         if sub_item == 'new':
             record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             record['productName'] = request.form.get('productName')
@@ -877,6 +1031,27 @@ def ajax():
         return redirect(request.referrer)
         
     return jsonify(result)
+
+@app.route('/case-ajax', methods=['GET', 'POST'])
+def case_ajax():
+    if 'username' in session:
+        productId = request.args.get('code')
+        result = cursor.case_inventory.find_one({'productId': productId})
+        ans = {
+        'productName': result['productName'],
+        'productId': productId,
+        'count': result['count'],
+        'vendor': result['vendor'],
+        'price': result['price'],
+        'weight': result['weight'],
+        'discount': result['percentDiscount']
+        }
+
+    else:
+        flash(u'لطفا ابتدا وارد شوید', 'error')
+        return redirect(request.referrer)
+        
+    return jsonify(ans)
 
 @app.route('/fetch-stuff', methods=['GET'])
 def fetch_stuff():

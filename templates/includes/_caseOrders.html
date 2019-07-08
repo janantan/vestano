@@ -9,13 +9,19 @@
             <fieldset style="background: rgb(255,248,248);">
               <legend>اطلاعات</legend>
               <div>
-                <label>سفارش دهنده</label>
-                <input id="first_name" type="text" name="first_name" placeholder="نام" required />
-                <input id="last_name" type="text" name="last_name" placeholder="نام خانوادگی" required />
-                <input id="cell_number" type="text" name="cell_number" placeholder="شماره موبایل" />
+                <label>فرستنده</label>
+                <input id="s_first_name" type="text" name="s_first_name" placeholder="نام" required />
+                <input id="s_last_name" type="text" name="s_last_name" placeholder="نام خانوادگی" required />
+                <input id="s_cell_number" type="text" name="s_cell_number" placeholder="شماره موبایل" />
               </div>
               <div>
-                <label>آدرس</label>
+                <label>گیرنده</label>
+                <input id="r_first_name" type="text" name="r_first_name" placeholder="نام" required />
+                <input id="r_last_name" type="text" name="r_last_name" placeholder="نام خانوادگی" required />
+                <input id="r_cell_number" type="text" name="r_cell_number" placeholder="شماره موبایل" />
+              </div>
+              <div>
+                <label>آدرس گیرنده</label>
                 <select id="state" name="stateCode" onchange='cities()' required>
                   <option value="" disabled selected>استان</option>
                   {% for item in states %}
@@ -62,16 +68,16 @@
                 </tr>
                 <tr id="row1" class="order-0">
                   <td>
-                    <select id="product1" name="product_1" onchange="product('product1')" required>
+                    <select id="product1" name="product_1" onchange="caseProduct('product1')" required>
                       <option value="" disabled selected>(انخاب کنید)</option>
                       {% for item in inventory %}
                         <option value="{{item[1]}}">{{item[0]}}</option>
                         }
                       {% endfor %}
                     </select>
-                  </td>                  
+                  </td>
                   <td>
-                    <input type="number" name="count_1" size="4" required/>
+                    <input type="number" name="count_1" size="4" value="1" required/>
                   </td>
                   <td>
                     <input id="price1" type="number" name="price_1" size="6" required/>
@@ -98,10 +104,10 @@
               <table id="order-1">
                 <tr>
                   <td>
-                    <label><input id="radio1" type="radio" name="serviceType" onchange="getDeliveryPrice('radio1')" value="2" required/>سفارشی</label>
+                    <label><input type="radio" name="serviceType" value="2" required/>سفارشی</label>
                   </td>
                   <td>
-                    <label><input id="radio2" type="radio" name="serviceType" value="1" required/>پیشتاز</label>
+                    <label><input type="radio" name="serviceType" value="1" required/>پیشتاز</label>
                   </td>
                   <td>
                     <label><input type="checkbox" name="free" value="88"/>ارسال رایگان</label>
@@ -207,8 +213,8 @@
     }
   }
 
-  function product(id_name) {
-    var product_name = document.getElementById(id_name).value;
+  function caseProduct(id_name) {
+    var product_id = document.getElementById(id_name).value;
 
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
@@ -220,12 +226,7 @@
             document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
        }
     }
-    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.open('GET', '/case-ajax?code=' + product_id, true);
     xhr.send();
-  }
-
-  function getDeliveryPrice(id_name) {
-    //alert('checked')
-
   }
 </script>
