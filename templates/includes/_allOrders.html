@@ -1,5 +1,5 @@
 <fieldset class="fieldset">
-	<legend>سفارشات لغو شده:</legend>
+	<legend>همه سفارشات:</legend>
 	<table id="inventory">
 		<thead>
 			<tr style="background: yellow;">
@@ -40,7 +40,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for rec in canceled_orders %}
+			{% for rec in all_orders %}
 				<tr class="rows">
 					<td style="width: 50px;">
 						<span>{{loop.index}}</span>
@@ -73,7 +73,7 @@
 						<span>{{rec[8]}}</span>
 					</td>
 					<td>
-						<a href="javascript:window.open('/orders-details/{{rec[0]}}/cnl', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+						<a href="javascript:window.open('/orders-details/{{rec[0]}}/all', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
 					</td>
 				</tr>
 			{% endfor %}

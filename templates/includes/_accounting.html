@@ -9,7 +9,7 @@
 				<th class="vw8 font12">
 					<span>شناسه سفارش</span>
 				</th>
-				<th class="vw12 font12">
+				<th class="vw18 font12">
 					<span>کد رهگیری</span>
 				</th>
 				<th class="vw10 font12">
@@ -37,6 +37,9 @@
 					<span>بستانکار|بدهکار وستانو</span>
 				</th>
 				<th class="vw8 font12">
+					<span>وضعیت</span>
+				</th>
+				<th class="vw8 font12">
 					<span>پرداخت</span>
 				</th>
 				<th style="width: 1vw;"></th>
@@ -48,25 +51,25 @@
 					<td style="width: 3.5vw;">
 						<span>{{loop.index}}</span>
 					</td>
-					<td class="vw8">
+					<td class="vw10">
 						<span>{{rec[0]}}</span>
 					</td>
 					<td class="vw12">
 						<a href="javascript:window.open('/orders-details/{{rec[0]}}/accounting', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
 					</td>
-					<td class="vw8">
+					<td class="vw6">
 						<span>{{rec[2]}}</span>
 					</td>
-					<td class="vw8">
+					<td class="vw6">
 						<span>{{rec[3]}}</span>
 					</td>
-					<td class="vw8">
+					<td class="vw6">
 						<span >{{rec[4]}}</span>
 					</td>
-					<td class="vw8">
+					<td class="vw6">
 						<span >{{rec[5]}}</span>
 					</td>
-					<td class="vw8">
+					<td class="vw6">
 						<span >{{rec[6]}}</span>
 					</td>
 					{% if rec[7] < 0 %}
@@ -96,6 +99,9 @@
 							<span class="blue">{{rec[9]}}</span>
 						</td>
 					{% endif %}
+					<td class="vw12">
+						<span class="font12">{{rec[12]}}</span>
+					</td>
 					<td class="vw12">
 						<span class="font12">{{rec[10]}}</span>
 					</td>

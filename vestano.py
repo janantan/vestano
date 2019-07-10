@@ -194,6 +194,7 @@ def token_required(f):
             session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
             session['today_orders'] = utils.today_orders(cursor)['count']
             session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
+            session['all_orders'] = cursor.orders.estimated_document_count()
         except:
             return redirect(url_for('logout'))            
 
@@ -403,13 +404,6 @@ def confirm_orders(code):
                     if c['Code'] == new_rec['cityCode']:
                         city = c['Name']
                         break
-                print('before pdf')
-                data = (new_rec['parcelCode'], case_result['senderFirstName']+' '+case_result['senderLastName'],
-                    case_result['receiverFirstName']+' '+case_result['receiverLastName'],
-                    state_result['Name']+' / '+city, weight, config.caseOrdersPacking,
-                    soap_result['PostDeliveryPrice'], config.gathering)
-                print(data)
-                print(new_rec.keys())
                 pdfkit.from_string(render_template('includes/_caseOrderPdf.html',
                     datetime = jdatetime.datetime.now().strftime('%H:%M %Y/%m/%d'),
                     orderId = new_rec['orderId'],
@@ -420,12 +414,15 @@ def confirm_orders(code):
                     destination = state_result['Name']+' / '+city+' / '+case_result['registerAddress'],
                     postalCode = new_rec['registerPostalCode'],
                     weight = weight,
-                    packing = config.caseOrdersPacking,
-                    deliveryPrice = soap_result['PostDeliveryPrice'],
-                    gathering = config.gathering
-                    ), 'static/pdf/caseOrders/orderId_ '+new_rec['orderId']+'.pdf')
-                os.startfile('E:/projects/VESTANO/Vestano/static/pdf/caseOrders/orderId_ '+new_rec['orderId']+'.pdf')
-                print('after pdf')
+                    sType = order['serviceType'],
+                    packing = case_result['packing'],
+                    carton = case_result['carton'],
+                    gathering = case_result['gathering'],
+                    without_ck = case_result['without_ck'],
+                    deliveryPrice = soap_result['PostDeliveryPrice'] + config.caseOrdersWage + config.registerCost,
+                    VatTax = soap_result['VatTax']
+                    ), 'static/pdf/caseOrders/orderId_'+new_rec['orderId']+'.pdf')
+                #os.startfile('E:/projects/VESTANO/Vestano/static/pdf/caseOrders/orderId_ '+new_rec['orderId']+'.pdf')
 
             utils.removeFromInventory(cursor, new_rec['orderId'])
 
@@ -460,6 +457,17 @@ def today_orders():
         item='todayOrders',
         inventory = utils.inventory(cursor),
         today_orders = utils.today_orders(cursor)['today'],
+        states = utils.states(cursor)
+        )
+
+@app.route('/user-pannel/all-orders', methods=['GET'])
+@token_required
+def all_orders():
+
+    return render_template('user_pannel.html',
+        item='allOrders',
+        inventory = utils.inventory(cursor),
+        all_orders = utils.all_orders(cursor),
         states = utils.states(cursor)
         )
 
@@ -724,7 +732,11 @@ def case_orders():
             'serviceType' : int(request.form.get('serviceType')),
             'payType' : pTypeCode,
             'username' : session['username'],
+            'packing': int(request.form.get('packing')),
+            'carton': int(request.form.get('carton')),
+            'gathering': int(request.form.get('gathering')),
             'orderId' : orderId,
+            'without_ck': request.form.getlist('without_ck'),
             'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
             'orderTime': jdatetime.datetime.now().strftime('%M : %H')
             }
@@ -824,6 +836,22 @@ def inventory_management(sub_item):
                 )
             flash(u'ثبت شد!', 'success')
 
+        if sub_item == 'edit':
+            result = cursor.vestano_inventory.find_one({'productId': request.form.get('product')})
+            cursor.vestano_inventory.update_many(
+                {'productId': request.form.get('product')},
+                {'$set':{
+                'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'productName': request.form.get('productName'),
+                'price': int(request.form.get('price')),
+                'percentDiscount': int(request.form.get('percentDiscount')),
+                'weight': int(request.form.get('weight')),
+                'vendor': request.form.get('vendor')
+                }
+                }
+                )
+            flash(u'ثبت شد!', 'success')
+
         if sub_item == 'pack':
             record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             record['productName'] = request.form.get('packName')
@@ -849,11 +877,12 @@ def inventory_management(sub_item):
                     pack_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
                     weight += int(request.form.get('weight_'+str(i)))
                     pack_products.append(pack_product)
-                    vi_result = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(i))})
-                    if vi_result:
-                        if (int(request.form.get('count_'+str(i))))*(record['count']) > vi_result['count']:
-                            flash(u'موجودی کالای ' + vi_result['productName'] +u' کافی نیست!', 'danger')
-                            return redirect(request.referrer)
+                    
+                    #vi_result = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(i))})
+                    #if vi_result:
+                        #if (int(request.form.get('count_'+str(i))))*(record['count']) > vi_result['count']:
+                            #flash(u'موجودی کالای ' + vi_result['productName'] +u' کافی نیست!', 'danger')
+                            #return redirect(request.referrer)
 
             #for j in range(1, 100):
                 #if request.form.get('product_'+str(j)):
@@ -930,6 +959,14 @@ def inventory(category):
         inventory = utils.inventory(cursor),
         states = utils.states(cursor)
         )
+
+@app.route('/delete-stuff/<productId>', methods=['GET'])
+@token_required
+def delete_from_inventory(productId):
+    cursor.vestano_inventory.remove({'productId': productId})
+    flash(u'کالای مورد نظر از موجودی انبار حذف شد!', 'success')
+
+    return redirect(request.referrer)
 
 @app.route('/user-pannel/accounting', methods=['GET', 'POST'])
 @token_required
@@ -1013,6 +1050,7 @@ def logout():
     session.pop('temp_orders', None)
     session.pop('canceled_orders', None)
     session.pop('today_orders', None)
+    session.pop('all_orders', None)
     session.pop('role', None)
     session.pop('jdatetime', None)
     return redirect(url_for('login'))
@@ -1107,6 +1145,14 @@ def update_status():
         flash(u"تغییرات بروزرسانی شد.", 'success')
     else:
         flash(u"تغییری مشاهده نشد.", 'success')
+    return redirect(request.referrer)
+
+@app.route('/show-pdf/<orderId>', methods=['GET'])
+@token_required
+def show_pdf(orderId):
+    os.startfile('E:/projects/VESTANO/Vestano/static/pdf/caseOrders/orderId_'+orderId+'.pdf')
+    #os.startfile('http://vestanops.com/static/pdf/caseOrders/orderId_ '+orderId+'.pdf')
+
     return redirect(request.referrer)
 
 if __name__ == '__main__':

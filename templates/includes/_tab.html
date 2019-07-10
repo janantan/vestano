@@ -3,6 +3,7 @@
 {% set rts = "color:#fafafa;" %}
 {% set to = "color:#fafafa;" %}
 {% set cnl = "color:#fafafa;" %}
+{% set all = "color:#fafafa;" %}
 {% set ord = "color:#fafafa;" %}
 {% set case = "color:#fafafa;" %}
 {% set sts = "color:#fafafa;" %}
@@ -21,6 +22,8 @@
 	{% set to = "color:yellow;" %}
 {% elif "canceled-orders" in request.base_url %}
 	{% set cnl = "color:yellow;" %}
+{% elif "all-orders" in request.base_url %}
+	{% set all = "color:yellow;" %}
 {% elif "ordering" in request.base_url %}
 	{% set ord = "color:yellow;" %}
 {% elif "case-orders" in request.base_url %}
@@ -47,12 +50,17 @@
 			</tr>
 			<tr>
 				<td>
-					<a style={{temp}} href="/user-pannel/orderList">صف پردازش ({{session['temp_orders']}})</a>
+					<a style={{ord}} href="/user-pannel/ordering">ثبت سفارش</a>
 				</td>
 			</tr>
 			<tr>
 				<td>
-					<a style={{rts}} href="/user-pannel/ready-to-ship">سفارشات آماده ارسال ({{session['ready_to_ship']}})</a>
+					<a style={{case}} href="/user-pannel/case-orders">ثبت سفارش موردی</a>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a style={{temp}} href="/user-pannel/orderList">صف پردازش ({{session['temp_orders']}})</a>
 				</td>
 			</tr>
 			<tr>
@@ -67,22 +75,12 @@
 			</tr>
 			<tr>
 				<td>
-					<a style={{ord}} href="/user-pannel/ordering">ثبت سفارش</a>
+					<a style={{rts}} href="/user-pannel/ready-to-ship">سفارشات آماده ارسال ({{session['ready_to_ship']}})</a>
 				</td>
 			</tr>
 			<tr>
 				<td>
-					<a style={{case}} href="/user-pannel/case-orders">ثبت سفارش موردی</a>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<a style={{sts}} href="/update-status">بروزرسانی وضعیت مرسولات</a>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<a style={{mng}} href="/user-pannel/inventory-management/new">مدیریت انبار</a>
+					<a style={{all}} href="/user-pannel/all-orders">مشاهده همه سفارشات ({{session['all_orders']}})</a>
 				</td>
 			</tr>
 			<tr>
@@ -95,6 +93,11 @@
 					<a style={{acc}} href="/user-pannel/accounting">حسابداری</a>
 				</td>
 			</tr>
+			<tr>
+				<td>
+					<a style={{mng}} href="/user-pannel/inventory-management/new">مدیریت انبار</a>
+				</td>
+			</tr>
 			{% if session['role'] == 'admin' %}
 				<tr>
 					<td>
@@ -102,10 +105,11 @@
 					</td>
 				</tr>
 			{% endif %}
+			<tr>
+				<td>
+					<a style={{sts}} href="/update-status">بروزرسانی وضعیت مرسولات</a>
+				</td>
+			</tr>
 		</table>
-		<!--<a href="/user-pannel/orderList" class="button">صف پردازش ({{session['temp_orders']}})</a>
-		<a href="/user-pannel/ordering" class="button">ثبت سفارش</a>
-		<a href="/user-pannel/inventory" class="button">انبارداری</a>
-		<a href="/user-pannel/accounting" class="button">حسابداری</a>-->
 	</div>
 </fieldset>

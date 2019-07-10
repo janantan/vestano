@@ -184,12 +184,16 @@ a.button:active {
     width: 100vw;
 }
 
+.order-0 td {
+    text-align: center;
+}
+
 #order-1 tbody {
     height: 5vh;
 }
 
-.order-0 td {
-    text-align: center;
+#order-2 tbody {
+    height: 8vh;
 }
 
 /*sudo class*/
@@ -365,6 +369,7 @@ a.button:active {
 }
 
 .fieldset-card td {
+    display: block;
     height: 5vh;
 }
 
@@ -634,10 +639,6 @@ a.button:active {
 
 .vw10 {
     width: 10vw !important;
-}
-
-.vw18 {
-    width: 18vw !important;
 }
 
 .mrg-vh20 {

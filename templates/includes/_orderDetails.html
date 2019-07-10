@@ -225,6 +225,21 @@
 		{% elif code == 'rts' %}
 			<div style="margin-top: 3vh;">
 				<a class="button" href="javascript:processFunction('/finish-process/{{details[13]}}')" title="پایان فرایند سفارش" style="background-color: #f3f3f3;">پایان فرایند</a>
+				{% if details[1] == 'سفارش موردی' %}
+					<a class="button" href="/show-pdf/{{details[13]}}" title="مشاهده فایل pdf فاکتور" style="background-color: #f3f3f3; margin-right: 2vw;">مشاهده فاکتور</a>
+				{% endif %}
+			</div>
+		{% elif code == 'today' %}
+			<div style="margin-top: 3vh;">
+				{% if details[1] == 'سفارش موردی' %}
+					<a class="button" href="/show-pdf/{{details[13]}}" title="مشاهده فایل pdf فاکتور" style="background-color: #f3f3f3; margin-right: 2vw;">مشاهده فاکتور</a>
+				{% endif %}
+			</div>
+		{% elif code == 'all' %}
+			<div style="margin-top: 3vh;">
+				{% if details[1] == 'سفارش موردی' %}
+					<a class="button" href="/show-pdf/{{details[13]}}" title="مشاهده فایل pdf فاکتور" style="background-color: #f3f3f3; margin-right: 2vw;">مشاهده فاکتور</a>
+				{% endif %}
 			</div>
 		{% endif %}
 

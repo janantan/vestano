@@ -1,6 +1,7 @@
 {% set case = "background:#eee;" %}
 {% set new = "background:#eee;" %}
 {% set inc = "background:#eee;" %}
+{% set edit = "background:#eee;" %}
 {% set pack = "background:#eee;" %}
 {% set release = "background:#eee;" %}
 {% set search = "background:#eee;" %}
@@ -11,6 +12,8 @@
 	{% set new = "background:yellow;" %}
 {% elif "inc" in request.base_url %}
 	{% set inc = "background:yellow;" %}
+{% elif "edit" in request.base_url %}
+	{% set edit = "background:yellow;" %}
 {% elif "pack" in request.base_url %}
 	{% set pack = "background:yellow;" %}
 {% elif "release" in request.base_url %}
@@ -22,6 +25,7 @@
 	<a href="/user-pannel/inventory-management/case" style={{case}} class="button">افزودن کالای موردی</a>
 	<a href="/user-pannel/inventory-management/new" style={{new}} class="button">افزودن کالای جدید</a>
 	<a href="/user-pannel/inventory-management/inc" style={{inc}} class="button">افزودن کالای موجود</a>
+	<a href="/user-pannel/inventory-management/edit" style={{edit}} class="button">ویرایش کالا</a>
 	<a href="/user-pannel/inventory-management/pack" style={{pack}} class="button">ایجاد بسته</a>
 	<a href="/user-pannel/inventory-management/release" style={{release}} class="button">کالای مرجوعی</a>
 	<a href="/user-pannel/inventory-management/search" style={{search}} class="button" style="margin-right: 2vw;">جستجو در انبار</a>

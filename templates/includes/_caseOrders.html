@@ -109,9 +109,6 @@
                   <td>
                     <label><input type="radio" name="serviceType" value="1" required/>پیشتاز</label>
                   </td>
-                  <td>
-                    <label><input type="checkbox" name="free" value="88"/>ارسال رایگان</label>
-                  </td>
                 </tr>
               </table>
             </fieldset>
@@ -124,10 +121,33 @@
               <table id="order-1">
                 <tr>
                   <td>
-                    <label><input type="radio" name="payType" value="1"/>پرداخت در محل</label>
+                    <label><input type="radio" name="payType" value="1" required/>پرداخت در محل</label>
                   </td>
                   <td>
-                    <label><input type="radio" name="payType" value="2"/>پرداخت آنلاین</label>
+                    <label><input type="radio" name="payType" value="2" required/>پرداخت آنلاین</label>
+                  </td>
+                </tr>
+              </table>
+            </fieldset>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <fieldset style="background: rgb(255,248,248); height: 10vh;">
+              <legend>سایر اطلاعات</legend>
+              <table id="order-2">
+                <tr>
+                  <td>
+                    <label>هزینه کارتن: <input id="carton" type="number" name="carton" placeholder="(ریال)" size="6" required/></label>
+                  </td>
+                  <td>
+                    <label>هزینه بسته بندی: <input id="packing" type="number" name="packing" placeholder="(ریال)" size="6" required/></label>
+                  </td>
+                  <td>
+                    <label>هزینه جمع آوری: <input id="gathering" type="number" name="gathering" placeholder="(ریال)" size="6" required/></label>
+                  </td>
+                  <td>
+                    <label><input type="checkbox" name="without_ck" value="1"/>فاقد وجه نقد و اشیاء قیمتی</label>
                   </td>
                 </tr>
               </table>

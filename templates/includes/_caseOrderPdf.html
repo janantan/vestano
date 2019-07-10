@@ -72,8 +72,8 @@
     							<td style="width: 150px; height: 40px;">
     								<span>تاریخ:</span>
     							</td>
-    							<td style="width: 150px; height: 40px;">
-    								<span>{{session['jdatetime']}}</span>
+    							<td style="width: 150px; height: 40px; text-align: center;">
+    								<span>{{datetime}}</span>
     							</td>
     						</tr>
     						<tr>
@@ -83,7 +83,7 @@
     							<td style="height: 40px;">
     								<span>شماره پیگیری:</span>
     							</td>
-    							<td style="height: 40px;">
+    							<td style="height: 40px; text-align: center;">
     								<span>{{orderId}}</span>
     							</td>
     						</tr>
@@ -96,22 +96,28 @@
     		<legend>مشخصات مرسوله:</legend>
 			<table style="text-align: center; border: 1px solid gray;">
 				<tr style="border: 1px solid black;">
-					<th style="height: 60px; width: 260px; background: yellow;">
-						<span>بارکد</span>
+					<th style="height: 60px; width: 230px; background: yellow;">
+						<span>بارکد پستی</span>
 					</th>
-					<th style="height: 60px; width: 100px; background: yellow;">
+					<th style="height: 60px; width: 80px; background: yellow;">
 						<span>وزن</span>
 					</th>
-					<th style="height: 60px; width: 140px; background: yellow;">
+					<th style="height: 60px; width: 100px; background: yellow;">
+						<span>هزینه کارتن</span>
+					</th>
+					<th style="height: 60px; width: 100px; background: yellow;">
 						<span>هزینه بسته بندی</span>
 					</th>
-					<th style="height: 60px; width: 140px; background: yellow;">
+					<th style="height: 60px; width: 100px; background: yellow;">
 						<span>هزینه ارسال</span>
 					</th>
-					<th style="height: 60px; width: 140px; background: yellow;">
+					<th style="height: 60px; width: 100px; background: yellow;">
+						<span>مالیات بر ارزش افزوده</span>
+					</th>
+					<th style="height: 60px; width: 100px; background: yellow;">
 						<span>هزینه جمع آوری</span>
 					</th>
-					<th style="height: 60px; width: 150px; background: yellow;">
+					<th style="height: 60px; width: 100px; background: yellow;">
 						<span>مجموع</span>
 					</th>
 				</tr>
@@ -123,19 +129,73 @@
 						<span>{{weight}} گرم</span>
 					</td>
 					<td>
+						<span>{{carton}}</span>
+					</td>
+					<td>
 						<span>{{packing}}</span>
 					</td>
 					<td>
 						<span>{{deliveryPrice}}</span>
 					</td>
 					<td>
+						<span>{{VatTax}}</span>
+					</td>
+					<td>
 						<span>{{gathering}}</span>
 					</td>
 					<td>
-						<span>{{packing + deliveryPrice + gathering}}</span>
+						<span>{{carton+packing+deliveryPrice+VatTax+gathering}}</span>
 					</td>
 				</tr>
 			</table>
 		</fieldset>
+		<fieldset class="fieldset" style="margin: 50px 10px; border: none;">
+    		<legend>جزئیات مرسوله:</legend>
+			<table style="text-align: center; border: 1px solid gray;">
+				<tr style="border: 1px solid black;">
+					<th style="height: 60px; width: 50px; background: yellow;">
+						<span>ردیف</span>
+					</th>
+					<th style="height: 60px; width: 250px; background: yellow;">
+						<span>نام کالا</span>
+					</th>
+					<th style="height: 60px; width: 100px; background: yellow;">
+						<span>وزن</span>
+					</th>
+				</tr>
+				<tr style="border: 1px solid black;">
+					<td style="height: 60px;">
+						<span>1</span>
+					</td>
+					<td>
+						<span>{{weight}} گرم</span>
+					</td>
+					<td>
+						<span>{{carton}}</span>
+					</td>
+				</tr>
+			</table>
+		</fieldset>
+		<fieldset class="fieldset" style="margin: 50px 10px; padding: 0; border: none;">
+			{% if sType == 1 %}
+	    		<div>
+					<figure>
+						<img id="factor-vestano" src="http://vestanops.com/static/img/pishtaz.png" alt="پست پیشتاز" width="200" height="80" style="position: relative; right: 5px;" />
+						{% if without_ck|length %}
+							<img id="factor-vestano" src="http://vestanops.com/static/img/faghed.png" alt="فاقد وجه نقد و اشیاء قیمتی" width="250" height="100" style="position: relative; left: 5px; float: left;" />
+						{% endif %}
+					</figure>
+				</div>
+			{% elif sType == 2 %}
+	    		<div>
+					<figure>
+						<img id="factor-vestano" src="http://vestanops.com/static/img/sefareshi.png" alt="پست سفارشی" width="200" height="80" style="position: relative; right: 5px;" />
+						{% if without_ck|length %}
+							<img id="factor-vestano" src="http://vestanops.com/static/img/faghed.png" alt="فاقد وجه نقد و اشیاء قیمتی" width="250" height="100" style="position: relative; left: 5px; float: left;" />
+						{% endif %}
+					</figure>
+				</div>
+			{% endif %}
+    	</fieldset>
     </body>
 </html>

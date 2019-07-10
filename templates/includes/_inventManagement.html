@@ -71,7 +71,7 @@
           <div class="mrg-vh4">
             <label style="display:inline-block;">شناسه کالا</label>
             <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" placeholder="" disabled required size="20" />
-            <label style="display:inline-block;">شرکت فروشنده</label>
+            <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
             <select style="margin:0 4vw;" id="vendor" name="vendor" disabled style="margin-right: 2vw;" required>
               <option value="" disabled selected>شرکت فروشنده</option>
                 <option value="روژیاپ">روژیاپ</option>
@@ -99,6 +99,56 @@
         </fieldset>
       </form>
     </fieldset>
+
+  {% elif sub_item == 'edit' %}
+    <fieldset class="fieldset mrg-vh2" style="height: 65vh; background: rgb(255,255,230);">
+      <form method="POST" action="">
+        <div class="mrg-vh1">
+          <label>کالای مورد نظر را انتخاب کنید:</label>
+          <select id="product" name="product" onchange="product3('product')" required>
+            <option value="" disabled selected>(انخاب کنید)</option>
+            {% for item in inventory %}
+              <option value="{{item[1]}}">{{item[0]}}</option>
+              }
+              {% set productId = item[1] %}
+            {% endfor %}
+          </select>
+          <p>{{productId}}</p>
+        </div>
+        <fieldset id="features" class="fieldset mrg-vh2" style="height: 50vh; border: none; background: rgb(255,255,230); display: none;">
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">نام کالا</label>
+            <input style="margin-right: 4vw;" id="productName" type="text" name="productName" placeholder="" size="50" required />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">شناسه کالا</label>
+            <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" placeholder="" disabled required size="20" />
+            <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
+            <select style="margin:0 4vw;" id="vendor" name="vendor" style="margin-right: 2vw;" required>
+              <option value="" selected>شرکت فروشنده</option>
+                <option value="روژیاپ">روژیاپ</option>
+            </select>
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">قیمت</label>
+            <input style="margin: 0 4.5vw;" id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
+            <label style="display:inline-block; margin-right: 2.1vw;">وزن</label>
+            <input style="margin:0 7vw;" id="weight" type="number" name="weight" placeholder="وزن (گرم)" required />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">موجودی فعلی</label>
+            <input style="margin: 0 1.5vw;" id="exist_count" type="number" name="exist_count" placeholder="تعداد ورودی جدید" disabled required />
+            <label style="display:inline-block; margin-right: 5vw;">درصد تخفیف</label>
+            <input style="margin:0 3.7vw;" id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)" required  />
+          </div>
+          <div class="mrg-vh4">
+            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت ویرایش " />
+            <a id="delete-button" class="button" title="حذف کالا از انبار" style="background-color: #f3f3f3; float: left; margin-left: 30vw;">حذف کالا</a>
+          </div>
+        </fieldset>
+      </form>
+    </fieldset>
+
   {% elif sub_item == 'pack' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230);">
       <form method="POST" action="" style="margin-block-end: 0;">
@@ -355,6 +405,31 @@
             document.getElementById('features').style.display = 'block';
             document.getElementById('exist_count').value = json.count
             document.getElementById('vendor').value = json.vendor
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
+  function product3(id_name) {
+    var product_name = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+
+            document.getElementById('features').style.display = 'block';
+
+            document.getElementById('delete-button').href = "/delete-stuff/"+json.productId
+            document.getElementById('productName').value = json.productName
+            document.getElementById('p_Id').value = json.productId
+            document.getElementById('vendor').value = json.vendor
+            document.getElementById('price').value = json.price
+            document.getElementById('weight').value = json.weight
+            document.getElementById('exist_count').value = json.count
+            document.getElementById('percentDiscount').value = json.discount
        }
     }
     xhr.open('GET', '/ajax?code=' + product_name, true);

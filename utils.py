@@ -60,10 +60,13 @@ def temp_orders(cursor):
     result = cursor.temp_orders.find()
     temp = []
     for r in result:
+        pNameList = []
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'])
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         temp.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status'])))
+            statusToString(r['status']), pNameList))
     return temp
 
 def today_orders(cursor):
@@ -71,17 +74,23 @@ def today_orders(cursor):
     today = []
     for r in result:
         if r['datetime'] == jdatetime.datetime.today().strftime('%Y/%m/%d'):
+            pNameList = []
+            for i in range(len(r['products'])):
+                pNameList.append(r['products'][i]['productName'])
             state_result = cursor.states.find_one({'Code': r['stateCode']})
             today.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
                 state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-                statusToString(r['status'])))
+                statusToString(r['status']), pNameList))
     result2 = cursor.orders.find()
     for r2 in result2:
         if r2['datetime'] == jdatetime.datetime.today().strftime('%Y/%m/%d'):
+            pNameList = []
+            for i in range(len(r2['products'])):
+                pNameList.append(r2['products'][i]['productName'])
             state_result = cursor.states.find_one({'Code': r2['stateCode']})
             today.append((r2['orderId'], r2['vendorName'], r2['registerFirstName']+' '+r2['registerLastName'],
                 state_result['Name'],r2['record_date'],r2['record_time'], r2['payType'], r2['registerCellNumber'],
-                statusToString(r2['status'])))
+                statusToString(r2['status']), pNameList))
     count = len(today)
     return {'today': today, 'count': count}
 
@@ -89,21 +98,40 @@ def canceled_orders(cursor):
     result = cursor.canceled_orders.find()
     cnl = []
     for r in result:
+        pNameList = []
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'])
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         cnl.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status'])))
+            statusToString(r['status']), pNameList))
     return cnl
 
 def readyToShip_orders(cursor):
     result = cursor.ready_to_ship.find()
     rts = []
     for r in result:
+        pNameList = []
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'])
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         rts.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status'])))
+            statusToString(r['status']), pNameList))
     return rts
+
+def all_orders(cursor):
+    result = cursor.orders.find()
+    all_list = []
+    for r in result:
+        pNameList = []
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'])
+        state_result = cursor.states.find_one({'Code': r['stateCode']})
+        all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            statusToString(r['status']), pNameList))
+    return all_list
 
 def inventory(cursor):
     result = cursor.vestano_inventory.find()
@@ -233,7 +261,7 @@ def accounting(cursor):
 
         record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
         r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
-        r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'], protducts_list))
+        r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'], protducts_list, status))
 
     totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage,t_vendor_account ,t_post_account ,t_vestano_account)
     acounting = {'record': record, 'totalCosts': totalCosts}
@@ -285,6 +313,8 @@ def details(cursor, orderId, code):
             r = cursor.orders.find_one({'orderId': orderId})
     elif code == 'cnl':
         r = cursor.canceled_orders.find_one({'orderId': orderId})
+    elif code == 'all':
+        r = cursor.orders.find_one({'orderId': orderId})
     if not r:
         return None
     state_result = cursor.states.find_one({'Code': r['stateCode']})
