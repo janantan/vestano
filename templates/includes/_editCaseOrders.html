@@ -120,10 +120,10 @@
                         {% if sType==1 %}{% set ck1 = 'checked' %}{% else %}{% set ck1 = '' %}{% endif %}
                         {% if pType==88 %}{% set ck88 = 'checked' %}{% else %}{% set ck88 = '' %}{% endif %}
                         <td>
-                          <label><input type="radio" name="serviceType" value="2" {{ck2}} required/>سفارشی</label>
+                          <label><input type="radio" name="serviceType" value="2" {{ck2}} required/>سفارشی <span id="sefareshi" style="color: green;"></span></label>
                         </td>
                         <td>
-                          <label><input type="radio" name="serviceType" value="1" {{ck1}} required/>پیشتاز</label>
+                          <label><input type="radio" name="serviceType" value="1" {{ck1}} required/>پیشتاز <span id="pishtaz" style="color: green;"></span></label>
                         </td>
                         <td>
                           <label><input type="checkbox" name="free" value="88" {{ck88}}/>ارسال رایگان</label>
@@ -135,17 +135,17 @@
               </tr>
               <tr>
                 <td>
-                  <fieldset style="background: rgb(255,248,248);">
+                  <fieldset style="background: rgb(255,248,248);" onclick="getDeliveryPrice()">
                     <legend>شیوه پرداخت</legend>
                     <table id="order-1">
                       <tr>
                         {% if pType==1 %}{% set pck1 = 'checked' %}{% else %}{% set pck1 = '' %}{% endif %}
                         {% if pType==2 %}{% set pck2 = 'checked' %}{% else %}{% set pck2 = '' %}{% endif %}
                         <td>
-                          <label><input type="radio" name="payType" value="1" {{pck1}}/>پرداخت در محل</label>
+                          <label><input id="payType1" type="radio" name="payType" value="1" {{pck1}}/>پرداخت در محل</label>
                         </td>
                         <td>
-                          <label><input type="radio" name="payType" value="2" {{pck2}}/>پرداخت آنلاین</label>
+                          <label><input id="payType2" type="radio" name="payType" value="2" {{pck2}}/>پرداخت آنلاین</label>
                         </td>
                       </tr>
                     </table>
@@ -189,6 +189,8 @@
       <script type="text/javascript">
         var i = "{{data['products']|length + 1}}";
         var i_list = ["row1"];
+        var Weight = 0
+        var Price = 0
         function addrow(id_name, action) {
             var original = document.getElementById(id_name);
           var clone = original.cloneNode(true); // "deep" clone
@@ -223,6 +225,8 @@
             if (i_list.length > 1) {
               original.parentNode.removeChild(original);
               i_list.splice(i_list.indexOf(id_name), 1);
+              refreshWeightPrice();
+              getDeliveryPrice();
             }
           }
 
@@ -259,19 +263,55 @@
 
         function caseProduct(id_name) {
           var product_id = document.getElementById(id_name).value;
-
           const xhr = new XMLHttpRequest();
           xhr.onreadystatechange = function() {
               if (this.readyState == 4 && this.status == 200) {
 
-                  var json = JSON.parse(this.responseText);
-                  document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
-                  document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
-                  document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
+                var json = JSON.parse(this.responseText);
+                document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
+                document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
+                document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
+
+                refreshWeightPrice();
+                getDeliveryPrice();
              }
           }
           xhr.open('GET', '/case-ajax?code=' + product_id, true);
           xhr.send();
+        }
+
+        function getDeliveryPrice() {
+          var c = document.getElementById('city').value;
+          if (document.getElementById('payType1').checked) {
+            var pType = document.getElementById('payType1').value;
+          } else if (document.getElementById('payType2').checked) {
+            var pType = document.getElementById('payType2').value;
+          }
+          const xhr2 = new XMLHttpRequest();
+          xhr2.onreadystatechange = function() {
+              if (this.readyState == 4 && this.status == 200) {
+
+                var json = JSON.parse(this.responseText);
+                document.getElementById('sefareshi').innerHTML = '(' +json.sefareshi+ ' ریال)';
+                document.getElementById('pishtaz').innerHTML = '(' +json.pishtaz+ ' ریال)';
+             }
+          }
+          xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+Price+'&city='+c+'&pType='+pType, true);
+          xhr2.send();
+        }
+
+        function refreshWeightPrice() {
+          w = 0;
+          p = 0;
+          for (var c = 0; c < i_list.length; c++) {
+            index = i_list[c].substring(3, i_list[c].length);
+            if (parseInt(document.getElementById('weight'+index).value)) {
+              w = w + parseInt(document.getElementById('weight'+index).value);
+              p = p + parseInt(document.getElementById('price'+index).value);
+            }
+          }
+          Weight = w;
+          Price = p;
         }
       </script>
     </body>
