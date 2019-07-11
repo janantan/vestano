@@ -98,10 +98,10 @@
               <table id="order-1">
                 <tr>
                   <td>
-                    <label><input id="radio1" type="radio" name="serviceType" onchange="getDeliveryPrice('radio1')" value="2" required/>سفارشی</label>
+                    <label><input id="radio1" type="radio" name="serviceType" value="2" required/>سفارشی <span id="sefareshi" style="color: green;"></span></label>
                   </td>
                   <td>
-                    <label><input id="radio2" type="radio" name="serviceType" value="1" required/>پیشتاز</label>
+                    <label><input id="radio2" type="radio" name="serviceType" value="1" required/>پیشتاز <span id="pishtaz" style="color: green;"></span></label>
                   </td>
                   <td>
                     <label><input type="checkbox" name="free" value="88"/>ارسال رایگان</label>
@@ -113,15 +113,15 @@
         </tr>
         <tr>
           <td>
-            <fieldset style="background: rgb(255,248,248);">
+            <fieldset style="background: rgb(255,248,248);" onclick="getDeliveryPrice()">
               <legend>شیوه پرداخت</legend>
               <table id="order-1">
                 <tr>
                   <td>
-                    <label><input type="radio" name="payType" value="1"/>پرداخت در محل</label>
+                    <label><input id="payType1" type="radio" name="payType" value="1" checked />پرداخت در محل</label>
                   </td>
                   <td>
-                    <label><input type="radio" name="payType" value="2"/>پرداخت آنلاین</label>
+                    <label><input id="payType2" type="radio" name="payType" value="2" />پرداخت آنلاین</label>
                   </td>
                 </tr>
               </table>
@@ -139,10 +139,13 @@
 <script type="text/javascript">
   var i=1;
   var i_list = ["row1"];
+  var Weight = 0
+  var Price = 0
   function addrow(id_name, action) {
       var original = document.getElementById(id_name);
     var clone = original.cloneNode(true); // "deep" clone
     if (action == 'add'){
+
       clone.id = "row" + ++i;
       i_list.push(clone.id);
       for (ii=0; ii<2; ii++) {
@@ -173,6 +176,8 @@
       if (i_list.length > 1) {
         original.parentNode.removeChild(original);
         i_list.splice(i_list.indexOf(id_name), 1);
+        refreshWeightPrice();
+        getDeliveryPrice();
       }
     }
 
@@ -187,17 +192,16 @@
       xhr.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
 
-              var json = JSON.parse(this.responseText);
+            var json = JSON.parse(this.responseText);
 
+            city.options.length = 1;
 
-              city.options.length = 1;
-
-              for (var i = 0; i < json.Name.length; i++) {
-                  var opt = document.createElement('option');
-                  opt.value = json.Code[i];
-                  opt.innerHTML = json.Name[i];
-                  city.appendChild(opt);
-              }
+            for (var i = 0; i < json.Name.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = json.Code[i];
+                opt.innerHTML = json.Name[i];
+                city.appendChild(opt);
+            }
          }
       }
       xhr.open('GET', '/ajax?code=' + state_code, true);
@@ -208,24 +212,56 @@
   }
 
   function product(id_name) {
-    var product_name = document.getElementById(id_name).value;
+    var productId = document.getElementById(id_name).value;
 
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
 
-            var json = JSON.parse(this.responseText);
-            document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
-            document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
-            document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
+          var json = JSON.parse(this.responseText);
+          document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price;
+          document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight;
+          document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount;
+
+          refreshWeightPrice();
+          getDeliveryPrice();
        }
     }
-    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.open('GET', '/ajax?code=' + productId, true);
     xhr.send();
   }
 
-  function getDeliveryPrice(id_name) {
-    //alert('checked')
+  function getDeliveryPrice() {
+    var c = document.getElementById('city').value;
+    if (document.getElementById('payType1').checked) {
+      var pType = document.getElementById('payType1').value;
+    } else if (document.getElementById('payType2').checked) {
+      var pType = document.getElementById('payType2').value;
+    }
+    const xhr2 = new XMLHttpRequest();
+    xhr2.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
 
+          var json = JSON.parse(this.responseText);
+          document.getElementById('sefareshi').innerHTML = '(' +json.sefareshi+ ' ریال)';
+          document.getElementById('pishtaz').innerHTML = '(' +json.pishtaz+ ' ریال)';
+       }
+    }
+    xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+Price+'&city='+c+'&pType='+pType, true);
+    xhr2.send();
+  }
+
+  function refreshWeightPrice() {
+    w = 0;
+    p = 0;
+    for (var c = 0; c < i_list.length; c++) {
+      index = i_list[c].substring(3, i_list[c].length);
+      if (parseInt(document.getElementById('weight'+index).value)) {
+        w = w + parseInt(document.getElementById('weight'+index).value);
+        p = p + parseInt(document.getElementById('price'+index).value);
+      }
+    }
+    Weight = w;
+    Price = p;
   }
 </script>

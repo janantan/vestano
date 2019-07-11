@@ -9,25 +9,53 @@
             <fieldset style="background: rgb(255,248,248);">
               <legend>اطلاعات</legend>
               <div>
-                <label>فرستنده</label>
-                <input id="s_first_name" type="text" name="s_first_name" placeholder="نام" required />
-                <input id="s_last_name" type="text" name="s_last_name" placeholder="نام خانوادگی" required />
-                <input id="s_cell_number" type="text" name="s_cell_number" placeholder="شماره موبایل" />
+                <label>سفارش دهنده</label>
+                <input id="first_name" type="text" name="first_name" placeholder="نام" required />
+                <input id="last_name" type="text" name="last_name" placeholder="نام خانوادگی" required />
+                <input id="cell_number" type="text" name="cell_number" placeholder="شماره موبایل" />
               </div>
               <div>
-                <label>گیرنده</label>
-                <input id="r_first_name" type="text" name="r_first_name" placeholder="نام" required />
-                <input id="r_last_name" type="text" name="r_last_name" placeholder="نام خانوادگی" required />
-                <input id="r_cell_number" type="text" name="r_cell_number" placeholder="شماره موبایل" />
-              </div>
-              <div>
-                <label>آدرس گیرنده</label>
-                <select id="state" name="stateCode" onchange='cities()' required>
+                <label>آدرس</label>
+                <div class="dropdown">
+                  <!--<button onclick="search()" class="dropbtn">جستجو</button>-->
+                  <div id="myDropdown" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
+                    <input type="text" placeholder="استان" id="myInput" onclick="show()" onkeyup="filter()" style="border: none; font-size: 13px; font-family: arial; font-weight: normal; background: none;" size="10">
+                    <table id="states" style="display: none;">
+                      <tbody style="height: 45vh; width: 10vw;">
+                        {% for item in states %}
+                          <tr>
+                            <td style="text-align: center;">
+                              <a style="font-size: 14px; text-align: center; width: 8vw; height: 1vh; padding: 8px 0;" href="#" onclick="searchStates('{{item[0]}}')">{{item[1]}}</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="dropdown">
+                  <!--<button onclick="search()" class="dropbtn">جستجو</button>-->
+                  <div id="myDropdown" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
+                    <input type="text" placeholder="استان" id="myInput" onclick="show()" onkeyup="filter()" style="border: none; font-size: 13px; font-family: arial; font-weight: normal; background: none;" size="10">
+                    <table id="states" style="display: none;">
+                      <tbody style="height: 45vh; width: 10vw;">
+                        {% for item in states %}
+                          <tr>
+                            <td style="text-align: center;">
+                              <a style="font-size: 14px; text-align: center; width: 8vw; height: 1vh; padding: 8px 0;" href="#" onclick="searchStates('{{item[0]}}')">{{item[1]}}</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <!--<select id="state" name="stateCode" onchange='cities()' required>
                   <option value="" disabled selected>استان</option>
                   {% for item in states %}
                     <option value="{{item[0]}}">{{item[1]}}</option>
                   {% endfor %}
-                </select>
+                </select>-->
                 <select id="city" name="cityCode" required>
                   <option value="" disabled selected>شهر</option>
                 </select>
@@ -68,16 +96,16 @@
                 </tr>
                 <tr id="row1" class="order-0">
                   <td>
-                    <select id="product1" name="product_1" onchange="caseProduct('product1')" required>
+                    <select id="product1" name="product_1" onchange="product('product1')" required>
                       <option value="" disabled selected>(انخاب کنید)</option>
                       {% for item in inventory %}
                         <option value="{{item[1]}}">{{item[0]}}</option>
                         }
                       {% endfor %}
                     </select>
-                  </td>
+                  </td>                  
                   <td>
-                    <input type="number" name="count_1" size="4" value="1" required/>
+                    <input type="number" name="count_1" size="4" required/>
                   </td>
                   <td>
                     <input id="price1" type="number" name="price_1" size="6" required/>
@@ -104,10 +132,10 @@
               <table id="order-1">
                 <tr>
                   <td>
-                    <label><input type="radio" name="serviceType" value="2" required/>سفارشی</label>
+                    <label><input id="radio1" type="radio" name="serviceType" onchange="getDeliveryPrice('radio1')" value="2" required/>سفارشی</label>
                   </td>
                   <td>
-                    <label><input type="radio" name="serviceType" value="1" required/>پیشتاز</label>
+                    <label><input id="radio2" type="radio" name="serviceType" value="1" required/>پیشتاز</label>
                   </td>
                   <td>
                     <label><input type="checkbox" name="free" value="88"/>ارسال رایگان</label>
@@ -128,29 +156,6 @@
                   </td>
                   <td>
                     <label><input type="radio" name="payType" value="2"/>پرداخت آنلاین</label>
-                  </td>
-                </tr>
-              </table>
-            </fieldset>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <fieldset style="background: rgb(255,248,248); height: 10vh;">
-              <legend>سایر اطلاعات</legend>
-              <table id="order-2">
-                <tr>
-                  <td>
-                    <label>هزینه کارتن: <input id="carton" type="number" name="carton" placeholder="(ریال)" size="6" required/></label>
-                  </td>
-                  <td>
-                    <label>هزینه بسته بندی: <input id="packing" type="number" name="packing" placeholder="(ریال)" size="6" required/></label>
-                  </td>
-                  <td>
-                    <label>هزینه جمع آوری: <input id="gathering" type="number" name="gathering" placeholder="(ریال)" size="6" required/></label>
-                  </td>
-                  <td>
-                    <label><input type="checkbox" name="without_ck" value="1"/>فاقد وجه نقد و اشیاء قیمتی</label>
                   </td>
                 </tr>
               </table>
@@ -236,8 +241,8 @@
     }
   }
 
-  function caseProduct(id_name) {
-    var product_id = document.getElementById(id_name).value;
+  function product(id_name) {
+    var product_name = document.getElementById(id_name).value;
 
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
@@ -249,7 +254,61 @@
             document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
        }
     }
-    xhr.open('GET', '/case-ajax?code=' + product_id, true);
+    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
+  function getDeliveryPrice(id_name) {
+    //alert('checked')
+
+  }
+
+  function show() {
+    //document.getElementById("inventory").classList.toggle("show");
+    document.getElementById("states").style.display = 'block';
+  }
+
+  function notShow() {
+    document.getElementById("states").style.display = 'none';
+  }
+
+  function filter() {
+    var input, filter, ul, tr, a, i;
+    input = document.getElementById("myInput");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("myDropdown");
+    a = div.getElementsByTagName("a");
+    tr = div.getElementsByTagName("tr");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+
+  function searchStates(code) {
+    var city = document.getElementById("city");
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById('states').style.display = 'none';
+          var json = JSON.parse(this.responseText);
+
+          city.options.length = 1;
+          document.getElementById('myInput').value = json.stateName
+
+          for (var i = 0; i < json.Name.length; i++) {
+              var opt = document.createElement('option');
+              opt.value = json.Code[i];
+              opt.innerHTML = json.Name[i];
+              city.appendChild(opt);
+          }
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + code, true);
     xhr.send();
   }
 </script>

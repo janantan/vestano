@@ -18,8 +18,8 @@ def config_mongodb():
 cursor = config_mongodb()
 
 cursor = utils.config_mongodb()
-src = r'E:\projects\VESTANO\Vestano\file.xlsx'
-#src = '/root/vestano/file.xlsx'
+#src = r'E:\projects\VESTANO\Vestano\file.xlsx'
+src = '/root/vestano/file.xlsx'
 
 file = utils.exel(src)
 

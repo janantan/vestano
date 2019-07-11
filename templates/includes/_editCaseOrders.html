@@ -10,23 +10,29 @@
     <body class="card" style="direction: rtl; margin: 0 auto;">
       {% include 'includes/_messages.html' %}
       <form method="POST" action="">
-        <fieldset style="margin-bottom: 0;">
+        <fieldset style="margin-bottom: 0; background: #fafafa;">
           <legend>ویرایش سفارش شماره {{data['orderId']}}</legend>
           <table id="ordering">
             <thead></thead>
-            <tbody>
+            <tbody style="height: 95vh;">
               <tr>
                 <td>
-                  <fieldset>
+                  <fieldset style="background: rgb(255,248,248);">
                     <legend>اطلاعات</legend>
                     <div>
-                      <label>سفارش دهنده</label>
-                      <input id="first_name" type="text" name="first_name" value="{{data['registerFirstName']}}" placeholder="نام" required />
-                      <input id="last_name" type="text" name="last_name" value="{{data['registerLastName']}}" placeholder="نام خانوادگی" required />
-                      <input id="cell_number" type="text" name="cell_number" value="{{data['registerCellNumber']}}" placeholder="شماره موبایل" />
+                      <label>فرستنده</label>
+                      <input id="s_first_name" type="text" name="s_first_name" value="{{case_data['senderFirstName']}}" placeholder="نام" required />
+                      <input id="s_last_name" type="text" name="s_last_name" value="{{case_data['senderLastName']}}" placeholder="نام خانوادگی" required />
+                      <input id="s_cell_number" type="text" name="s_cell_number" value="{{case_data['senderCellNumber']}}" placeholder="شماره موبایل" />
                     </div>
                     <div>
-                      <label>آدرس</label>
+                      <label>گیرنده</label>
+                      <input id="r_first_name" type="text" name="r_first_name" value="{{data['registerFirstName']}}" placeholder="نام" required />
+                      <input id="r_last_name" type="text" name="r_last_name" value="{{data['registerLastName']}}" placeholder="نام خانوادگی" required />
+                      <input id="r_cell_number" type="text" name="r_cell_number" value="{{data['registerCellNumber']}}" placeholder="شماره موبایل" />
+                    </div>
+                    <div>
+                      <label>آدرس گیرنده</label>
                       <select id="state" name="stateCode" onchange='cities()' required>
                         <option value="{{data['stateCode']}}">{{stateName}}</option>
                         {% for item in states %}
@@ -41,14 +47,14 @@
                       <textarea name="address" placeholder="نشانی دقیق" required> {{data['registerAddress']}}</textarea>
                     </div>
                     <div id="postal_code">
-                      <input id="postal_code" value="{{data['registerPostalCode']}}" type="text" name="postal_code" placeholder="کد پستی" />
+                      <input id="postal_code" type="text" name="postal_code" value="{{data['registerPostalCode']}}" placeholder="کد پستی" />
                     </div>
                   </fieldset>
                 </td>
               </tr>
               <tr>
                 <td>
-                  <fieldset>
+                  <fieldset style="background: rgb(255,248,248);">
                     <legend>اقلام سفارش</legend>
                     <table id="order-0">
                       <tr>
@@ -106,7 +112,7 @@
               </tr>
               <tr>
                 <td>
-                  <fieldset>
+                  <fieldset style="background: rgb(255,248,248);">
                     <legend>شیوه ارسال</legend>
                     <table id="order-1">
                       <tr>
@@ -114,10 +120,11 @@
                         {% if sType==1 %}{% set ck1 = 'checked' %}{% else %}{% set ck1 = '' %}{% endif %}
                         {% if pType==88 %}{% set ck88 = 'checked' %}{% else %}{% set ck88 = '' %}{% endif %}
                         <td>
-                          <label><input type="radio" name="serviceType" value="2" {{ck2}} required/>سفارشی <span id="sefareshi" style="color: green;"></span></label>
+                          <label><input type="radio" name="serviceType" value="2" {{ck2}} required/>سفارشی</label>
                         </td>
                         <td>
-                          <label><input type="radio" name="serviceType" value="1" {{ck1}} required/>پیشتاز <span id="pishtaz" style="color: green;"></span></label>
+                          <label><input type="radio" name="serviceType" value="1" {{ck1}} required/>پیشتاز</label>
+                        </td>
                         <td>
                           <label><input type="checkbox" name="free" value="88" {{ck88}}/>ارسال رایگان</label>
                         </td>
@@ -128,19 +135,45 @@
               </tr>
               <tr>
                 <td>
-                  <fieldset onclick="getDeliveryPrice()">
+                  <fieldset style="background: rgb(255,248,248);">
                     <legend>شیوه پرداخت</legend>
                     <table id="order-1">
                       <tr>
                         {% if pType==1 %}{% set pck1 = 'checked' %}{% else %}{% set pck1 = '' %}{% endif %}
                         {% if pType==2 %}{% set pck2 = 'checked' %}{% else %}{% set pck2 = '' %}{% endif %}
                         <td>
-                          <label><input id="payType1" type="radio" name="payType" value="1" {{pck1}}/>پرداخت در محل</label>
+                          <label><input type="radio" name="payType" value="1" {{pck1}}/>پرداخت در محل</label>
                         </td>
                         <td>
-                          <label><input id="payType2" type="radio" name="payType" value="2" {{pck2}}/>پرداخت آنلاین</label>
+                          <label><input type="radio" name="payType" value="2" {{pck2}}/>پرداخت آنلاین</label>
                         </td>
                       </tr>
+                    </table>
+                  </fieldset>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <fieldset style="background: rgb(255,248,248); height: 20vh;">
+                    <legend>سایر اطلاعات</legend>
+                    <table id="order-2">
+                      <tbody style="height: 20vh;">
+                        <tr>
+                          <td>
+                            <label>هزینه کارتن: <input id="carton" type="number" name="carton" value="{{case_data['carton']}}" placeholder="(ریال)" size="6" required/></label>
+                          </td>
+                          <td>
+                            <label>هزینه بسته بندی: <input id="packing" type="number" name="packing" value="{{case_data['packing']}}" placeholder="(ریال)" size="6" required/></label>
+                          </td>
+                          <td>
+                            <label>هزینه جمع آوری: <input id="gathering" type="number" name="gathering" value="{{case_data['gathering']}}" placeholder="(ریال)" size="6" required/></label>
+                          </td>
+                          {% if case_data['without_ck']|length %}{% set without_ck = 'checked' %}{% else %}{% set without_ck = '' %}{% endif %}
+                          <td>
+                            <label><input type="checkbox" name="without_ck" {{without_ck}} value="1"/>فاقد وجه نقد و اشیاء قیمتی</label>
+                          </td>
+                        </tr>
+                      </tbody>
                     </table>
                   </fieldset>
                 </td>
@@ -190,8 +223,6 @@
             if (i_list.length > 1) {
               original.parentNode.removeChild(original);
               i_list.splice(i_list.indexOf(id_name), 1);
-              refreshWeightPrice();
-              getDeliveryPrice();
             }
           }
 
@@ -226,58 +257,21 @@
           }
         }
 
-        function product(id_name) {
-          var productId = document.getElementById(id_name).value;
+        function caseProduct(id_name) {
+          var product_id = document.getElementById(id_name).value;
 
           const xhr = new XMLHttpRequest();
           xhr.onreadystatechange = function() {
               if (this.readyState == 4 && this.status == 200) {
 
-                var json = JSON.parse(this.responseText);
-                document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price;
-                document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight;
-                document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount;
-
-                refreshWeightPrice();
-                getDeliveryPrice();
+                  var json = JSON.parse(this.responseText);
+                  document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
+                  document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
+                  document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
              }
           }
-          xhr.open('GET', '/ajax?code=' + productId, true);
+          xhr.open('GET', '/case-ajax?code=' + product_id, true);
           xhr.send();
-        }
-
-        function getDeliveryPrice() {
-          var c = document.getElementById('city').value;
-          if (document.getElementById('payType1').checked) {
-            var pType = document.getElementById('payType1').value;
-          } else if (document.getElementById('payType2').checked) {
-            var pType = document.getElementById('payType2').value;
-          }
-          const xhr2 = new XMLHttpRequest();
-          xhr2.onreadystatechange = function() {
-              if (this.readyState == 4 && this.status == 200) {
-
-                var json = JSON.parse(this.responseText);
-                document.getElementById('sefareshi').innerHTML = '(' +json.sefareshi+ ' ریال)';
-                document.getElementById('pishtaz').innerHTML = '(' +json.pishtaz+ ' ریال)';
-             }
-          }
-          xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+Price+'&city='+c+'&pType='+pType, true);
-          xhr2.send();
-        }
-
-        function refreshWeightPrice() {
-          w = 0;
-          p = 0;
-          for (var c = 0; c < i_list.length; c++) {
-            index = i_list[c].substring(3, i_list[c].length);
-            if (parseInt(document.getElementById('weight'+index).value)) {
-              w = w + parseInt(document.getElementById('weight'+index).value);
-              p = p + parseInt(document.getElementById('price'+index).value);
-            }
-          }
-          Weight = w;
-          Price = p;
         }
       </script>
     </body>

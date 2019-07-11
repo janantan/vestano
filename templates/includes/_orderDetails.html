@@ -251,10 +251,19 @@
 				const xhr = new XMLHttpRequest();
 				xhr.open('GET', url, true);
 				xhr.send();
+
 				window.setTimeout(function(){
-					opener.location.href = '/user-pannel/orderList';
-					close();
-				}, 1000);
+					if (url.includes('finish-process')) {
+						opener.location.href = '/user-pannel/ready-to-ship';
+						close();
+					} else if (url.includes('delete-order')) {
+						opener.location.href = '/user-pannel/canceled-orders';
+						close();
+					} else {
+						opener.location.href = '/user-pannel/orderList';
+						close();
+					}
+				}, 2000);
 			}
 		</script>
     </body>

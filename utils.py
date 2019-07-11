@@ -139,8 +139,25 @@ def inventory(cursor):
     for r in result:
         st = r['status']
         other_status_count = sum(st.values())-st['80']-st['2']-st['81']-st['7']-st['71']-st['11']-st['82']
+        
         inventory.append((r['productName'], r['productId'], r['count'], r['datetime'],
             r['percentDiscount'], r['status'], other_status_count))
+    return inventory
+
+def for_edit_invent(cursor):
+    result = cursor.vestano_inventory.find()
+    inventory = []
+    for r in result:
+        st = r['status']
+        other_status_count = sum(st.values())-st['80']-st['2']-st['81']-st['7']-st['71']-st['11']-st['82']
+        inventory.append((r['productName'], r['productId'], r['count'], r['datetime'],
+            r['percentDiscount'], r['status'], other_status_count, 0))
+    result2 = cursor.case_inventory.find()
+    for r in result2:
+        st = r['status']
+        other_status_count = sum(st.values())-st['80']-st['2']-st['81']-st['7']-st['71']-st['11']-st['82']
+        inventory.append((r['productName'], r['productId'], r['count'], r['datetime'],
+            r['percentDiscount'], r['status'], other_status_count, 1))
     return inventory
 
 def case_inventory(cursor):
@@ -506,7 +523,7 @@ def states(cursor):
 
 def cities(cursor, code):
     result = cursor.states.find_one({'Code': code})
-    ans = {'Code':[], 'Name':[]}
+    ans = {'Code':[], 'Name':[], 'stateName':result['Name']}
     for r in result['Cities']:
         ans['Code'].append(r['Code'])
         ans['Name'].append(r['Name'])
@@ -514,6 +531,8 @@ def cities(cursor, code):
 
 def Products(cursor, product):
     result = cursor.vestano_inventory.find_one({'productId': product})
+    if not result:
+        result = cursor.case_inventory.find_one({'productId': product})
     ans = {
     'productName': result['productName'],
     'productId': product,
@@ -710,6 +729,23 @@ def AddStuff(record):
         )
     return stuff_id
 
+def GetDeliveryPrice(cityCode, price, weight, serviceType, payType):
+    client = Client(API_URI)
+    price = client.service.GetDeliveryPrice(
+        username = username,
+        password = password,
+        cityCode = cityCode,
+        price = price,
+        weight = weight,
+        serviceType = serviceType,
+        payType = payType
+        )
+    ans = {
+    'DeliveryPrice':price.PostDeliveryPrice,
+    'VatTax':price.VatTax
+    }
+    return ans
+
 
 def SoapClient(order):
     #client = Client(API_URI, doctor=ImportDoctor(imp))
@@ -821,3 +857,15 @@ def add_empty_status():
     status['81'] = 0
     status['82'] = 0
     return status
+
+def inventory_sumation(cursor):
+    result = cursor.vestano_inventory.find()
+    status_sum = add_empty_status()
+    count_sum = 0
+    for r in result:
+        count_sum += r['count']
+        for s in r['status'].keys():
+            status_sum[s] += r['status'][s]
+    other_status_sum = sum(status_sum.values())-status_sum['80']-status_sum['2']-status_sum['81']-status_sum['7']-status_sum['71']-status_sum['11']-status_sum['82']
+    ans = {'count_sum': count_sum, 'status_sum': status_sum, 'other_status_sum': other_status_sum}
+    return(ans)
