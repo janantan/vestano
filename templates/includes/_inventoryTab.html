@@ -1,4 +1,5 @@
-{% set case = "background:#eee;" %}
+{% set case = "background:rgb(255,248,248);" %}
+{% set cEdit = "background:rgb(255,248,248);" %}
 {% set new = "background:#eee;" %}
 {% set inc = "background:#eee;" %}
 {% set edit = "background:#eee;" %}
@@ -8,6 +9,8 @@
 
 {% if "case" in request.base_url %}
 	{% set case = "background:yellow;" %}
+{% elif "cEdit" in request.base_url %}
+	{% set cEdit = "background:yellow;" %}
 {% elif "new" in request.base_url %}
 	{% set new = "background:yellow;" %}
 {% elif "inc" in request.base_url %}
@@ -23,6 +26,7 @@
 {% endif %}
 <div id="tab">
 	<a href="/user-pannel/inventory-management/case" style={{case}} class="button">افزودن کالای موردی</a>
+	<a href="/user-pannel/inventory-management/cEdit" style={{cEdit}} class="button">ویرایش کالای موردی</a>
 	<a href="/user-pannel/inventory-management/new" style={{new}} class="button">افزودن کالای جدید</a>
 	<a href="/user-pannel/inventory-management/inc" style={{inc}} class="button">افزودن کالای موجود</a>
 	<a href="/user-pannel/inventory-management/edit" style={{edit}} class="button">ویرایش کالا</a>

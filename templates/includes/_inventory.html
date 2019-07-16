@@ -1,4 +1,7 @@
-<fieldset class="fieldset">
+<div class="dropdown-content-inventory">
+	<input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
+</div>
+<fieldset class="fieldset" style="margin-top: 2vh;">
 	<legend>لیست موجودی انبار:</legend>
 	<table id="inventory">
 		<thead>
@@ -39,25 +42,25 @@
 				<th class="font12 vw6">
 					<span>در انتظار کالا</span>
 				</th>
-				<th class="font12 vw6">
+				<th class="font12 vw8">
 					<span>سایر وضعیت ها</span>
 				</th>
-				<th style="width: 0.8vw;"></th>
+				<th style="width: 1vw;"></th>
 			</tr>
 		</thead>
-		<tbody>
+		<tbody id="myDropdown" style="height: 74vh;">
 			{% for rec in inventory %}
 				<tr class="rows">
 					<td style="width: 3.5vw;">
 						<span>{{loop.index}}</span>
 					</td>
-					<td class="vw14">
+					<td style="width: 22vw;">
 						<span>{{rec[0]}}</span>
 					</td>
-					<td class="vw8">
+					<td style="width: 12vw;">
 						<a href="javascript:window.open('/inventory-details/{{rec[1]}}', 'Details', 'width=1000,height=620,top=50,left=280');" title=""><span>{{rec[1]}}</span></a>
 					</td>
-					<td class="vw10">
+					<td style="width: 12vw;">
 						<span>روژیاپ</span>
 					</td>
 					<td class="vw6">
@@ -89,38 +92,110 @@
 					</td>
 				</tr>
 			{% endfor %}
-			<tr style="background: rgb(255,255,180);">
+			<tr id="sum" style="background: rgb(255,255,180);">
 				<td colspan="4">
 					<span>مجموع</span>
 				</td>
 				<td>
-					<span>{{sum['count_sum']}}</span>
+					<span id="count_sum">{{sum['count_sum']}}</span>
 				</td>
 				<td>
-					<span>{{sum['status_sum']['80']}}</span>
+					<span id="count80">{{sum['status_sum']['80']}}</span>
 				</td>
 				<td>
-					<span>{{sum['status_sum']['2']}}</span>
+					<span id="count2">{{sum['status_sum']['2']}}</span>
 				</td>
 				<td>
-					<span>{{sum['status_sum']['81']}}</span>
+					<span id="count81">{{sum['status_sum']['81']}}</span>
 				</td>
 				<td>
-					<span >{{sum['status_sum']['7']}}</span>
+					<span id="count7">{{sum['status_sum']['7']}}</span>
 				</td>
 				<td>
-					<span>{{sum['status_sum']['71']}}</span>
+					<span id="count71">{{sum['status_sum']['71']}}</span>
 				</td>
 				<td>
-					<span>{{sum['status_sum']['11']}}</span>
+					<span id="count11">{{sum['status_sum']['11']}}</span>
 				</td>
 				<td>
-					<span>{{sum['status_sum']['82']}}</span>
+					<span id="count82">{{sum['status_sum']['82']}}</span>
 				</td>
 				<td>
-					<span>{{sum['other_status_sum']}}</span>
+					<span id="count_other">{{sum['other_status_sum']}}</span>
 				</td>
 			</tr>
 		</tbody>
 	</table>
 </fieldset>
+
+<script type="text/javascript">
+	function filter() {
+		var input, value, tr, div, i;
+		var sum=0; sum80=0; sum2=0; sum81=0; sum7=0; sum71=0; sum11=0; sum82=0; sum_other=0;
+		input = document.getElementById("myInput-inventory");
+		value = input.value.toUpperCase();
+		div = document.getElementById("myDropdown");
+		tr = div.getElementsByTagName("tr");
+		if (isNaN(value)) {
+			for (i = 0; i < (tr.length - 1); i++) {
+				span = tr[i].getElementsByTagName("span");
+				txtValue = span[1].textContent;
+				if (txtValue.toUpperCase().indexOf(value) > -1) {
+					tr[i].style.display = "";
+					sum = sum + parseInt(span[4].textContent);
+					sum80 = sum80 + parseInt(span[5].textContent);
+					sum2 = sum2 + parseInt(span[6].textContent);
+					sum81 = sum81 + parseInt(span[7].textContent);
+					sum7 = sum7 + parseInt(span[8].textContent);
+					sum71 = sum71 + parseInt(span[9].textContent);
+					sum11 = sum11 + parseInt(span[10].textContent);
+					sum82 = sum82 + parseInt(span[11].textContent);
+					sum_other = sum_other + parseInt(span[12].textContent);
+
+				} else {
+					tr[i].style.display = "none";
+				}
+				document.getElementById('count_sum').innerHTML = sum;
+				document.getElementById('count80').innerHTML = sum80;
+				document.getElementById('count2').innerHTML = sum2;
+				document.getElementById('count81').innerHTML = sum81;
+				document.getElementById('count7').innerHTML = sum7;
+				document.getElementById('count71').innerHTML = sum71;
+				document.getElementById('count11').innerHTML = sum11;
+				document.getElementById('count82').innerHTML = sum82;
+				document.getElementById('count_other').innerHTML = sum_other;
+				document.getElementById("sum").style.display = "";
+			}
+		} else {
+			for (i = 0; i < (tr.length - 1); i++) {
+				span = tr[i].getElementsByTagName("span");
+				txtValue = span[2].textContent;
+				if (txtValue.toUpperCase().indexOf(value) > -1) {
+					tr[i].style.display = "";
+					sum = sum + parseInt(span[4].textContent);
+					sum80 = sum80 + parseInt(span[5].textContent);
+					sum2 = sum2 + parseInt(span[6].textContent);
+					sum81 = sum81 + parseInt(span[7].textContent);
+					sum7 = sum7 + parseInt(span[8].textContent);
+					sum71 = sum71 + parseInt(span[9].textContent);
+					sum11 = sum11 + parseInt(span[10].textContent);
+					sum82 = sum82 + parseInt(span[11].textContent);
+					sum_other = sum_other + parseInt(span[12].textContent);
+
+				} else {
+					tr[i].style.display = "none";
+				}
+				document.getElementById('count_sum').innerHTML = sum;
+				document.getElementById('count80').innerHTML = sum80;
+				document.getElementById('count2').innerHTML = sum2;
+				document.getElementById('count81').innerHTML = sum81;
+				document.getElementById('count7').innerHTML = sum7;
+				document.getElementById('count71').innerHTML = sum71;
+				document.getElementById('count11').innerHTML = sum11;
+				document.getElementById('count82').innerHTML = sum82;
+				document.getElementById('count_other').innerHTML = sum_other;
+				document.getElementById("sum").style.display = "";
+			}
+		}
+	}
+</script>

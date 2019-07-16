@@ -1,5 +1,5 @@
 <form method="POST" action="">
-  <fieldset style="margin-bottom: 0; background: #fafafa;">
+  <fieldset style="margin-bottom: 0; background: #fafafa; height: 84.5vh;">
     <legend>لطفا سفارش خود را ثبت  کنید:</legend>
     <table id="ordering">
       <thead></thead>
@@ -10,15 +10,24 @@
               <legend>اطلاعات</legend>
               <div>
                 <label>فرستنده</label>
-                <input id="s_first_name" type="text" name="s_first_name" placeholder="نام" required />
-                <input id="s_last_name" type="text" name="s_last_name" placeholder="نام خانوادگی" required />
-                <input id="s_cell_number" type="text" name="s_cell_number" placeholder="شماره موبایل" />
+                <input id="s_first_name" type="text" name="s_first_name" onchange="validator('s_first_name', 'name')"  placeholder="نام" required />
+                <input id="s_last_name" type="text" name="s_last_name" onchange="validator('s_last_name', 'name')"  placeholder="نام خانوادگی" required />
+                <input id="s_cell_number" type="text" name="s_cell_number" onchange="validator('s_cell_number', 'number')"  placeholder="شماره موبایل" />
+              </div>
+              <div>
+                <label>آدرس فرستنده</label>
+              </div>
+              <div id="address">
+                <textarea name="s_address" placeholder="نشانی فرستنده"></textarea>
+              </div>
+              <div id="postal_code">
+                <input id="postal_code" type="text" name="s_postal_code" placeholder="کد پستی فرستنده" />
               </div>
               <div>
                 <label>گیرنده</label>
-                <input id="r_first_name" type="text" name="r_first_name" placeholder="نام" required />
-                <input id="r_last_name" type="text" name="r_last_name" placeholder="نام خانوادگی" required />
-                <input id="r_cell_number" type="text" name="r_cell_number" placeholder="شماره موبایل" />
+                <input id="r_first_name" type="text" name="r_first_name" onchange="validator('r_first_name', 'name')" placeholder=" نام" required />
+                <input id="r_last_name" type="text" name="r_last_name" onchange="validator('r_last_name', 'name')" placeholder=" نام خانوادگی" required />
+                <input id="r_cell_number" type="text" name="r_cell_number" onchange="validator('r_cell_number', 'number')" placeholder=" شماره موبایل" required />
               </div>
               <div>
                 <label>آدرس گیرنده</label>
@@ -33,10 +42,10 @@
                 </select>
               </div>
               <div id="address">
-                <textarea name="address" placeholder="نشانی دقیق" required></textarea>
+                <textarea name="address" placeholder="نشانی دقیق گیرنده" required></textarea>
               </div>
               <div id="postal_code">
-                <input id="postal_code" type="text" name="postal_code" placeholder="کد پستی" />
+                <input id="postal_code" type="text" name="postal_code" placeholder="کد پستی گیرنده" />
               </div>
             </fieldset>
           </td>
@@ -68,7 +77,7 @@
                 </tr>
                 <tr id="row1" class="order-0">
                   <td>
-                    <select id="product1" name="product_1" onchange="caseProduct('product1')" required>
+                    <select id="product1" style="width: 15.5vw;" name="product_1" onchange="caseProduct('product1')" required>
                       <option value="" disabled selected>(انخاب کنید)</option>
                       {% for item in inventory %}
                         <option value="{{item[1]}}">{{item[0]}}</option>
@@ -77,22 +86,42 @@
                     </select>
                   </td>
                   <td>
-                    <input type="number" name="count_1" size="4" value="1" required/>
+                    <input id="count1" type="number" name="count_1" size="4" value="1" onchange="anyChange()" required/>
                   </td>
                   <td>
-                    <input id="price1" type="number" name="price_1" size="6" required/>
+                    <input id="price1" type="number" name="price_1" size="6" onchange="anyChange()" required/>
                   </td>
                   <td>
-                    <input id="discount1" type="number" name="discount_1" size="6" required/>
+                    <input id="discount1" type="number" name="discount_1" size="6" onchange="anyChange()" required/>
                   </td>
                   <td>
-                    <input id="weight1" type="number" name="weight_1" size="6" required/>
+                    <input id="weight1" type="number" name="weight_1" size="6" onchange="anyChange()" required/>
                   </td>
                   <td>
                     <a href="javascript:addrow('row1','del')" title="حذف" class="del-box"> - </a>
                     <a href="javascript:addrow('row1', 'add')" title="افزودن" class="add-box"> + </a>
                   </td>
                 </tr>
+                <tfoot style="display: block;" class="tfoot">
+                  <tr class="order-0">
+                    <td>
+                      <input type="text" name="sum" value="مجموع" size="30" disabled />
+                    </td>                  
+                    <td>
+                      <input id="count-sum" type="number" name="count_sum" size="4" disabled/>
+                    </td>
+                    <td>
+                      <input id="price-sum" type="number" name="price_sum" size="6" disabled/>
+                    </td>
+                    <td>
+                      <input id="discount-sum" type="number" name="discount_sum" size="6" disabled/>
+                    </td>
+                    <td>
+                      <input id="weight-sum" type="number" name="weight_sum" size="6" disabled/>
+                    </td>
+                    <td style="width: 200vw;"></td>
+                  </tr>
+                </tfoot>
               </table>
             </fieldset>
           </td>
@@ -170,10 +199,13 @@
   var i_list = ["row1"];
   var Weight = 0
   var Price = 0
+  var Count = 0
+  var Discount = 0
   function addrow(id_name, action) {
-      var original = document.getElementById(id_name);
+    var original = document.getElementById(id_name);
     var clone = original.cloneNode(true); // "deep" clone
     if (action == 'add'){
+
       clone.id = "row" + ++i;
       i_list.push(clone.id);
       for (ii=0; ii<2; ii++) {
@@ -182,8 +214,8 @@
       }
       var title = "product_"+id_name.substring(3, id_name.length);
       clone.innerHTML = clone.innerHTML.replace(title, "product_"+i);
-      var attachments = "count_"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(attachments, "count_"+i);
+      var cou = "count_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(cou, "count_"+i);
       var pri = "price_"+id_name.substring(3, id_name.length);
       clone.innerHTML = clone.innerHTML.replace(pri, "price_"+i);
       var dis = "discount_"+id_name.substring(3, id_name.length);
@@ -191,6 +223,8 @@
       var we = "weight_"+id_name.substring(3, id_name.length);
       clone.innerHTML = clone.innerHTML.replace(we, "weight_"+i);
       clone.innerHTML = clone.innerHTML.replace(id_name, clone.id);
+      var c = "count"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(c, "count"+i);
       var p = "price"+id_name.substring(3, id_name.length);
       clone.innerHTML = clone.innerHTML.replace(p, "price"+i);
       var d = "discount"+id_name.substring(3, id_name.length);
@@ -204,8 +238,7 @@
       if (i_list.length > 1) {
         original.parentNode.removeChild(original);
         i_list.splice(i_list.indexOf(id_name), 1);
-        refreshWeightPrice();
-        getDeliveryPrice();
+        anyChange();
       }
     }
 
@@ -252,8 +285,7 @@
           document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
           document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
 
-          refreshWeightPrice();
-          getDeliveryPrice();
+          anyChange();
        }
     }
     xhr.open('GET', '/case-ajax?code=' + product_id, true);
@@ -283,14 +315,60 @@
   function refreshWeightPrice() {
     w = 0;
     p = 0;
-    for (var c = 0; c < i_list.length; c++) {
-      index = i_list[c].substring(3, i_list[c].length);
+    c = 0;
+    d = 0;
+
+    for (var cc = 0; cc < i_list.length; cc++) {
+      index = i_list[cc].substring(3, i_list[cc].length);
+      //alert(index)
       if (parseInt(document.getElementById('weight'+index).value)) {
-        w = w + parseInt(document.getElementById('weight'+index).value);
-        p = p + parseInt(document.getElementById('price'+index).value);
+
+        p_count = parseInt(document.getElementById('count'+index).value);
+        p_discount = parseInt(document.getElementById('discount'+index).value);
+        p_price = parseInt(document.getElementById('price'+index).value);
+        
+        w = w + (p_count * parseInt(document.getElementById('weight'+index).value));
+        c = c + p_count;
+        p = p + (p_count * (p_price - (p_price*(p_discount/100))));
+        d = d + (p_count * p_discount);
+        
       }
     }
     Weight = w;
     Price = p;
+    Count = c;
+    Discount = d;
+    document.getElementById('count-sum').value = Count;
+    document.getElementById('price-sum').value = Price;
+    document.getElementById('weight-sum').value = Weight;
+    document.getElementById('discount-sum').value = Discount;
+  }
+
+  function anyChange() {
+    refreshWeightPrice();
+    getDeliveryPrice();
+  }
+
+  function validator(id_name, type) {
+    var data = document.getElementById(id_name).value;
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+          var json = JSON.parse(this.responseText);
+          if (!json.result) {
+            document.getElementById(id_name).value = "";
+            document.getElementById(id_name).focus();
+            if (type == 'name') {
+              alert('خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی باشند!');
+            } else {
+              alert('خطا !\nشماره موبایل به درستی وارد نشده است!');
+            }
+            
+          }
+       }
+    }
+    xhr.open('GET', '/validator-ajax?data='+data+'&type='+type, true);
+    xhr.send();
   }
 </script>

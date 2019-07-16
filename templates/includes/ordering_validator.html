@@ -11,8 +11,8 @@
               <div>
                 <label>سفارش دهنده</label>
                 <input id="first_name" type="text" name="first_name" onchange="validator('first_name', 'name')" placeholder="نام" required />
-                <input id="last_name" type="text" name="last_name" onchange="validator('last_name', 'name')" placeholder="نام خانوادگی" required />
-                <input id="cell_number" type="text" name="cell_number" onchange="validator('cell_number', 'number')" placeholder="شماره موبایل" />
+                <input id="last_name" type="text" name="last_name" placeholder="نام خانوادگی" required />
+                <input id="cell_number" type="text" name="cell_number" placeholder="شماره موبایل" />
               </div>
               <div>
                 <label>آدرس</label>
@@ -281,7 +281,6 @@
 
     for (var cc = 0; cc < i_list.length; cc++) {
       index = i_list[cc].substring(3, i_list[cc].length);
-      //alert(index)
       if (parseInt(document.getElementById('weight'+index).value)) {
 
         p_count = parseInt(document.getElementById('count'+index).value);
@@ -320,12 +319,7 @@
           if (!json.result) {
             document.getElementById(id_name).value = "";
             document.getElementById(id_name).focus();
-            if (type == 'name') {
-              alert('خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی باشند!');
-            } else {
-              alert('خطا !\nشماره موبایل به درستی وارد نشده است!');
-            }
-            
+            alert('خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی باشند!');
           }
        }
     }

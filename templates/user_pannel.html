@@ -20,6 +20,8 @@
             {% include 'includes/_todayOrders.html' %}
           {% elif item == "cnlOrders" %}
             {% include 'includes/_canceledOrders.html' %}
+          {% elif item == "pendingOrders" %}
+            {% include 'includes/_pendingOrders.html' %}
           {% elif item == "allOrders" %}
             {% include 'includes/_allOrders.html' %}
           {% elif item == "ordering" %}

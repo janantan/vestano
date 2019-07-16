@@ -27,6 +27,52 @@
         </div>
       </form>
     </fieldset>
+  {% elif sub_item == 'cEdit' %}
+    <fieldset class="fieldset mrg-vh2" style="height: 65vh; background: rgb(255,255,230);">
+      <form method="POST" action="">
+        <div class="mrg-vh1">
+          <label>کالای مورد نظر را انتخاب کنید:</label>
+          <select id="product" name="product" onchange="product3('product')" required>
+            <option value="" disabled selected>(انخاب کنید)</option>
+            {% for item in for_edit_case_inventory %}
+              <option value="{{item[1]}}">{{item[0]}}</option>
+              }
+            {% endfor %}
+          </select>
+        </div>
+        <fieldset id="features" class="fieldset mrg-vh2" style="height: 50vh; border: none; background: rgb(255,255,230); display: none;">
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">نام کالا</label>
+            <input style="margin-right: 4vw;" id="productName" type="text" name="productName" placeholder="" size="50" required />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">شناسه کالا</label>
+            <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" placeholder="" disabled required size="20" />
+            <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
+            <select style="margin:0 4vw;" id="vendor" name="vendor" style="margin-right: 2vw;" required>
+              <option value="" disabled selected>شرکت فروشنده</option>
+              <option value="سفارش موردی">سفارش موردی</option>
+            </select>
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">قیمت</label>
+            <input style="margin: 0 4.5vw;" id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
+            <label style="display:inline-block; margin-right: 2.1vw;">وزن</label>
+            <input style="margin:0 7vw;" id="weight" type="number" name="weight" placeholder="وزن (گرم)" required />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">موجودی فعلی</label>
+            <input style="margin: 0 1.5vw;" id="exist_count" type="number" name="exist_count" placeholder="تعداد ورودی جدید" required />
+            <label style="display:inline-block; margin-right: 5vw;">درصد تخفیف</label>
+            <input style="margin:0 3.7vw;" id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)" required  />
+          </div>
+          <div class="mrg-vh4">
+            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت ویرایش " />
+            <a id="delete-button" class="button" title="حذف کالا از انبار" style="background-color: #f3f3f3; float: left; margin-left: 30vw;">حذف کالا</a>
+          </div>
+        </fieldset>
+      </form>
+    </fieldset>
   {% elif sub_item == 'new' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230);">
       <form method="POST" action="">
@@ -79,15 +125,15 @@
           </div>
           <div class="mrg-vh4">
             <label style="display:inline-block;">قیمت</label>
-            <input style="margin: 0 4.5vw;" id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
+            <input style="margin: 0 4.5vw;" id="price" type="number" name="price" placeholder="قیمت (ریال)" disabled required />
             <label style="display:inline-block; margin-right: 2.1vw;">وزن</label>
-            <input style="margin:0 7vw;" id="weight" type="number" name="weight" placeholder="وزن (گرم)" required />
+            <input style="margin:0 7vw;" id="weight" type="number" name="weight" placeholder="وزن (گرم)" disabled required />
           </div>
           <div class="mrg-vh4">
             <label style="display:inline-block;">موجودی فعلی</label>
             <input style="margin: 0 1.5vw;" id="exist_count" type="number" name="exist_count" placeholder="تعداد ورودی جدید" disabled required />
             <label style="display:inline-block; margin-right: 5vw;">درصد تخفیف</label>
-            <input style="margin:0 3.7vw;" id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)" required  />
+            <input style="margin:0 3.7vw;" id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)" disabled required  />
           </div>
           <div class="mrg-vh8">
             <label style="display:inline-block;">ورودی جدید</label>
@@ -107,13 +153,11 @@
           <label>کالای مورد نظر را انتخاب کنید:</label>
           <select id="product" name="product" onchange="product3('product')" required>
             <option value="" disabled selected>(انخاب کنید)</option>
-            {% for item in for_edit_invent %}
+            {% for item in inventory %}
               <option value="{{item[1]}}">{{item[0]}}</option>
               }
-              {% set productId = item[1] %}
             {% endfor %}
           </select>
-          <p>{{productId}}</p>
         </div>
         <fieldset id="features" class="fieldset mrg-vh2" style="height: 50vh; border: none; background: rgb(255,255,230); display: none;">
           <div class="mrg-vh4">
@@ -127,7 +171,6 @@
             <select style="margin:0 4vw;" id="vendor" name="vendor" style="margin-right: 2vw;" required>
               <option value="" disabled selected>شرکت فروشنده</option>
               <option value="روژیاپ">روژیاپ</option>
-              <option value="سفارش موردی">سفارش موردی</option>
             </select>
           </div>
           <div class="mrg-vh4">

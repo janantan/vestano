@@ -17,6 +17,9 @@
 										<label class="right" for="name">نام کاربر یا فروشگاه</label>
 										<input id="name" type="text" name="name" />
 									</td>
+									<td>
+										<label><input id="api_user" type="checkbox" name="api_user" value="api" onchange="apiUser('api_user')">کاربر وب سرویس</label>
+									</td>
 								</tr>
 								<tr>			                    
 				                    <td>
@@ -50,18 +53,45 @@
 								</tr>
 								<tr>
 									<td>
-										<label class="right" for="role">سطح دسترسی</label>
-										<select name="role" id="role" required>
-											<option value=""></option>
-											<option value="admin">ادمین</option>
-											<option value="vendor">فروشگاه</option>
-											<option value="office">کاربر دفتری</option>
-											<option value="api">API</option>
-										</select>
+										<label class="right" for="role">سطوح دسترسی</label>
 									</td>
 								</tr>
 								<tr>
-									<td style="padding-top: 7vh; text-align: right;">
+									<td>
+										<label><input id="role1" type="checkbox" name="role" value="admin">مدیریت</label>
+									</td>
+									<td>
+										<label><input id="role2" type="checkbox" name="role" value="office">امور دفتری</label>
+									</td>
+									<td>
+										<label><input id="role3" type="checkbox" name="role" value="ticket">تیکت</label>
+									</td>
+									<td>
+										<label><input id="role4" type="checkbox" name="role" value="customers">امور مشتریان</label>
+									</td>
+									<td>
+										<label><input id="role5" type="checkbox" name="role" value="PR">روابط عمومی</label>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<label><input id="role6" type="checkbox" name="role" value="vendor">فروشگاه </label>
+									</td>
+									<td>
+										<label><input id="role7" type="checkbox" name="role" value="orders">سفارشات</label>
+									</td>
+									<td>
+										<label><input id="role8" type="checkbox" name="role" value="accounting">حسابداری</label>
+									</td>
+									<td>
+										<label><input id="role9" type="checkbox" name="role" value="commercial">بازرگانی</label>
+									</td>
+									<td>
+										<label><input id="role10" type="checkbox" name="role" value="inventory">انبارداری</label>
+									</td>
+								</tr>
+								<tr>
+									<td style="padding-top: 1vh; text-align: right;">
 										<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ایجاد کاربری" />
 									</td>
 								</tr>
@@ -73,4 +103,34 @@
 			</div>
 		</main>
 	</div>
+
+	<script type="text/javascript">
+		function apiUser(id_name) {
+			var check = document.getElementById(id_name).checked;
+			if (check == true) {
+				document.getElementById('role1').disabled = true;
+				document.getElementById('role2').disabled = true;
+				document.getElementById('role3').disabled = true;
+				document.getElementById('role4').disabled = true;
+				document.getElementById('role5').disabled = true;
+				document.getElementById('role6').disabled = true;
+				document.getElementById('role7').disabled = true;
+				document.getElementById('role8').disabled = true;
+				document.getElementById('role9').disabled = true;
+				document.getElementById('role10').disabled = true;
+			} else {
+				document.getElementById('role1').disabled = false;
+				document.getElementById('role2').disabled = false;
+				document.getElementById('role3').disabled = false;
+				document.getElementById('role4').disabled = false;
+				document.getElementById('role5').disabled = false;
+				document.getElementById('role6').disabled = false;
+				document.getElementById('role7').disabled = false;
+				document.getElementById('role8').disabled = false;
+				document.getElementById('role9').disabled = false;
+				document.getElementById('role10').disabled = false;
+			}
+
+		}
+	</script>
 {% endblock %}

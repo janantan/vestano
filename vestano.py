@@ -1,6 +1,6 @@
 #coding: utf-8
 from flask import Flask, render_template, flash, redirect, url_for, session, request, jsonify
-from flask import Response, logging, Markup, abort, after_this_request, make_response
+from flask import Response, logging, Markup, abort, after_this_request, make_response, send_file
 #from flask_recaptcha import ReCaptcha
 from pymongo import MongoClient
 from passlib.hash import sha256_crypt
@@ -14,6 +14,8 @@ import requests
 import random2
 import uuid
 import os
+import subprocess
+import sys
 import jwt
 import datetime
 import jdatetime
@@ -36,23 +38,20 @@ app.secret_key = 'secret@vestano@password_hash@840'
 
 spyne = Spyne(app)
 
-schema = {
-'firstName': {
+name_schema = {
+'name': {
     'type': 'string',
     'required': True,
     'regex': '^[ آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]+$'
-},
-'lastName': {
+}
+}
+
+number_schema = {
+'number':{
     'type': 'string',
     'required': True,
-    'regex': '^[ آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]+$'
-},
-'cellNumber':{
-    'type': 'string',
-    'required': True,
-    'regex': '^[0-9]+$',
-    'maxlength': 11,
-    'minlength': 11
+    'regex': '^([0])[0-9]+$',
+    'maxlength': 11
 }
 }
 
@@ -93,6 +92,26 @@ class SomeSoapService(spyne.Service):
                     return 0
                 if not payType:
                     return 0
+                if not vendorName:
+                    return 0
+                if not registerFirstName:
+                    return 0
+                if not registerLastName:
+                    return 0
+                if not registerCellNumber:
+                    return 0
+                if not stateCode:
+                    return 0
+                if not cityCode:
+                    return 0
+                if not registerAddress:
+                    return 0
+                if not registerPostalCode:
+                    registerPostalCode = ""
+                if not orderDate:
+                    orderDate = ""
+                if not orderTime:
+                    orderTime = ""
                 p_list = []
                 price = 0
                 count = 0
@@ -194,6 +213,32 @@ class SomeSoapService(spyne.Service):
                     cities_list.append({'Name': rec['Name'], 'Code': rec['Code']})
                 return cities_list
 
+    @spyne.srpc(String, String, String, _returns=Integer)
+    def GetStatus(username, password, orderId):
+        user_result = cursor.api_users.find_one({"username": username})
+        if not username:
+            return 104
+        if not password:
+            return 103
+        if user_result:
+            if sha256_crypt.verify(password, user_result['password']):
+                if not orderId:
+                    return 105
+                result = cursor.orders.find_one({'orderId': orderId})
+                if not result:
+                    result = cursor.temp_orders.find_one({'orderId': orderId})
+                    if not result:
+                        result = cursor.canceled_orders.find_one({'orderId': orderId})
+                        if not result:
+                            return 106
+                        return 83
+                    return result['status']
+                return result['status']
+            else:
+                return 101
+        else:
+            return 102
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -213,9 +258,11 @@ def token_required(f):
 
         try:
             data = jwt.decode(token, app.secret_key)
+            utils.today_orders(cursor)
             session['temp_orders'] = cursor.temp_orders.estimated_document_count()
             session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
-            session['today_orders'] = utils.today_orders(cursor)['count']
+            session['today_orders'] = cursor.today_orders.estimated_document_count()
+            session['pending_orders'] = cursor.pending_orders.estimated_document_count()
             session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
             session['all_orders'] = cursor.orders.estimated_document_count()
         except:
@@ -306,7 +353,7 @@ def home():
 def temp_orders():
     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
     session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
-    session['today_orders'] = utils.today_orders(cursor)['count']
+    session['today_orders'] = cursor.today_orders.estimated_document_count()
     session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
     session['all_orders'] = cursor.orders.estimated_document_count()
 
@@ -359,9 +406,9 @@ def confirm_orders(code):
         'postalCode': result['registerPostalCode'],
         'products': result['products']
         }
-        #soap_result = utils.SoapClient(order)
+        soap_result = utils.SoapClient(order)
         #print('errorcode: ', soap_result['ErrorCode'])
-        soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408', 'PostDeliveryPrice':50000, 'VatTax':9000}
+        #soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408', 'PostDeliveryPrice':50000, 'VatTax':9000}
         if soap_result['ErrorCode'] == -6:
             postal_code_db = cursor.postal_codes.find_one({'Code': result['stateCode']})
             print("postal_code_db['Code']: ", postal_code_db['Code'])
@@ -405,6 +452,8 @@ def confirm_orders(code):
             new_rec['last update'] = datetime.datetime.now()
             cursor.status.insert_one(new_rec)
             cursor.temp_orders.remove({'orderId': code})
+            cursor.today_orders.remove({'orderId': code})
+            cursor.today_orders.insert_one(new_rec)
 
             #update status in vestano_inventory
             for i in range(len(new_rec['products'])):
@@ -454,6 +503,9 @@ def confirm_orders(code):
                     orderId = new_rec['orderId'],
                     parcelCode = new_rec['parcelCode'],
                     sender = case_result['senderFirstName']+' '+case_result['senderLastName'],
+                    s_cellNumber = case_result['senderCellNumber'],
+                    s_address = case_result['senderAddress'],
+                    s_postalCode = case_result['senderPostalCode'],
                     receiver = case_result['receiverFirstName']+' '+case_result['receiverLastName'],
                     cellNumber = case_result['receiverCellNumber'],
                     destination = state_result['Name']+' / '+city+' / '+case_result['registerAddress'],
@@ -464,7 +516,7 @@ def confirm_orders(code):
                     carton = case_result['carton'],
                     gathering = case_result['gathering'],
                     without_ck = case_result['without_ck'],
-                    deliveryPrice = soap_result['PostDeliveryPrice'] + vestano_wage + config.registerCost,
+                    deliveryPrice = soap_result['PostDeliveryPrice'] + vestano_wage,
                     VatTax = soap_result['VatTax']
                     ), 'static/pdf/caseOrders/orderId_'+new_rec['orderId']+'.pdf')
                 #os.startfile('E:/projects/VESTANO/Vestano/static/pdf/caseOrders/orderId_ '+new_rec['orderId']+'.pdf')
@@ -474,7 +526,8 @@ def confirm_orders(code):
             flash(u'سفارش تایید و آماده ارسال شد!', 'success')
             return redirect(request.referrer)
         else:
-            flash(u'خطایی رخ داده است!', 'error')
+            #print('error code: ', soap_result['ErrorCode'])
+            flash(soap_result['Description'], 'error')
             return redirect(request.referrer)
     else:
         flash(u'خطایی رخ داده است! (شناسه سفارش)', 'error')
@@ -501,7 +554,18 @@ def today_orders():
     return render_template('user_pannel.html',
         item='todayOrders',
         inventory = utils.inventory(cursor),
-        today_orders = utils.today_orders(cursor)['today'],
+        today_orders = utils.today_orders(cursor),
+        states = utils.states(cursor)
+        )
+
+@app.route('/user-pannel/pending-orders', methods=['GET'])
+@token_required
+def pending_orders():
+
+    return render_template('user_pannel.html',
+        item='pendingOrders',
+        inventory = utils.inventory(cursor),
+        pending_orders = utils.pending_orders(cursor),
         states = utils.states(cursor)
         )
 
@@ -525,6 +589,10 @@ def finish_process(orderId):
         {'$set':{'status': 81}}
         )
     cursor.status.update_many(
+        {'orderId': orderId},
+        {'$set':{'status': 81}}
+        )
+    cursor.today_orders.update_many(
         {'orderId': orderId},
         {'$set':{'status': 81}}
         )
@@ -564,31 +632,43 @@ def canceled_orders():
 @token_required
 def cancel_orders(orderId):
     rec = cursor.temp_orders.find_one({'orderId': orderId})
+    cursor.today_orders.update_many(
+        {'orderId': orderId},
+        {'$set':{'status': 83}}
+        )
     cursor.canceled_orders.insert_one(rec)
-    for i in range(len(rec['products'])):
-        if rec['vendorName'] == u'سفارش موردی':
-            vinvent = cursor.case_inventory.find_one({'productId':rec['products'][i]['productId']})
-            vinvent['status']['80']-= rec['products'][i]['count']
-            cursor.case_inventory.update_many(
-                {'productId': vinvent['productId']},
-                {'$set':{'status': vinvent['status']}}
-                )
-        else:
-            vinvent = cursor.vestano_inventory.find_one({'productId':rec['products'][i]['productId']})
-            vinvent['status']['80']-= rec['products'][i]['count']
-            cursor.vestano_inventory.update_many(
-                {'productId': vinvent['productId']},
-                {'$set':{'status': vinvent['status']}}
-                )
     cursor.temp_orders.remove({'orderId': orderId})
     flash(u'سفارش مورد نظر لغو شد!', 'danger')
+    for i in range(len(rec['products'])):
+        if rec['vendorName'] == u'سفارش موردی':
+            if vinvent:
+                vinvent = cursor.case_inventory.find_one({'productId':rec['products'][i]['productId']})
+                vinvent['status']['80']-= rec['products'][i]['count']
+                vinvent['status']['83']+= rec['products'][i]['count']
+                cursor.case_inventory.update_many(
+                    {'productId': vinvent['productId']},
+                    {'$set':{'status': vinvent['status']}}
+                    )
+        else:
+            vinvent = cursor.vestano_inventory.find_one({'productId':rec['products'][i]['productId']})
+            if vinvent:
+                vinvent['status']['80']-= rec['products'][i]['count']
+                vinvent['status']['83']-= rec['products'][i]['count']
+                cursor.vestano_inventory.update_many(
+                    {'productId': vinvent['productId']},
+                    {'$set':{'status': vinvent['status']}}
+                    )
     return redirect(request.referrer)
 
 @app.route('/pending-order/<orderId>', methods=['GET'])
 @token_required
-def pending_orders(orderId):
+def pending_order(orderId):
     rec = cursor.temp_orders.find_one({'orderId': orderId})
     rec['status'] = 82
+    cursor.today_orders.update_many(
+        {'orderId': orderId},
+        {'$set':{'status': 82}}
+        )
     cursor.pending_orders.insert_one(rec)
     for i in range(len(rec['products'])):
         if rec['vendorName'] == u'سفارش موردی':
@@ -616,7 +696,35 @@ def pending_orders(orderId):
 def delete_order(orderId):
     rec = cursor.canceled_orders.find_one({'orderId': orderId})
     cursor.canceled_orders.remove({'orderId': orderId})
+    cursor.today_orders.remove({'orderId': orderId})
     flash(u'سفارش حذف شد!', 'danger')
+    return redirect(request.referrer)
+
+@app.route('/return-order/<orderId>', methods=['GET'])
+@token_required
+def return_order(orderId):
+    rec = cursor.pending_orders.find_one({'orderId': orderId})
+    cursor.today_orders.remove({'orderId': orderId})
+    cursor.temp_orders.insert_one(rec)
+    for i in range(len(rec['products'])):
+        if rec['vendorName'] == u'سفارش موردی':
+            vinvent = cursor.case_inventory.find_one({'productId':rec['products'][i]['productId']})
+            vinvent['status']['82'] -= rec['products'][i]['count']
+            vinvent['status']['80'] += rec['products'][i]['count']
+            cursor.case_inventory.update_many(
+                {'productId': vinvent['productId']},
+                {'$set':{'status': vinvent['status']}}
+                )
+        else:
+            vinvent = cursor.vestano_inventory.find_one({'productId':rec['products'][i]['productId']})
+            vinvent['status']['82'] -= rec['products'][i]['count']
+            vinvent['status']['80'] += rec['products'][i]['count']
+            cursor.vestano_inventory.update_many(
+                {'productId': vinvent['productId']},
+                {'$set':{'status': vinvent['status']}}
+                )
+    cursor.pending_orders.remove({'orderId': orderId})
+    flash(u'سفارش به صف پردازش برگشت!', 'success')
     return redirect(request.referrer)
 
 @app.route('/edit-order/<orderId>', methods=['GET', 'POST'])
@@ -634,15 +742,39 @@ def edit_orders(orderId):
 
     if request.method == 'POST':
         temp_order_products = []
-        for i in range (1, 100):
-            if request.form.get('product_'+str(i)):
-                temp_order_product = {}
-                temp_order_product['productId'] = request.form.get('product_'+str(i))
-                temp_order_product['count'] = int(request.form.get('count_'+str(i)))
-                temp_order_product['price'] = int(request.form.get('price_'+str(i)))
-                temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+        if edit_result['vendorName'] == u'سفارش موردی':
+            for i in range (1, 100):
+                if request.form.get('product_'+str(i)):
+                    Edit_result = utils.editStuff(
+                            request.form.get('product_'+str(i)),
+                            int(request.form.get('weight_'+str(i))),
+                            int(request.form.get('price_'+str(i)))
+                            )
+                    cursor.case_inventory.update_many(
+                        {'productId': request.form.get('product_'+str(i))},
+                        {'$set':{
+                        'price': int(request.form.get('price_'+str(i))),
+                        'weight': int(request.form.get('weight_'+str(i))),
+                        }
+                        }
+                        )
+                    temp_order_product = {}
+                    temp_order_product['productId'] = request.form.get('product_'+str(i))
+                    temp_order_product['count'] = int(request.form.get('count_'+str(i)))
+                    temp_order_product['price'] = int(request.form.get('price_'+str(i)))
+                    temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
 
-                temp_order_products.append(temp_order_product)
+                    temp_order_products.append(temp_order_product)
+        else:
+            for i in range (1, 100):
+                if request.form.get('product_'+str(i)):
+                    temp_order_product = {}
+                    temp_order_product['productId'] = request.form.get('product_'+str(i))
+                    temp_order_product['count'] = int(request.form.get('count_'+str(i)))
+                    temp_order_product['price'] = int(request.form.get('price_'+str(i)))
+                    temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+
+                    temp_order_products.append(temp_order_product)
 
         if len(request.form.getlist('free')):
             (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')), 88)
@@ -669,6 +801,9 @@ def edit_orders(orderId):
             'orderTime': jdatetime.datetime.now().strftime('%M : %H')
             }
 
+            new_orderId = utils.test_temp_order(temp_order)
+            flash(u'ثبت شد!', 'success')
+
             cursor.case_orders.update_many(
                 {'orderId': orderId},
                 {'$set':{
@@ -676,6 +811,8 @@ def edit_orders(orderId):
                 'senderFirstName' : request.form.get('s_first_name'),
                 'senderLastName' : request.form.get('s_last_name'),
                 'senderCellNumber' : request.form.get('s_cell_number'),
+                'senderAddress' : request.form.get('s_address'),
+                'senderPostalCode' : request.form.get('s_postal_code'),
                 'receiverFirstName' : request.form.get('r_first_name'),
                 'receiverLastName' : request.form.get('r_last_name'),
                 'receiverCellNumber' : request.form.get('r_cell_number'),
@@ -690,7 +827,7 @@ def edit_orders(orderId):
                 'packing': int(request.form.get('packing')),
                 'carton': int(request.form.get('carton')),
                 'gathering': int(request.form.get('gathering')),
-                'orderId' : orderId,
+                'orderId' : new_orderId,
                 'without_ck': request.form.getlist('without_ck'),
                 'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
                 'orderTime': jdatetime.datetime.now().strftime('%M : %H')
@@ -714,12 +851,13 @@ def edit_orders(orderId):
             'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
             'orderTime': jdatetime.datetime.now().strftime('%M : %H')
             }
+            print(utils.test_temp_order(temp_order))
+            flash(u'ثبت شد!', 'success')
 
-        flash(u'ثبت شد!', 'success')
-
-        print(utils.test_temp_order(temp_order))
+        
 
         cursor.canceled_orders.remove({'orderId': orderId})
+        cursor.today_orders.remove({'orderId': orderId})
         #return redirect(request.referrer)
 
 
@@ -754,29 +892,6 @@ def ordering(item):
         username = session['username']
         if item == 'ordering':
             if request.method == 'POST':
-                data = {
-                'firstName': request.form.get('first_name').encode('utf-8').decode('unicode-escape'),
-                'lastName': request.form.get('last_name').encode('utf-8').decode('unicode-escape'),
-                'cellNumber': request.form.get('cell_number')
-                }
-                if not v.validate(data, schema):
-                    error_keys = v.errors.keys()
-                    f_error_keys = []
-                    for field in error_keys:
-                        if field == 'firstName':
-                            f_error_keys.append(u'نام')
-                        elif field == 'lastName':
-                            f_error_keys.append(u'نام خانوادگی')
-                        elif field == 'cellNumber':
-                            f_error_keys.append(u'شماره موبایل')
-
-                    error_fields = " , ".join(f_error_keys)
-                    if len(error_keys) > 1:
-                        flash(u'فیلدهای '+error_fields+u' معتبر نیستند!', 'error')
-                    else:
-                        flash(u'فیلد '+error_fields+u' معتبر نیست!', 'error')
-                    return redirect(request.referrer)
-
                 temp_order_products = []
                 for i in range (1, 100):
                     if request.form.get('product_'+str(i)):
@@ -833,9 +948,23 @@ def case_orders():
         ordered_products = []
         username = session['username']
         if request.method == 'POST':
+
             temp_order_products = []
             for i in range (1, 100):
                 if request.form.get('product_'+str(i)):
+                    edit_result = utils.editStuff(
+                        request.form.get('product_'+str(i)),
+                        int(request.form.get('weight_'+str(i))),
+                        int(request.form.get('price_'+str(i)))
+                        )
+                    cursor.case_inventory.update_many(
+                        {'productId': request.form.get('product_'+str(i))},
+                        {'$set':{
+                        'price': int(request.form.get('price_'+str(i))),
+                        'weight': int(request.form.get('weight_'+str(i))),
+                        }
+                        }
+                        )
                     temp_order_product = {}
                     temp_order_product['productId'] = request.form.get('product_'+str(i))
                     temp_order_product['count'] = int(request.form.get('count_'+str(i)))
@@ -875,6 +1004,8 @@ def case_orders():
             'senderFirstName' : request.form.get('s_first_name'),
             'senderLastName' : request.form.get('s_last_name'),
             'senderCellNumber' : request.form.get('s_cell_number'),
+            'senderAddress' : request.form.get('s_address'),
+            'senderPostalCode' : request.form.get('s_postal_code'),
             'receiverFirstName' : request.form.get('r_first_name'),
             'receiverLastName' : request.form.get('r_last_name'),
             'receiverCellNumber' : request.form.get('r_cell_number'),
@@ -940,7 +1071,28 @@ def inventory_management(sub_item):
             cursor.case_inventory.insert_one(record)
             flash(u'محصول جدید ثبت شد. شناسه کالا: ' + str(record['productId']), 'success')
 
-        if sub_item == 'new':
+        elif sub_item == 'cEdit':
+            cursor.case_inventory.update_many(
+                {'productId': request.form.get('product')},
+                {'$set':{
+                'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'productName': request.form.get('productName'),
+                'price': int(request.form.get('price')),
+                'percentDiscount': int(request.form.get('percentDiscount')),
+                'weight': int(request.form.get('weight')),
+                'count': int(request.form.get('exist_count')),
+                'vendor': u'سفارش موردی'
+                }
+                }
+                )
+            edit_result = utils.editStuff(
+                request.form.get('product'),
+                int(request.form.get('weight')),
+                int(request.form.get('price'))
+                )
+            flash(u'ثبت شد!', 'success')
+
+        elif sub_item == 'new':
             record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             record['productName'] = request.form.get('productName')
             record['price'] = int(request.form.get('price'))
@@ -966,7 +1118,7 @@ def inventory_management(sub_item):
             cursor.vestano_inventory.insert_one(record)
             flash(u'محصول جدید ثبت شد. شناسه کالا: ' + str(record['productId']), 'success')
 
-        if sub_item == 'inc':
+        elif sub_item == 'inc':
             result = cursor.vestano_inventory.find_one({'productId': request.form.get('product')})
             print(result)
             add = {
@@ -975,55 +1127,40 @@ def inventory_management(sub_item):
             'count': int(request.form.get('count')),
             'person': session['username']
             }
-            print(add)
+            #print(add)
             result['record'].append(add)
             cursor.vestano_inventory.update_many(
                 {'productId': request.form.get('product')},
                 {'$set':{
                 'datetime': add['datetime'],
-                'price': int(request.form.get('price')),
                 'count': result['count'] + int(request.form.get('count')),
-                'percentDiscount': int(request.form.get('percentDiscount')),
                 'record': result['record']
                 }
                 }
                 )
             flash(u'ثبت شد!', 'success')
 
-        if sub_item == 'edit':
-            result = cursor.case_inventory.find_one({'productId': request.form.get('product')})
-            if result:
-                cursor.case_inventory.update_many(
-                    {'productId': request.form.get('product')},
-                    {'$set':{
-                    'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
-                    'productName': request.form.get('productName'),
-                    'price': int(request.form.get('price')),
-                    'percentDiscount': int(request.form.get('percentDiscount')),
-                    'weight': int(request.form.get('weight')),
-                    'count': int(request.form.get('exist_count')),
-                    'vendor': u'سفارش موردی'
-                    }
-                    }
-                    )
-            else:
-                result = cursor.vestano_inventory.find_one({'productId': request.form.get('product')})
-                cursor.vestano_inventory.update_many(
-                    {'productId': request.form.get('product')},
-                    {'$set':{
-                    'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
-                    'productName': request.form.get('productName'),
-                    'price': int(request.form.get('price')),
-                    'percentDiscount': int(request.form.get('percentDiscount')),
-                    'weight': int(request.form.get('weight')),
-                    'vendor': request.form.get('vendor')
-                    }
-                    }
-                    )
-            
+        elif sub_item == 'edit':
+            cursor.vestano_inventory.update_many(
+                {'productId': request.form.get('product')},
+                {'$set':{
+                'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'productName': request.form.get('productName'),
+                'price': int(request.form.get('price')),
+                'percentDiscount': int(request.form.get('percentDiscount')),
+                'weight': int(request.form.get('weight')),
+                'vendor': request.form.get('vendor')
+                }
+                }
+                )
+            edit_result = utils.editStuff(
+                request.form.get('product'),
+                int(request.form.get('weight')),
+                int(request.form.get('price'))
+                )
             flash(u'ثبت شد!', 'success')
 
-        if sub_item == 'pack':
+        elif sub_item == 'pack':
             record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             record['productName'] = request.form.get('packName')
             record['price'] = int(request.form.get('price'))
@@ -1048,32 +1185,6 @@ def inventory_management(sub_item):
                     pack_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
                     weight += int(request.form.get('weight_'+str(i)))
                     pack_products.append(pack_product)
-                    
-                    #vi_result = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(i))})
-                    #if vi_result:
-                        #if (int(request.form.get('count_'+str(i))))*(record['count']) > vi_result['count']:
-                            #flash(u'موجودی کالای ' + vi_result['productName'] +u' کافی نیست!', 'danger')
-                            #return redirect(request.referrer)
-
-            #for j in range(1, 100):
-                #if request.form.get('product_'+str(j)):
-                    #vi_result = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(j))})
-                    #if vi_result:
-                        #dec = {
-                        #'action': 'to_pack',
-                        #'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
-                        #'count': (int(request.form.get('count_'+str(j))))*(record['count']),
-                        #'person': session['username']
-                        #}
-                        #vi_result['record'].append(dec)
-                        #cursor.vestano_inventory.update_many(
-                            #{'productId': request.form.get('product_'+str(j))},
-                            #{'$set': {
-                            #'count' : vi_result['count'] - (int(request.form.get('count_'+str(j))))*(record['count']),
-                            #'record': vi_result['record']
-                            #}
-                            #}
-                            #)
 
             record['record'] = []
             first_add = {
@@ -1091,7 +1202,7 @@ def inventory_management(sub_item):
             cursor.vestano_inventory.insert_one(record)
             flash(u'بسته جدید ایجاد شد. شناسه کالا: ' + str(record['productId']), 'success')
 
-        if sub_item == 'release':
+        elif sub_item == 'release':
             result = cursor.vestano_inventory.find_one({'productId': request.form.get('product')})
             print(result)
             dec = {
@@ -1118,7 +1229,7 @@ def inventory_management(sub_item):
     return render_template('user_pannel.html',
         item='inventManagement',
         inventory = utils.inventory(cursor),
-        for_edit_invent = utils.for_edit_invent(cursor),
+        for_edit_case_inventory = utils.for_edit_case_inventory(cursor),
         sub_item=sub_item,
         productId_result=productId_result
         )
@@ -1138,8 +1249,15 @@ def inventory():
 @app.route('/delete-stuff/<productId>', methods=['GET'])
 @token_required
 def delete_from_inventory(productId):
-    cursor.vestano_inventory.remove({'productId': productId})
-    flash(u'کالای مورد نظر از موجودی انبار حذف شد!', 'success')
+    result = cursor.vestano_inventory.find_one({'productId': productId})
+    if result:
+        cursor.vestano_inventory.remove({'productId': productId})
+        flash(u'کالای مورد نظر از موجودی انبار حذف شد!', 'success')
+    else:
+        result = cursor.case_inventory.find_one({'productId': productId})
+        if result:
+            cursor.case_inventory.remove({'productId': productId})
+            flash(u'کالای مورد نظر از موجودی انبار سفارشات موردی حذف شد!', 'success')
 
     return redirect(request.referrer)
 
@@ -1160,32 +1278,41 @@ def about():
 @app.route('/register', methods=['GET', 'POST'])
 @token_required
 def register():
-    if session['role'] == 'admin':
+    if 'admin' in session['role']:
         if request.method == 'POST':
             users = {'created_date': datetime.datetime.now()}
             users['name'] = request.form.get('name')
             users['email'] = request.form.get('email')
             users['phone'] = request.form.get('phone')
             users['username'] = request.form.get('username')
-            users['role'] = request.form.get('role')
             new_password = request.form.get('password')
             confirm = request.form.get('confirm')
             users['password'] = sha256_crypt.hash(str(request.form.get('password')))
-            
-            result = cursor.users.find_one({"username": users['username']})
 
-            if result:
-                flash(u'نام کاربری تکراری است. لطفا نام کاربری دیگری انتخاب کنید', 'danger')
-            else:
-                if new_password == confirm:
-                    users['user_id'] = str(uuid.uuid4())
-                    if request.form.get('role') == 'api':
-                        cursor.api_users.insert_one(users)
-                    else:
-                        cursor.users.insert_one(users)
-                    flash(u'ثبت نام شما با موفقیت انجام شد. لطفا وارد شوید', 'success')
+            if len(request.form.getlist('api_user')):
+                users['role'] = request.form.getlist('api_user')
+                result = cursor.api_users.find_one({"username": users['username']})
+                if result:
+                    flash(u'نام کاربری تکراری است. لطفا نام کاربری دیگری انتخاب کنید', 'danger')
                 else:
-                    flash(u'کلمه عبور مطابقت ندارد', 'error')
+                    if new_password == confirm:
+                        users['user_id'] = str(uuid.uuid4())
+                        cursor.api_users.insert_one(users)
+                        flash(u'ثبت نام با موفقیت انجام شد!', 'success')
+                    else:
+                        flash(u'کلمه عبور مطابقت ندارد', 'error')
+            else:
+                users['role'] = request.form.getlist('role')
+                result = cursor.users.find_one({"username": users['username']})
+                if result:
+                    flash(u'نام کاربری تکراری است. لطفا نام کاربری دیگری انتخاب کنید', 'danger')
+                else:
+                    if new_password == confirm:
+                        users['user_id'] = str(uuid.uuid4())
+                        cursor.users.insert_one(users)
+                        flash(u'ثبت نام با موفقیت انجام شد!', 'success')
+                    else:
+                        flash(u'کلمه عبور مطابقت ندارد', 'error')
     else:
         flash(u'دسترسی لازم را ندارید!', 'danger')
 
@@ -1265,6 +1392,30 @@ def price_ajax():
         return redirect(request.referrer)
         
     return jsonify(result)
+
+@app.route('/validator-ajax', methods=['GET'])
+def validator_ajax():
+    if 'username' in session:
+        Type = request.args.get('type')
+        Data = request.args.get('data')
+
+        if Type == 'name':
+            data = {
+            'name' : Data.encode('utf-8').decode('unicode-escape')
+            }
+            if v.validate(data, name_schema):
+                return jsonify({'result': True})
+            else:
+                #flash(u'خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی باشند!', 'danger')
+                return jsonify({'result': False})
+        elif Type == 'number':
+            data = {
+            'number' : Data
+            }
+            if v.validate(data, number_schema):
+                return jsonify({'result': True})
+            else:
+                return jsonify({'result': False})
 
 @app.route('/case-ajax', methods=['GET'])
 def case_ajax():
@@ -1346,10 +1497,15 @@ def update_status():
 @app.route('/show-pdf/<orderId>', methods=['GET'])
 @token_required
 def show_pdf(orderId):
-    os.startfile('E:/projects/VESTANO/Vestano/static/pdf/caseOrders/orderId_'+orderId+'.pdf')
-    #os.startfile('http://vestanops.com/static/pdf/caseOrders/orderId_'+orderId+'.pdf')
+    filename = '/root/vestano/static/pdf/caseOrders/orderId_'+orderId+'.pdf'
+    
+    return send_file(filename, as_attachment=True)
 
-    return redirect(request.referrer)
+@app.route('/api-guide', methods=['GET'])
+def api_guide():
+    filename = '/root/vestano/static/pdf/apiGuide/api_guide.pdf'
+    
+    return send_file(filename, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug = True)

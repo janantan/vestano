@@ -18,8 +18,8 @@ def config_mongodb():
 cursor = config_mongodb()
 
 cursor = utils.config_mongodb()
-#src = r'E:\projects\VESTANO\Vestano\file.xlsx'
-src = '/root/vestano/file.xlsx'
+#src = r'E:\projects\VESTANO\Vestano\case_file.xlsx'
+src = '/root/vestano/case_file.xlsx'
 
 file = utils.exel(src)
 
@@ -34,7 +34,7 @@ for i in range(1, file.nrows):
 	records['count'] = int(file.cell(i, 5).value)
 	records['recordDate'] = file.cell(i, 6).value
 	records['description'] = file.cell(i, 7).value
-	records['vendor'] = u'روژیاپ'
+	records['vendor'] = u'سفارش موردی'
 	records['record'] = []
 	add = {}
 	add['action'] = 'add'
@@ -44,6 +44,7 @@ for i in range(1, file.nrows):
 	records['record'].append(add)
 	#print(records)
 
-	cursor.vestano_inventory.insert_one(records)
+	cursor.case_inventory.insert_one(records)
 
-utils.init_status_inventory()
+#utils.init_status_inventory()
+utils.init_status_case_inventory()

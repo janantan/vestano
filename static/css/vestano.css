@@ -166,6 +166,10 @@ a.button:active {
     overflow:auto;
 }
 
+#order-0 input {
+    text-align: center;
+}
+
 #ordering tbody td {
     width: 100vw;
 }
@@ -175,7 +179,7 @@ a.button:active {
 }
 
 #order-0 tbody {
-    height: 15vh;
+    height: 20vh;
     display:block;
     overflow:auto;
 }
@@ -186,6 +190,23 @@ a.button:active {
 
 .order-0 td {
     text-align: center;
+}
+
+#order-0 tfoot tr {
+    display:block;
+}
+
+#order-0 tfoot {
+    display:block;
+    overflow:auto;
+}
+
+#order-0 tfoot td {
+    width: 100vw;
+}
+
+.tfoot input {
+    background: rgb(255,255,180);
 }
 
 #order-1 tbody {
@@ -479,6 +500,8 @@ a.button:active {
 .navbar-link.login {background-image: url(/static/img/icon/login.png);}
 .navbar-link.register {background-image: url(/static/img/icon/register.png);}
 
+.navbar-link.invent-search {background-image: url(/static/img/icon/invent-search.png);}
+
 .navbar-link.invent {background-image: url(/static/img/icon/inventory.png);}
 
 .navbar-link.twitter {background-image: url(/static/img/icon/twitter.png);}
@@ -737,12 +760,6 @@ a.button:active {
     /*color: #0b4158 !important;*/
 }
 
-
-
-
-
-
-
 #myInput {
   box-sizing: border-box;
   font-size: 16px;
@@ -775,8 +792,26 @@ a.button:active {
 
 .show {display: block;}
 
+#myInput-inventory {
+  box-sizing: border-box;
+  font-size: 14px;
+  font-family: "B-Roya";
+  padding: 0.5 1.5vw;
+}
 
+#myInput-inventory:focus {outline: 3px solid #eee;}
 
+.dropdown-content-inventory {
+  /*display: none;*/
+  position: absolute;
+  float: left;
+  top: 9vh;
+  left: 3vw;
+  background-color: #f1f1f1;
+  overflow: auto;
+  border: 1px solid #e1e1e1;
+  z-index: 1;
+}
 
 
 

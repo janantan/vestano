@@ -1,5 +1,5 @@
 <fieldset class="fieldset">
-	<legend>همه سفارشات:</legend>
+	<legend>سفارشات در انتظار کالا:</legend>
 	<table id="inventory">
 		<thead>
 			<tr style="background: yellow;">
@@ -40,40 +40,40 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for i in range((all_orders|length)-1, -1, -1) %}
+			{% for rec in pending_orders %}
 				<tr class="rows">
 					<td style="width: 50px;">
 						<span>{{loop.index}}</span>
 					</td>
 					<td>
-						<a title="{{('\n'.join(all_orders[i][9]))}}"><span>{{all_orders[i][0]}}</span></a>
+						<a title="{{('\n'.join(rec[9]))}}"><span>{{rec[0]}}</span></a>
 					</td>
 					<td>
-						<span>{{all_orders[i][1]}}</span>
+						<span>{{rec[1]}}</span>
 					</td>
 					<td>
-						<span>{{all_orders[i][2]}}</span>
+						<span>{{rec[2]}}</span>
 					</td>
 					<td>
-						<span>{{all_orders[i][3]}}</span>
+						<span>{{rec[3]}}</span>
 					</td>
 					<td>
-						<span>{{all_orders[i][4]}}</span>
+						<span>{{rec[4]}}</span>
 					</td>
 					<td>
-						<span>{{all_orders[i][5]}}</span>
+						<span>{{rec[5]}}</span>
 					</td>
 					<td>
-						<span>{{all_orders[i][6]}}</span>
+						<span>{{rec[6]}}</span>
 					</td>
 					<td>
-						<span>{{all_orders[i][7]}}</span>
+						<span>{{rec[7]}}</span>
 					</td>
 					<td>
-						<span>{{all_orders[i][8]}}</span>
+						<span>{{rec[8]}}</span>
 					</td>
 					<td>
-						<a href="javascript:window.open('/orders-details/{{all_orders[i][0]}}/all', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+						<a href="javascript:window.open('/orders-details/{{rec[0]}}/pnd', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
 					</td>
 				</tr>
 			{% endfor %}

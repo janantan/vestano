@@ -2,12 +2,9 @@
 <html style="background: #fff; padding-top: 0;" lang="fa-IR">
     <head>
         <title>سامانه پستی وستانو</title>
-        <!--<meta charset="utf-8" />-->
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1.0" />
         <link rel="stylesheet" type="text/css" href="http://vestanops.com/static/css/vestano.css" />
-        <!--<link rel="stylesheet" type="text/css" href="E:/projects/VESTANO/Vestano/static/css/vestano.css" />-->
-        <!--<link rel="stylesheet" type="text/css" href="root/vestano/static/css/vestano.css" />-->
     </head>
     <body class="card" style="direction: rtl; margin: 0 auto; font-family: initial; font-size: 16px;">
     	
@@ -15,11 +12,20 @@
     		<div style="float: left; margin: 30px 50px;">
 	    		<span>{{datetime}}</span>
 	    	</div>
-    		<div>
+    		<!--<div>
 				<figure>
 					<img id="factor-vestano" src="http://vestanops.com/static/img/fp-vestano2.png" alt="vestano post system" width="125" height="80" style="position: relative; right: 5px;" />
 				</figure>
+			</div>-->
+			<div style="float: right;">
+				<h3>شرکت توسعه دانش و  فناوری وستا</h3>
+				<h4>شناسه ملی: 14008255881</h4>
+				<h5>سامانه پستی وستانو</h5>
 			</div>
+			<div style="text-align: center; position: relative; top: 70px;">
+				<span>رسید پستی مرسوله</span>
+			</div>
+
     	</fieldset>
     	<table>
     		<tr>
@@ -33,7 +39,27 @@
     							<td style="width: 400px;">
     								<span>{{sender}}</span>
     							</td>
+    							<td style="width: 100px;">
+			    					<span>شماره تماس:</span>
+			    				</td>
+			    				<td style="width: 100px;">
+			    					<span>{{s_cellNumber}}</span>
+			    				</td>
     						</tr>
+    						<tr>
+			    				<td style="height: 40px;">
+			    					<span>نشانی فرستنده:</span>
+			    				</td>
+			    				<td>
+			    					<span>{{s_address}}</span>
+			    				</td>
+			    				<td>
+			    					<span>کد پستی:</span>
+			    				</td>
+			    				<td>
+			    					<span>{{s_postalCode}}</span>
+			    				</td>
+			    			</tr>
 			    			<tr>
 			    				<td style="width: 100px; height: 40px;">
 			    					<span>گیرنده:</span>
@@ -50,7 +76,7 @@
 			    			</tr>
 			    			<tr>
 			    				<td style="height: 40px;">
-			    					<span>نشانی:</span>
+			    					<span>نشانی گیرنده:</span>
 			    				</td>
 			    				<td>
 			    					<span>{{destination}}</span>
@@ -69,6 +95,9 @@
     				<fieldset class="fieldset" style="margin: 10px 0; border: none;">
     					<table style="border: 1px solid gray;">
     						<tr>
+    							<td style="height: 40px;"></td><td></td>
+    						</tr>
+    						<tr>
     							<td style="width: 150px; height: 40px;">
     								<span>تاریخ:</span>
     							</td>
@@ -77,15 +106,15 @@
     							</td>
     						</tr>
     						<tr>
-    							<td style="height: 40px;"></td><td></td>
-    						</tr>
-    						<tr>
     							<td style="height: 40px;">
     								<span>شماره پیگیری:</span>
     							</td>
     							<td style="height: 40px; text-align: center;">
     								<span>{{orderId}}</span>
     							</td>
+    						</tr>
+    						<tr>
+    							<td style="height: 40px;"></td><td></td>
     						</tr>
     					</table>
     				</fieldset>
@@ -149,38 +178,12 @@
 				</tr>
 			</table>
 		</fieldset>
-		<!--<fieldset class="fieldset" style="margin: 50px 10px; border: none;">
-    		<legend>جزئیات مرسوله:</legend>
-			<table style="text-align: center; border: 1px solid gray;">
-				<tr style="border: 1px solid black;">
-					<th style="height: 60px; width: 50px; background: yellow;">
-						<span>ردیف</span>
-					</th>
-					<th style="height: 60px; width: 250px; background: yellow;">
-						<span>نام کالا</span>
-					</th>
-					<th style="height: 60px; width: 100px; background: yellow;">
-						<span>وزن</span>
-					</th>
-				</tr>
-				<tr style="border: 1px solid black;">
-					<td style="height: 60px;">
-						<span>1</span>
-					</td>
-					<td>
-						<span>{{weight}} گرم</span>
-					</td>
-					<td>
-						<span>{{carton}}</span>
-					</td>
-				</tr>
-			</table>
-		</fieldset>-->
 		<fieldset class="fieldset" style="margin: 50px 10px; padding: 0; border: none;">
 			{% if sType == 1 %}
 	    		<div>
 					<figure>
-						<img id="factor-vestano" src="http://vestanops.com/static/img/pishtaz.png" alt="پست پیشتاز" width="200" height="80" style="position: relative; right: 5px;" />
+						<img id="factor-vestano" src="http://vestanops.com/static/img/pishtaz.png" alt="پست پیشتاز" width="200" height="100" style="position: relative; right: 5px;" />
+						<img id="factor-vestano" src="http://vestanops.com/static/img/mohr.png" alt="سامانه پستی وستانو" width="270" height="120" style="position: relative; right: 15px; " />
 						{% if without_ck|length %}
 							<img id="factor-vestano" src="http://vestanops.com/static/img/faghed.png" alt="فاقد وجه نقد و اشیاء قیمتی" width="250" height="100" style="position: relative; left: 5px; float: left;" />
 						{% endif %}
@@ -189,7 +192,8 @@
 			{% elif sType == 2 %}
 	    		<div>
 					<figure>
-						<img id="factor-vestano" src="http://vestanops.com/static/img/sefareshi.png" alt="پست سفارشی" width="200" height="80" style="position: relative; right: 5px;" />
+						<img id="factor-vestano" src="http://vestanops.com/static/img/sefareshi.png" alt="پست سفارشی" width="200" height="100" style="position: relative; right: 5px;" />
+						<img id="factor-vestano" src="http://vestanops.com/static/img/mohr.png" alt="سامانه پستی وستانو" width="270" height="120" style="position: relative; right: 15px; " />
 						{% if without_ck|length %}
 							<img id="factor-vestano" src="http://vestanops.com/static/img/faghed.png" alt="فاقد وجه نقد و اشیاء قیمتی" width="250" height="100" style="position: relative; left: 5px; float: left;" />
 						{% endif %}

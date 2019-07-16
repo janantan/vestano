@@ -35,7 +35,7 @@
 					<td>
 						<span class="blue bold">زمان سفارش:</span>
 					</td>
-					<td class="vw17">
+					<td class="vw17 font14">
 						<span>{{details[2]}}</span>
 					</td>
 				</tr>
@@ -101,8 +101,14 @@
 					<td>
 						<span class="blue bold">نشانی:</span>
 					</td>
-					<td colspan="7">
+					<td colspan="5">
 						<span>{{details[8]}}</span>
+					</td>
+					<td>
+						<span class="blue bold">هزینه ارسال:</span>
+					</td>
+					<td>
+						<span> {{details[17]}} ریال </span>
 					</td>
 				</tr>
 			</table>
@@ -115,6 +121,9 @@
 						</td>
 						<td class="vw10">
 							<span>قیمت واحد</span>
+						</td>
+						<td class="vw8">
+							<span>وزن</span>
 						</td>
 						<td class="vw10">
 							<span>تعداد</span>
@@ -159,6 +168,9 @@
 							<td class="vw10">
 								<span>{{p['price']}}</span>
 							</td>
+							<td class="vw8">
+								<span>{{p['weight']}}</span>
+							</td>
 							<td class="vw10">
 								<span>{{p['count']}}</span>
 							</td>
@@ -180,7 +192,7 @@
 						</tr>
 					{% endfor %}
 					<tr class="bg-yellow">
-						<td colspan="2" class="right">
+						<td colspan="3">
 							<span>مجموع</span>
 						</td>
 						<td>
@@ -197,14 +209,14 @@
 								<span>{{details[11]-(details[11]*details[12]/100)}}</span>
 							</td>
 							<td class="vw18 bg-green">
-								<span>{{details[11]-(details[11]*details[12]/100) + details[15]}} ریال</span>
+								<span>{{details[11]-(details[11]*details[12]/100) + details[15] + details[17]}} ریال</span>
 							</td>
 						{% else %}
 							<td>
 								<span>{{details[11]}}</span>
 							</td>
 							<td class="vw18 bg-green">
-								<span>{{details[11] + details[15]}} ریال</span>
+								<span>{{details[11] + details[15] + details[17]}} ریال</span>
 							</td>
 						{% endif %}
 					</tr>
@@ -235,6 +247,10 @@
 					<a class="button" href="/show-pdf/{{details[13]}}" title="مشاهده فایل pdf فاکتور" style="background-color: #f3f3f3; margin-right: 2vw;">مشاهده فاکتور</a>
 				{% endif %}
 			</div>
+		{% elif code == 'pnd' %}
+			<div style="margin-top: 3vh;">
+				<a class="button" href="javascript:processFunction('/return-order/{{details[13]}}')" title="بازگشت جهت بررسی مجدد" style="background-color: #f3f3f3;">بازگشت به صف پردازش</a>
+			</div>
 		{% elif code == 'all' %}
 			<div style="margin-top: 3vh;">
 				{% if details[1] == 'سفارش موردی' %}
@@ -258,6 +274,9 @@
 						close();
 					} else if (url.includes('delete-order')) {
 						opener.location.href = '/user-pannel/canceled-orders';
+						close();
+					} else if (url.includes('pending-order')) {
+						opener.location.href = '/user-pannel/pending-orders';
 						close();
 					} else {
 						opener.location.href = '/user-pannel/orderList';
