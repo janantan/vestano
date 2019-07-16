@@ -19,8 +19,8 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
-#VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
+#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
 #imp = Import('http://schemas.xmlsoap.org/soap/encoding/', location='http://schemas.xmlsoap.org/soap/encoding/')
@@ -615,17 +615,20 @@ def GetStates():
 
 def GetStatus(cursor):
     client = Client(API_URI)
-    print(client)
+    #print(client)
     change_flag = 0
     status_records = cursor.status.find()
     for rec in status_records:
         status = client.service.GetStatus(username = username, password = password,
             parcelCode=rec['parcelCode'])
+        
         orders_records = cursor.orders.find_one({'parcelCode': rec['parcelCode']})
         if not orders_records:
-            return change_flag
-        if status == 2:
-            return change_flag
+            continue
+
+        if orders_records['status'] == 81:
+            continue
+
         if orders_records['status'] != status:
             prev_status = orders_records['status']
             cursor.orders.update_many(
@@ -637,29 +640,6 @@ def GetStatus(cursor):
                 }
                 }
                 )
-            for i in range(len(orders_records['products'])):
-                if orders_records['vendorName'] == u'سفارش موردی':
-                    vinvent = cursor.case_inventory.find_one({'productId':orders_records['products'][i]['productId']})
-                    vinvent['status'][str(status)]+= orders_records['products'][i]['count']
-                    vinvent['status'][str(prev_status)]-= orders_records['products'][i]['count']
-                    print(vinvent['status'])
-                    cursor.case_inventory.update_many(
-                        {'productId': vinvent['productId']},
-                        {'$set':{'status': vinvent['status']}}
-                        )
-                else:
-                    vinvent = cursor.vestano_inventory.find_one({'productId':orders_records['products'][i]['productId']})
-                    vinvent['status'][str(status)]+= orders_records['products'][i]['count']
-                    vinvent['status'][str(prev_status)]-= orders_records['products'][i]['count']
-                    print(vinvent['status'])
-                    cursor.vestano_inventory.update_many(
-                        {'productId': vinvent['productId']},
-                        {'$set':{'status': vinvent['status']}}
-                        )
-            change_flag = 1
-        if (status == 11) or (status == 71):
-            cursor.status.remove({'parcelCode': rec['parcelCode']})
-        elif rec['status'] != status:
             cursor.status.update_many(
                 {'parcelCode': rec['parcelCode']},
                 {'$set':{
@@ -668,6 +648,44 @@ def GetStatus(cursor):
                 }
                 }
                 )
+            cursor.today_orders.update_many(
+                {'parcelCode': rec['parcelCode']},
+                {'$set':{
+                'status': status
+                }
+                }
+                )
+            cursor.ready_to_ship.update_many(
+                {'parcelCode': rec['parcelCode']},
+                {'$set':{
+                'status': status
+                }
+                }
+                )
+            change_flag = 1
+            for i in range(len(orders_records['products'])):
+                if orders_records['vendorName'] == u'سفارش موردی':
+                    vinvent = cursor.case_inventory.find_one({'productId':orders_records['products'][i]['productId']})
+                    if vinvent:
+                        vinvent['status'][str(status)]+= orders_records['products'][i]['count']
+                        vinvent['status'][str(prev_status)]-= orders_records['products'][i]['count']
+                        print(vinvent['status'])
+                        cursor.case_inventory.update_many(
+                            {'productId': vinvent['productId']},
+                            {'$set':{'status': vinvent['status']}}
+                            )
+                else:
+                    vinvent = cursor.vestano_inventory.find_one({'productId':orders_records['products'][i]['productId']})
+                    if vinvent:
+                        vinvent['status'][str(status)]+= orders_records['products'][i]['count']
+                        vinvent['status'][str(prev_status)]-= orders_records['products'][i]['count']
+                        print(vinvent['status'])
+                        cursor.vestano_inventory.update_many(
+                            {'productId': vinvent['productId']},
+                            {'$set':{'status': vinvent['status']}}
+                            )
+        if (status == 11) or (status == 71):
+            cursor.status.remove({'parcelCode': rec['parcelCode']})
     return change_flag
 
         #print(status)

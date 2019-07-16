@@ -10,12 +10,14 @@
               <legend>اطلاعات</legend>
               <div>
                 <label>سفارش دهنده</label>
-                <input id="first_name" type="text" name="first_name" placeholder="نام" required />
-                <input id="last_name" type="text" name="last_name" placeholder="نام خانوادگی" required />
-                <input id="cell_number" type="text" name="cell_number" placeholder="شماره موبایل" />
+                <input id="first_name" type="text" name="first_name" onchange="validator('first_name', 'name')" placeholder="نام" required />
+                <input id="last_name" type="text" name="last_name" onchange="validator('last_name', 'name')" placeholder="نام خانوادگی" required />
+                <input id="cell_number" type="text" name="cell_number" onchange="validator('cell_number', 'number')" placeholder="شماره موبایل" />
               </div>
               <div>
                 <label>آدرس</label>
+
+
                 <div class="dropdown">
                   <!--<button onclick="search()" class="dropbtn">جستجو</button>-->
                   <div id="myDropdown" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
@@ -33,32 +35,35 @@
                     </table>
                   </div>
                 </div>
+
                 <div class="dropdown">
                   <!--<button onclick="search()" class="dropbtn">جستجو</button>-->
                   <div id="myDropdown" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
-                    <input type="text" placeholder="استان" id="myInput" onclick="show()" onkeyup="filter()" style="border: none; font-size: 13px; font-family: arial; font-weight: normal; background: none;" size="10">
-                    <table id="states" style="display: none;">
-                      <tbody style="height: 45vh; width: 10vw;">
-                        {% for item in states %}
-                          <tr>
+                    <input type="text" placeholder="شهر" id="myInput-city" onclick="showCities()" onkeyup="filter()" style="border: none; font-size: 13px; font-family: arial; font-weight: normal; background: none;" size="10">
+                    <table id="cities" style="display: none;">
+                      <tbody id="tbody" style="height: 45vh; width: 10vw;">
+                          <!--<tr id="tr">
                             <td style="text-align: center;">
-                              <a style="font-size: 14px; text-align: center; width: 8vw; height: 1vh; padding: 8px 0;" href="#" onclick="searchStates('{{item[0]}}')">{{item[1]}}</a>
-                            </td>
+                              <a style="font-size: 14px; text-align: center; width: 8vw; height: 1vh; padding: 8px 0;" href="#" onclick="searchCities('{{item[0]}}')">{{item[1]}}</a>
+                            </td>-->
                           </tr>
-                        {% endfor %}
                       </tbody>
                     </table>
                   </div>
                 </div>
-                <!--<select id="state" name="stateCode" onchange='cities()' required>
+
+
+
+                <select id="state" name="stateCode" onchange='cities()' required>
                   <option value="" disabled selected>استان</option>
                   {% for item in states %}
                     <option value="{{item[0]}}">{{item[1]}}</option>
                   {% endfor %}
-                </select>-->
+                </select>
                 <select id="city" name="cityCode" required>
                   <option value="" disabled selected>شهر</option>
                 </select>
+
               </div>
               <div id="address">
                 <textarea name="address" placeholder="نشانی دقیق" required></textarea>
@@ -105,22 +110,42 @@
                     </select>
                   </td>                  
                   <td>
-                    <input type="number" name="count_1" size="4" required/>
+                    <input id="count1" type="number" name="count_1" value="1" onchange="anyChange()" size="4" required/>
                   </td>
                   <td>
-                    <input id="price1" type="number" name="price_1" size="6" required/>
+                    <input id="price1" type="number" name="price_1" onchange="anyChange()" size="6" required/>
                   </td>
                   <td>
-                    <input id="discount1" type="number" name="discount_1" size="6" required/>
+                    <input id="discount1" type="number" name="discount_1" onchange="anyChange()" size="6" required/>
                   </td>
                   <td>
-                    <input id="weight1" type="number" name="weight_1" size="6" required/>
+                    <input id="weight1" type="number" name="weight_1" onchange="anyChange()" size="6" required/>
                   </td>
                   <td>
                     <a href="javascript:addrow('row1','del')" title="حذف" class="del-box"> - </a>
                     <a href="javascript:addrow('row1', 'add')" title="افزودن" class="add-box"> + </a>
                   </td>
                 </tr>
+                <tfoot style="display: block;" class="tfoot">
+                  <tr class="order-0">
+                    <td>
+                      <input type="text" name="sum" value="مجموع" size="30" disabled />
+                    </td>                  
+                    <td>
+                      <input id="count-sum" type="number" name="count_sum" size="4" disabled/>
+                    </td>
+                    <td>
+                      <input id="price-sum" type="number" name="price_sum" size="6" disabled/>
+                    </td>
+                    <td>
+                      <input id="discount-sum" type="number" name="discount_sum" size="6" disabled/>
+                    </td>
+                    <td>
+                      <input id="weight-sum" type="number" name="weight_sum" size="6" disabled/>
+                    </td>
+                    <td style="width: 200vw;"></td>
+                  </tr>
+                </tfoot>
               </table>
             </fieldset>
           </td>
@@ -132,10 +157,10 @@
               <table id="order-1">
                 <tr>
                   <td>
-                    <label><input id="radio1" type="radio" name="serviceType" onchange="getDeliveryPrice('radio1')" value="2" required/>سفارشی</label>
+                    <label><input id="radio1" type="radio" name="serviceType" value="2" required/>سفارشی <span id="sefareshi" style="color: green;"></span></label>
                   </td>
                   <td>
-                    <label><input id="radio2" type="radio" name="serviceType" value="1" required/>پیشتاز</label>
+                    <label><input id="radio2" type="radio" name="serviceType" value="1" required/>پیشتاز <span id="pishtaz" style="color: green;"></span></label>
                   </td>
                   <td>
                     <label><input type="checkbox" name="free" value="88"/>ارسال رایگان</label>
@@ -147,15 +172,15 @@
         </tr>
         <tr>
           <td>
-            <fieldset style="background: rgb(255,248,248);">
+            <fieldset style="background: rgb(255,248,248);" onclick="getDeliveryPrice()">
               <legend>شیوه پرداخت</legend>
               <table id="order-1">
                 <tr>
                   <td>
-                    <label><input type="radio" name="payType" value="1"/>پرداخت در محل</label>
+                    <label><input id="payType1" type="radio" name="payType" value="1" checked />پرداخت در محل</label>
                   </td>
                   <td>
-                    <label><input type="radio" name="payType" value="2"/>پرداخت آنلاین</label>
+                    <label><input id="payType2" type="radio" name="payType" value="2" />پرداخت آنلاین</label>
                   </td>
                 </tr>
               </table>
@@ -173,10 +198,15 @@
 <script type="text/javascript">
   var i=1;
   var i_list = ["row1"];
+  var Weight = 0
+  var Price = 0
+  var Count = 0
+  var Discount = 0
   function addrow(id_name, action) {
       var original = document.getElementById(id_name);
     var clone = original.cloneNode(true); // "deep" clone
     if (action == 'add'){
+
       clone.id = "row" + ++i;
       i_list.push(clone.id);
       for (ii=0; ii<2; ii++) {
@@ -185,8 +215,8 @@
       }
       var title = "product_"+id_name.substring(3, id_name.length);
       clone.innerHTML = clone.innerHTML.replace(title, "product_"+i);
-      var attachments = "count_"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(attachments, "count_"+i);
+      var cou = "count_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(cou, "count_"+i);
       var pri = "price_"+id_name.substring(3, id_name.length);
       clone.innerHTML = clone.innerHTML.replace(pri, "price_"+i);
       var dis = "discount_"+id_name.substring(3, id_name.length);
@@ -194,6 +224,8 @@
       var we = "weight_"+id_name.substring(3, id_name.length);
       clone.innerHTML = clone.innerHTML.replace(we, "weight_"+i);
       clone.innerHTML = clone.innerHTML.replace(id_name, clone.id);
+      var c = "count"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(c, "count"+i);
       var p = "price"+id_name.substring(3, id_name.length);
       clone.innerHTML = clone.innerHTML.replace(p, "price"+i);
       var d = "discount"+id_name.substring(3, id_name.length);
@@ -207,6 +239,7 @@
       if (i_list.length > 1) {
         original.parentNode.removeChild(original);
         i_list.splice(i_list.indexOf(id_name), 1);
+        anyChange();
       }
     }
 
@@ -221,17 +254,16 @@
       xhr.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
 
-              var json = JSON.parse(this.responseText);
+            var json = JSON.parse(this.responseText);
 
+            city.options.length = 1;
 
-              city.options.length = 1;
-
-              for (var i = 0; i < json.Name.length; i++) {
-                  var opt = document.createElement('option');
-                  opt.value = json.Code[i];
-                  opt.innerHTML = json.Name[i];
-                  city.appendChild(opt);
-              }
+            for (var i = 0; i < json.Name.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = json.Code[i];
+                opt.innerHTML = json.Name[i];
+                city.appendChild(opt);
+            }
          }
       }
       xhr.open('GET', '/ajax?code=' + state_code, true);
@@ -242,30 +274,112 @@
   }
 
   function product(id_name) {
-    var product_name = document.getElementById(id_name).value;
+    var productId = document.getElementById(id_name).value;
 
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
 
-            var json = JSON.parse(this.responseText);
-            document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
-            document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
-            document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
+          var json = JSON.parse(this.responseText);
+          document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price;
+          document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight;
+          document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount;
+
+          anyChange();
        }
     }
-    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.open('GET', '/ajax?code=' + productId, true);
     xhr.send();
   }
 
-  function getDeliveryPrice(id_name) {
-    //alert('checked')
+  function getDeliveryPrice() {
+    var c = document.getElementById('city').value;
+    if (document.getElementById('payType1').checked) {
+      var pType = document.getElementById('payType1').value;
+    } else if (document.getElementById('payType2').checked) {
+      var pType = document.getElementById('payType2').value;
+    }
+    const xhr2 = new XMLHttpRequest();
+    xhr2.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
 
+          var json = JSON.parse(this.responseText);
+          document.getElementById('sefareshi').innerHTML = '(' +json.sefareshi+ ' ریال)';
+          document.getElementById('pishtaz').innerHTML = '(' +json.pishtaz+ ' ریال)';
+       }
+    }
+    xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+Price+'&city='+c+'&pType='+pType, true);
+    xhr2.send();
+  }
+
+  function refreshWeightPrice() {
+    w = 0;
+    p = 0;
+    c = 0;
+    d = 0;
+
+    for (var cc = 0; cc < i_list.length; cc++) {
+      index = i_list[cc].substring(3, i_list[cc].length);
+      //alert(index)
+      if (parseInt(document.getElementById('weight'+index).value)) {
+
+        p_count = parseInt(document.getElementById('count'+index).value);
+        p_discount = parseInt(document.getElementById('discount'+index).value);
+        p_price = parseInt(document.getElementById('price'+index).value);
+        
+        w = w + (p_count * parseInt(document.getElementById('weight'+index).value));
+        c = c + p_count;
+        p = p + (p_count * (p_price - (p_price*(p_discount/100))));
+        d = d + (p_count * p_discount);
+        
+      }
+    }
+    Weight = w;
+    Price = p;
+    Count = c;
+    Discount = d;
+    document.getElementById('count-sum').value = Count;
+    document.getElementById('price-sum').value = Price;
+    document.getElementById('weight-sum').value = Weight;
+    document.getElementById('discount-sum').value = Discount;
+  }
+
+  function anyChange() {
+    refreshWeightPrice();
+    getDeliveryPrice();
+  }
+
+  function validator(id_name, type) {
+    var data = document.getElementById(id_name).value;
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+          var json = JSON.parse(this.responseText);
+          if (!json.result) {
+            document.getElementById(id_name).value = "";
+            document.getElementById(id_name).focus();
+            if (type == 'name') {
+              alert('خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی باشند!');
+            } else {
+              alert('خطا !\nشماره موبایل به درستی وارد نشده است!');
+            }
+            
+          }
+       }
+    }
+    xhr.open('GET', '/validator-ajax?data='+data+'&type='+type, true);
+    xhr.send();
   }
 
   function show() {
     //document.getElementById("inventory").classList.toggle("show");
     document.getElementById("states").style.display = 'block';
+  }
+
+  function showCities() {
+    //document.getElementById("inventory").classList.toggle("show");
+    document.getElementById("cities").style.display = 'block';
   }
 
   function notShow() {
@@ -290,25 +404,35 @@
   }
 
   function searchStates(code) {
-    var city = document.getElementById("city");
+    var tbody = document.getElementById("tbody");
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
           document.getElementById('states').style.display = 'none';
           var json = JSON.parse(this.responseText);
 
-          city.options.length = 1;
+          //city.options.length = 1;
           document.getElementById('myInput').value = json.stateName
 
           for (var i = 0; i < json.Name.length; i++) {
-              var opt = document.createElement('option');
-              opt.value = json.Code[i];
-              opt.innerHTML = json.Name[i];
-              city.appendChild(opt);
+            var tr = document.createElement('tr');
+            var td = document.createElement('td');
+            var a = document.createElement('a');
+            a.innerHTML = json.Name[i];
+            a.href = '#';
+            a.addEventListener("click", searchCities(json.Name[i]));
+            td.appendChild(a);
+            tr.appendChild(td);
+            tbody.appendChild(tr);
           }
        }
     }
     xhr.open('GET', '/ajax?code=' + code, true);
     xhr.send();
+  }
+
+  function searchCities(code) {
+    document.getElementById('cities').style.display = 'none';
+    document.getElementById('myInput-city').value = code;
   }
 </script>
