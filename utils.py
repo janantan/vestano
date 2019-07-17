@@ -626,7 +626,7 @@ def GetStatus(cursor):
         if not orders_records:
             continue
 
-        if orders_records['status'] == 81:
+        if (orders_records['status'] == 81) and (status == 2):
             continue
 
         if orders_records['status'] != status:

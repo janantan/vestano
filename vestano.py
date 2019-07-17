@@ -580,6 +580,11 @@ def all_orders():
 @token_required
 def finish_process(orderId):
     new_rec = cursor.ready_to_ship.find_one({'orderId': orderId})
+    this_status = utils.GetStatus_one(cursor, new_rec['parcelCode'])
+    if this_status != 2:
+        cursor.ready_to_ship.remove({'orderId': orderId})
+        flash(u'فرآیند سفارش با موفقیت به پایان رسید!', 'success')
+        return redirect(request.referrer)
     cursor.orders.update_many(
         {'orderId': orderId},
         {'$set':{'status': 81}}
@@ -592,7 +597,6 @@ def finish_process(orderId):
         {'orderId': orderId},
         {'$set':{'status': 81}}
         )
-    cursor.ready_to_ship.remove({'orderId': orderId})
     for i in range(len(new_rec['products'])):
         if new_rec['vendorName'] == u'سفارش موردی':
             vinvent = cursor.case_inventory.find_one({'productId':new_rec['products'][i]['productId']})
@@ -610,6 +614,7 @@ def finish_process(orderId):
                 {'productId': vinvent['productId']},
                 {'$set':{'status': vinvent['status']}}
                 )
+    cursor.ready_to_ship.remove({'orderId': orderId})
     flash(u'فرآیند سفارش با موفقیت به پایان رسید!', 'success')
     return redirect(request.referrer)
 
