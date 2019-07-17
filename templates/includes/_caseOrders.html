@@ -1,5 +1,5 @@
 <form method="POST" action="">
-  <fieldset style="margin-bottom: 0; background: #fafafa; height: 84.5vh;">
+  <fieldset onclick="notShow()" style="margin-bottom: 0; background: #fafafa; height: 84vh;">
     <legend>لطفا سفارش خود را ثبت  کنید:</legend>
     <table id="ordering">
       <thead></thead>
@@ -31,13 +31,35 @@
               </div>
               <div>
                 <label>آدرس گیرنده</label>
-                <select id="state" name="stateCode" onchange='cities()' required>
+
+
+                <div id="add-srch" class="dropdown">
+                  <div id="myDropdown" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
+                    <input type="text" placeholder="استان" id="myInput" autocomplete="nope" onclick="show()" onkeyup="filter()" size="15">
+                    <div id="states" class="dropdown-content" style="display: none;">
+                      {% for item in states %}
+                        <a href="#" onclick="searchStates('{{item[0]}}')">{{item[1]}}</a>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+
+                <div id="add-srch" class="dropdown">
+                  <div id="myDropdown-city" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
+                    <input type="text" placeholder="شهر" id="myInput-city" autocomplete="nope" onclick="showCities()" onkeyup="filterCities()" size="15">
+                    <div id="cities" class="dropdown-content" style="display: none;">
+                    </div>
+                  </div>
+                </div>
+
+
+                <select id="state" style="display: none;" name="stateCode" onchange='cities()' required>
                   <option value="" disabled selected>استان</option>
                   {% for item in states %}
                     <option value="{{item[0]}}">{{item[1]}}</option>
                   {% endfor %}
                 </select>
-                <select id="city" name="cityCode" required>
+                <select id="city" style="display: none;" name="cityCode" required>
                   <option value="" disabled selected>شهر</option>
                 </select>
               </div>
@@ -188,13 +210,14 @@
         </tr>
       </tbody>
     </table>
-    <div style="margin-right: 15px;">
+    <div style="margin-right: 15px; margin-top: -4vh;">
       <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت سفارش" /> 
     </div>
   </fieldset>
 </form>
 
 <script type="text/javascript">
+  var show_flag = 0;
   var i=1;
   var i_list = ["row1"];
   var Weight = 0
@@ -369,6 +392,98 @@
        }
     }
     xhr.open('GET', '/validator-ajax?data='+data+'&type='+type, true);
+    xhr.send();
+  }
+
+  function show() {
+    show_flag = 1;
+    document.getElementById("states").style.display = 'block';
+    document.getElementById('cities').style.display = 'none';
+    document.getElementById("cities").innerHTML = "";
+    document.getElementById("myInput-city").value = "";
+  }
+
+  function showCities() {
+    show_flag = 1;
+    document.getElementById("cities").style.display = 'block';
+  }
+
+  function notShow() {
+    if (!show_flag) {
+      document.getElementById("states").style.display = 'none';
+      document.getElementById("cities").style.display = 'none';
+    }
+    show_flag = 0;
+  }
+
+  function filter() {
+    var input, filter, ul, tr, a, i;
+    input = document.getElementById("myInput");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("myDropdown");
+    a = div.getElementsByTagName("a");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
+      }
+    }
+  }
+
+  function filterCities() {
+    var input, filter, ul, tr, a, i;
+    input = document.getElementById("myInput-city");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("myDropdown-city");
+    a = div.getElementsByTagName("a");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
+      }
+    }
+  }
+
+  function searchStates(code) {
+    var city = document.getElementById("city");
+    var div = document.getElementById("cities");
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById('states').style.display = 'none';
+          var json = JSON.parse(this.responseText);
+
+          document.getElementById('myInput').value = json.stateName
+          city.options.length = 1;
+          //alert(city.options.lenght);
+
+          for (var i = 0; i < json.Name.length; i++) {
+            var a = document.createElement('a');
+            a.innerHTML = json.Name[i];
+            a.id = "a"+i;
+            a.href = '#';
+            div.appendChild(a);
+            (function(name, code){
+            a.addEventListener("click", function() {
+              document.getElementById('cities').style.display = 'none';
+              document.getElementById('myInput-city').value = name;
+              document.getElementById('state').value = json.stateCode;
+              var opt = document.createElement('option');
+              opt.value = code;
+              opt.innerHTML = name;
+              city.appendChild(opt);
+              city.value = code;
+            }, false);})(json.Name[i], json.Code[i]);
+          }
+       } else {
+          city.options.length = 1;
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + code, true);
     xhr.send();
   }
 </script>

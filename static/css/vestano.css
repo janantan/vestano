@@ -763,20 +763,52 @@ a.button:active {
 #myInput {
   box-sizing: border-box;
   font-size: 16px;
-  padding: 1vh 1vw 1vh 3vw;
+  padding: 1vh 1vw 1vh 1vw;
   border: none;
   border-bottom: 1px solid #eee;
 }
 
 #myInput:focus {outline: 3px solid #eee;}
 
+#myInput-city {
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 1vh 1vw 1vh 1vw;
+  border: none;
+  border-bottom: 1px solid #eee;
+}
+
+#myInput-city:focus {outline: 3px solid #eee;}
+
+#add-srch input {
+    border: none;
+    font-size: 13px;
+    font-family: arial;
+    font-weight: normal;
+    background: none;
+}
+
+#add-srch a {
+    font-size: 14px;
+    text-align: center;
+    width: 8.8vw;
+    padding: 0;
+}
+
 .dropdown-content {
   /*display: none;*/
+    overflow-y: auto;
+    max-height:30vh;
+    position: absolute;
+    background-color: #fff;
+    overflow: auto;
+    border: 1px solid #e1e1e1;
+    z-index: 1;
+}
+
+.content {
+  /*display: none;*/
   position: absolute;
-  background-color: #fff;
-  overflow: auto;
-  border: 1px solid #e1e1e1;
-  z-index: 1;
 }
 
 .dropdown-content a {
@@ -786,6 +818,11 @@ a.button:active {
   text-align: right;
   width: 13.5vw;
   display: block;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
 }
 
 .dropdown a:hover {background-color: #eee;}

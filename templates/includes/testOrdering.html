@@ -1,5 +1,5 @@
 <form method="POST" action="">
-  <fieldset style="margin-bottom: 0; background: #fafafa;">
+  <fieldset onclick="notShow()" style="margin-bottom: 0; background: #fafafa;">
     <legend>لطفا سفارش خود را ثبت  کنید:</legend>
     <table id="ordering">
       <thead></thead>
@@ -18,50 +18,34 @@
                 <label>آدرس</label>
 
 
-                <div class="dropdown">
-                  <!--<button onclick="search()" class="dropbtn">جستجو</button>-->
+                <div id="add-srch" class="dropdown">
                   <div id="myDropdown" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
-                    <input type="text" placeholder="استان" id="myInput" onclick="show()" onkeyup="filter()" style="border: none; font-size: 13px; font-family: arial; font-weight: normal; background: none;" size="10">
-                    <table id="states" style="display: none;">
-                      <tbody style="height: 45vh; width: 10vw;">
-                        {% for item in states %}
-                          <tr>
-                            <td style="text-align: center;">
-                              <a style="font-size: 14px; text-align: center; width: 8vw; height: 1vh; padding: 8px 0;" href="#" onclick="searchStates('{{item[0]}}')">{{item[1]}}</a>
-                            </td>
-                          </tr>
-                        {% endfor %}
-                      </tbody>
-                    </table>
+                    <input type="text" placeholder="استان" id="myInput" autocomplete="nope" onclick="show()" onkeyup="filter()" size="15">
+                    <div id="states" class="dropdown-content" style="display: none;">
+                      {% for item in states %}
+                        <a href="#" onclick="searchStates('{{item[0]}}')">{{item[1]}}</a>
+                      {% endfor %}
+                    </div>
                   </div>
                 </div>
 
-                <div class="dropdown">
-                  <!--<button onclick="search()" class="dropbtn">جستجو</button>-->
-                  <div id="myDropdown" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
-                    <input type="text" placeholder="شهر" id="myInput-city" onclick="showCities()" onkeyup="filter()" style="border: none; font-size: 13px; font-family: arial; font-weight: normal; background: none;" size="10">
-                    <table id="cities" style="display: none;">
-                      <tbody id="tbody" style="height: 45vh; width: 10vw;">
-                          <!--<tr id="tr">
-                            <td style="text-align: center;">
-                              <a style="font-size: 14px; text-align: center; width: 8vw; height: 1vh; padding: 8px 0;" href="#" onclick="searchCities('{{item[0]}}')">{{item[1]}}</a>
-                            </td>-->
-                          </tr>
-                      </tbody>
-                    </table>
+                <div id="add-srch" class="dropdown">
+                  <div id="myDropdown-city" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
+                    <input type="text" placeholder="شهر" id="myInput-city" autocomplete="nope" onclick="showCities()" onkeyup="filterCities()" size="15">
+                    <div id="cities" class="dropdown-content" style="display: none;">
+                    </div>
                   </div>
                 </div>
 
 
 
-                <select id="state" name="stateCode" onchange='cities()' required>
+                <select id="state" style="display: none;" name="stateCode" onchange='cities()' oninput="cities()" required>
                   <option value="" disabled selected>استان</option>
                   {% for item in states %}
                     <option value="{{item[0]}}">{{item[1]}}</option>
                   {% endfor %}
                 </select>
-                <select id="city" name="cityCode" required>
-                  <option value="" disabled selected>شهر</option>
+                <select id="city" style="display: none;" name="cityCode" required>
                 </select>
 
               </div>
@@ -196,6 +180,7 @@
 </form>
 
 <script type="text/javascript">
+  var show_flag = 0;
   var i=1;
   var i_list = ["row1"];
   var Weight = 0
@@ -373,17 +358,24 @@
   }
 
   function show() {
-    //document.getElementById("inventory").classList.toggle("show");
+    show_flag = 1;
     document.getElementById("states").style.display = 'block';
+    document.getElementById('cities').style.display = 'none';
+    document.getElementById("cities").innerHTML = "";
+    document.getElementById("myInput-city").value = "";
   }
 
   function showCities() {
-    //document.getElementById("inventory").classList.toggle("show");
+    show_flag = 1;
     document.getElementById("cities").style.display = 'block';
   }
 
   function notShow() {
-    document.getElementById("states").style.display = 'none';
+    if (!show_flag) {
+      document.getElementById("states").style.display = 'none';
+      document.getElementById("cities").style.display = 'none';
+    }
+    show_flag = 0;
   }
 
   function filter() {
@@ -392,47 +384,68 @@
     filter = input.value.toUpperCase();
     div = document.getElementById("myDropdown");
     a = div.getElementsByTagName("a");
-    tr = div.getElementsByTagName("tr");
     for (i = 0; i < a.length; i++) {
       txtValue = a[i].textContent || a[i].innerText;
       if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
+        a[i].style.display = "";
       } else {
-        tr[i].style.display = "none";
+        a[i].style.display = "none";
+      }
+    }
+  }
+
+  function filterCities() {
+    var input, filter, ul, tr, a, i;
+    input = document.getElementById("myInput-city");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("myDropdown-city");
+    a = div.getElementsByTagName("a");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
       }
     }
   }
 
   function searchStates(code) {
-    var tbody = document.getElementById("tbody");
+    var city = document.getElementById("city");
+    var div = document.getElementById("cities");
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
           document.getElementById('states').style.display = 'none';
           var json = JSON.parse(this.responseText);
 
-          //city.options.length = 1;
           document.getElementById('myInput').value = json.stateName
+          city.options.length = 1;
+          //alert(city.options.lenght);
 
           for (var i = 0; i < json.Name.length; i++) {
-            var tr = document.createElement('tr');
-            var td = document.createElement('td');
             var a = document.createElement('a');
             a.innerHTML = json.Name[i];
+            a.id = "a"+i;
             a.href = '#';
-            a.addEventListener("click", searchCities(json.Name[i]));
-            td.appendChild(a);
-            tr.appendChild(td);
-            tbody.appendChild(tr);
+            div.appendChild(a);
+            (function(name, code){
+            a.addEventListener("click", function() {
+              document.getElementById('cities').style.display = 'none';
+              document.getElementById('myInput-city').value = name;
+              document.getElementById('state').value = json.stateCode;
+              var opt = document.createElement('option');
+              opt.value = code;
+              opt.innerHTML = name;
+              city.appendChild(opt);
+              city.value = code;
+            }, false);})(json.Name[i], json.Code[i]);
           }
+       } else {
+          city.options.length = 1;
        }
     }
     xhr.open('GET', '/ajax?code=' + code, true);
     xhr.send();
-  }
-
-  function searchCities(code) {
-    document.getElementById('cities').style.display = 'none';
-    document.getElementById('myInput-city').value = code;
   }
 </script>

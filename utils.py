@@ -19,8 +19,8 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
-VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+#VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
 #imp = Import('http://schemas.xmlsoap.org/soap/encoding/', location='http://schemas.xmlsoap.org/soap/encoding/')
@@ -557,7 +557,7 @@ def states(cursor):
 
 def cities(cursor, code):
     result = cursor.states.find_one({'Code': code})
-    ans = {'Code':[], 'Name':[], 'stateName':result['Name']}
+    ans = {'Code':[], 'Name':[], 'stateName':result['Name'], 'stateCode':code}
     for r in result['Cities']:
         ans['Code'].append(r['Code'])
         ans['Name'].append(r['Name'])

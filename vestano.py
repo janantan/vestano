@@ -495,9 +495,6 @@ def confirm_orders(code):
                 elif weight >= 30000:
                     vestano_wage = config.gthan30
 
-                #WKHTMLTOPDF_PATH = '/usr/local/bin/wkhtmltopdf'
-                #configure = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
-
                 pdfkit.from_string(render_template('includes/_caseOrderPdf.html',
                     datetime = jdatetime.datetime.now().strftime('%H:%M %Y/%m/%d'),
                     orderId = new_rec['orderId'],
@@ -519,7 +516,6 @@ def confirm_orders(code):
                     deliveryPrice = soap_result['PostDeliveryPrice'] + vestano_wage,
                     VatTax = soap_result['VatTax']
                     ), 'static/pdf/caseOrders/orderId_'+new_rec['orderId']+'.pdf')
-                #os.startfile('E:/projects/VESTANO/Vestano/static/pdf/caseOrders/orderId_ '+new_rec['orderId']+'.pdf')
 
             utils.removeFromInventory(cursor, new_rec['orderId'])
 
