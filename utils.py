@@ -252,41 +252,43 @@ def accounting(cursor):
     t_post_account = 0
     t_vestano_account = 0
     for r in result:
-        state_result = cursor.states.find_one({'Code': r['stateCode']})
-        for rec in state_result['Cities']:
-            if r['cityCode'] == rec['Code']:
-                city = rec['Name']
-                break
+        #filter just three status
+        if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
+            state_result = cursor.states.find_one({'Code': r['stateCode']})
+            for rec in state_result['Cities']:
+                if r['cityCode'] == rec['Code']:
+                    city = rec['Name']
+                    break
 
-        (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+            (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
 
-        if pType == 2:
-            vendor_account = config.wage
-            post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
-        else:
-            vendor_account = 0 - (r['costs']['price'] - config.wage)
-            post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
-        vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            if pType == 2:
+                vendor_account = config.wage
+                post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            else:
+                vendor_account = 0 - (r['costs']['price'] - config.wage)
+                post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
-        t_vendor_account += vendor_account
-        t_post_account += post_account
-        t_vestano_account += vestano_account
+            t_vendor_account += vendor_account
+            t_post_account += post_account
+            t_vestano_account += vestano_account
 
-        price += r['costs']['price']
-        PostDeliveryPrice += r['costs']['PostDeliveryPrice']
-        VatTax += r['costs']['VatTax']
-        registerCost += r['costs']['registerCost']
-        wage += r['costs']['wage']
+            price += r['costs']['price']
+            PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+            VatTax += r['costs']['VatTax']
+            registerCost += r['costs']['registerCost']
+            wage += r['costs']['wage']
 
-        status = statusToString(r['status'])
+            status = statusToString(r['status'])
 
-        protducts_list = []
-        for p in r['products']:
-            protducts_list.append(p['productName'])
+            protducts_list = []
+            for p in r['products']:
+                protducts_list.append(p['productName'])
 
-        record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
-        r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
-        r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'], protducts_list, status))
+            record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+            r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+            r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'], protducts_list, status))
 
     totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage,t_vendor_account ,t_post_account ,t_vestano_account)
     acounting = {'record': record, 'totalCosts': totalCosts}
