@@ -152,7 +152,7 @@ def inventory(cursor):
     inventory = []
     for r in result:
         st = r['status']
-        other_status_count = sum(st.values())-st['80']-st['2']-st['81']-st['7']-st['71']-st['11']-st['82']
+        other_status_count = sum(st.values())-st['80']-st['2']-st['81']-st['7']-st['71']-st['11']-st['82']-st['83']
         
         inventory.append((r['productName'], r['productId'], r['count'], r['datetime'],
             r['percentDiscount'], r['status'], other_status_count))
@@ -964,7 +964,7 @@ def inventory_sumation(cursor):
         count_sum += r['count']
         for s in r['status'].keys():
             status_sum[s] += r['status'][s]
-    other_status_sum = sum(status_sum.values())-status_sum['80']-status_sum['2']-status_sum['81']-status_sum['7']-status_sum['71']-status_sum['11']-status_sum['82']
+    other_status_sum = sum(status_sum.values())-status_sum['80']-status_sum['2']-status_sum['81']-status_sum['7']-status_sum['71']-status_sum['11']-status_sum['82']-status_sum['83']
     ans = {'count_sum': count_sum, 'status_sum': status_sum, 'other_status_sum': other_status_sum}
     return(ans)
 

@@ -51,6 +51,13 @@
 							<td class="vw22">
 								<span>افزودن به انبار</span>
 							</td>
+						{% elif details[i]['action']=='returned' %}
+							<td class="vw18">
+								<span class="blue">ورود</span>
+							</td>
+							<td class="vw22">
+								<span>کالای برگشتی</span>
+							</td>
 						{% elif details[i]['action']=='to_pack' %}
 							<td class="vw18">
 								<span class="red">خروج</span>

@@ -179,7 +179,7 @@ a.button:active {
 }
 
 #order-0 tbody {
-    height: 20vh;
+    height: 30vh;
     display:block;
     overflow:auto;
 }
@@ -792,6 +792,30 @@ a.button:active {
     font-size: 14px;
     text-align: center;
     width: 8.8vw;
+    padding: 0;
+}
+
+#add-srch-prdct {
+    margin-top: 2.5vh;
+}
+
+#add-srch-prdct input {
+    border: none;
+    font-size: 13px;
+    font-family: arial;
+    font-weight: normal;
+    background: none;
+    text-align: right;
+}
+
+#add-srch-prdct input::placeholder {
+    text-align: right;
+}
+
+#add-srch-prdct a {
+    font-size: 14px;
+    text-align: right;
+    width: 14.1vw;
     padding: 0;
 }
 

@@ -1,4 +1,7 @@
-<fieldset class="fieldset">
+<div class="dropdown-content-inventory">
+	<input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
+</div>
+<fieldset class="fieldset" style="margin-top: 2vh;">
 	<legend>سفارشات پردازش نشده:</legend>
 	<table id="inventory">
 		<thead>
@@ -39,7 +42,7 @@
 				<th style="width: 15px;"></th>
 			</tr>
 		</thead>
-		<tbody>
+		<tbody id="myDropdown" style="height: 74vh;">
 			{% for rec in temp_orders %}
 				<tr class="rows">
 					<td style="width: 50px;">
@@ -80,3 +83,112 @@
 		</tbody>
 	</table>
 </fieldset>
+
+<script type="text/javascript">
+	function filter() {
+		var input, value, tr, div, i;
+		input = document.getElementById("myInput-inventory");
+		value = input.value.toUpperCase();
+		div = document.getElementById("myDropdown");
+		tr = div.getElementsByTagName("tr");
+		if (isNaN(value)) {
+			for (i = 0; i < (tr.length); i++) {
+				span = tr[i].getElementsByTagName("span");
+				txtValue = span[2].textContent;
+				if (txtValue.toUpperCase().indexOf(value) > -1) {
+					tr[i].style.display = "";
+				} else {
+					txtValue = span[3].textContent;
+					if (txtValue.toUpperCase().indexOf(value) > -1) {
+						tr[i].style.display = "";
+					} else {
+						txtValue = span[4].textContent;
+						if (txtValue.toUpperCase().indexOf(value) > -1) {
+							tr[i].style.display = "";
+						} else {
+							txtValue = span[7].textContent;
+							if (txtValue.toUpperCase().indexOf(value) > -1) {
+								tr[i].style.display = "";
+							} else {
+								txtValue = span[9].textContent;
+								if (txtValue.toUpperCase().indexOf(value) > -1) {
+									tr[i].style.display = "";
+								} else {
+									txtValue = span[5].textContent;
+									txtValue = txtValue.replace(/\s/g, '');
+									txtValue = reverse_date_1(txtValue);
+									if (txtValue.toUpperCase().indexOf(value) > -1) {
+										tr[i].style.display = "";
+									} else { 
+										txtValue = span[5].textContent;
+										//txtValue = txtValue.replace(/\s/g, '');
+										txtValue = reverse_date_2(txtValue);
+										if (txtValue.toUpperCase().indexOf(value) > -1) {
+											tr[i].style.display = "";
+										} else {
+											txtValue = span[6].textContent;
+											txtValue = txtValue.replace(/\s/g, '');
+											txtValue = reverse_time(txtValue);
+											if (txtValue.toUpperCase().indexOf(value) > -1) {
+												tr[i].style.display = "";
+											} else {
+												tr[i].style.display = "none";
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		} else {
+			for (i = 0; i < (tr.length); i++) {
+				span = tr[i].getElementsByTagName("span");
+				txtValue = span[1].textContent;
+				if (txtValue.toUpperCase().indexOf(value) > -1) {
+					tr[i].style.display = "";
+				} else {
+					txtValue = span[5].textContent;
+					txtValue = txtValue.replace(/\s/g, '');
+					if (txtValue.toUpperCase().indexOf(value) > -1) {
+						tr[i].style.display = "";
+					} else {
+						txtValue = span[6].textContent;
+						txtValue = txtValue.replace(/\s/g, '');
+						if (txtValue.toUpperCase().indexOf(value) > -1) {
+							tr[i].style.display = "";
+						} else {
+							txtValue = span[8].textContent;
+							txtValue = txtValue.replace(/\s/g, '');
+							if (txtValue.toUpperCase().indexOf(value) > -1) {
+								tr[i].style.display = "";
+							} else {
+								tr[i].style.display = "none";
+							}
+						}
+					}
+				}
+			}
+			span = tr[0].getElementsByTagName("span");
+			txtValue = span[5].textContent;
+			txtValue = txtValue.replace(/\s/g, '');
+			//alert(txtValue)
+		}
+	}
+
+	function reverse_date_1(s) {
+		s = s.split("/").reverse().join("/");
+		return s;
+	}
+
+	function reverse_date_2(s) {
+		s = s.split(" / ").reverse().join(" / ");
+		return s;
+	} 
+
+	function reverse_time(s) {
+		s = s.split(":").reverse().join(":");
+		return s;
+	}
+</script>

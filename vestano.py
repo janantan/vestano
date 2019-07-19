@@ -42,7 +42,7 @@ name_schema = {
 'name': {
     'type': 'string',
     'required': True,
-    'regex': '^[ آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]+$'
+    'regex': '^[ آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهءئی]+$'
 }
 }
 
@@ -654,7 +654,7 @@ def cancel_orders(orderId):
             vinvent = cursor.vestano_inventory.find_one({'productId':rec['products'][i]['productId']})
             if vinvent:
                 vinvent['status']['80']-= rec['products'][i]['count']
-                vinvent['status']['83']-= rec['products'][i]['count']
+                vinvent['status']['83']+= rec['products'][i]['count']
                 cursor.vestano_inventory.update_many(
                     {'productId': vinvent['productId']},
                     {'$set':{'status': vinvent['status']}}
@@ -696,6 +696,21 @@ def pending_order(orderId):
 @token_required
 def delete_order(orderId):
     rec = cursor.canceled_orders.find_one({'orderId': orderId})
+    for i in range(len(rec['products'])):
+        if rec['vendorName'] == u'سفارش موردی':
+            vinvent = cursor.case_inventory.find_one({'productId':rec['products'][i]['productId']})
+            vinvent['status']['83'] -= rec['products'][i]['count']
+            cursor.case_inventory.update_many(
+                {'productId': vinvent['productId']},
+                {'$set':{'status': vinvent['status']}}
+                )
+        else:
+            vinvent = cursor.vestano_inventory.find_one({'productId':rec['products'][i]['productId']})
+            vinvent['status']['83'] -= rec['products'][i]['count']
+            cursor.vestano_inventory.update_many(
+                {'productId': vinvent['productId']},
+                {'$set':{'status': vinvent['status']}}
+                )
     cursor.canceled_orders.remove({'orderId': orderId})
     cursor.today_orders.remove({'orderId': orderId})
     flash(u'سفارش حذف شد!', 'danger')
@@ -765,6 +780,13 @@ def edit_orders(orderId):
                     temp_order_product['price'] = int(request.form.get('price_'+str(i)))
                     temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
 
+                    vinvent = cursor.case_inventory.find_one({'productId':request.form.get('product_'+str(i))})
+                    vinvent['status']['83'] -= int(request.form.get('count_'+str(i)))
+                    cursor.case_inventory.update_many(
+                        {'productId': vinvent['productId']},
+                        {'$set':{'status': vinvent['status']}}
+                        )
+
                     temp_order_products.append(temp_order_product)
         else:
             for i in range (1, 100):
@@ -774,6 +796,13 @@ def edit_orders(orderId):
                     temp_order_product['count'] = int(request.form.get('count_'+str(i)))
                     temp_order_product['price'] = int(request.form.get('price_'+str(i)))
                     temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+
+                    vinvent = cursor.vestano_inventory.find_one({'productId':request.form.get('product_'+str(i))})
+                    vinvent['status']['83'] -= int(request.form.get('count_'+str(i)))
+                    cursor.vestano_inventory.update_many(
+                        {'productId': vinvent['productId']},
+                        {'$set':{'status': vinvent['status']}}
+                        )
 
                     temp_order_products.append(temp_order_product)
 
@@ -1121,14 +1150,20 @@ def inventory_management(sub_item):
 
         elif sub_item == 'inc':
             result = cursor.vestano_inventory.find_one({'productId': request.form.get('product')})
-            print(result)
-            add = {
-            'action': 'add',
-            'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
-            'count': int(request.form.get('count')),
-            'person': session['username']
-            }
-            #print(add)
+            if request.form.getlist('returned'):
+                add = {
+                'action': 'returned',
+                'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'count': int(request.form.get('count')),
+                'person': session['username']
+                }
+            else:
+                add = {
+                'action': 'add',
+                'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'count': int(request.form.get('count')),
+                'person': session['username']
+                }
             result['record'].append(add)
             cursor.vestano_inventory.update_many(
                 {'productId': request.form.get('product')},

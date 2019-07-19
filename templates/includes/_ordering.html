@@ -85,7 +85,18 @@
                 </tr>
                 <tr id="row1" class="order-0">
                   <td>
-                    <select id="product1" name="product_1" onchange="product('product1')" required>
+                    <div id="add-srch-prdct" class="dropdown">
+                      <div id="myDropdown-prdct1" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
+                        <input type="text" placeholder="انتخاب کنید" id="myInput-prdct1" autocomplete="nope" onclick="show_prdct('prdct1')" onkeyup="filter_prdct('myInput-prdct1', 'myDropdown-prdct1')" size="30">
+                        <div id="prdct1" class="dropdown-content" style="display: none; max-height: 18vh;">
+                          {% for item in inventory %}
+                            <a href="#" onclick="searchPrdct('{{item[1]}}', 'myInput-prdct1', 'product1', 'prdct1', 'price1', 'discount1', 'weight1')">{{item[0]}}</a>
+                          {% endfor %}
+                        </div>
+                      </div>
+                    </div>
+
+                    <select style="display: none;" id="product1" name="product_1" onchange="product('product1')" required>
                       <option value="" disabled selected>(انخاب کنید)</option>
                       {% for item in inventory %}
                         <option value="{{item[1]}}">{{item[0]}}</option>
@@ -181,44 +192,49 @@
 
 <script type="text/javascript">
   var show_flag = 0;
-  var i=1;
+  var q=1;
   var i_list = ["row1"];
   var Weight = 0
   var Price = 0
   var Count = 0
   var Discount = 0
   function addrow(id_name, action) {
-      var original = document.getElementById(id_name);
+    var original = document.getElementById(id_name);
     var clone = original.cloneNode(true); // "deep" clone
     if (action == 'add'){
-
-      clone.id = "row" + ++i;
+      clone.id = "row" + ++q;
       i_list.push(clone.id);
-      for (ii=0; ii<2; ii++) {
+      for (ii=0; ii<"{{(inventory|length)+2}}"; ii++) {
+        var p = "price"+id_name.substring(3, id_name.length);
+        clone.innerHTML = clone.innerHTML.replace(p, "price"+q);
+        var d = "discount"+id_name.substring(3, id_name.length);
+        clone.innerHTML = clone.innerHTML.replace(d, "discount"+q);
+        var w = "weight"+id_name.substring(3, id_name.length);
+        clone.innerHTML = clone.innerHTML.replace(w, "weight"+q);
+      }
+      for (ii=0; ii<"{{(inventory|length)+3}}"; ii++) {
         var pr = "product"+id_name.substring(3, id_name.length);
-        clone.innerHTML = clone.innerHTML.replace(pr, "product"+i);
+        clone.innerHTML = clone.innerHTML.replace(pr, "product"+q);
+      }
+      for (ii=0; ii<"{{(inventory|length)+8}}"; ii++) {
+        var pr = "prdct"+id_name.substring(3, id_name.length);
+        clone.innerHTML = clone.innerHTML.replace(pr, "prdct"+q);
       }
       var title = "product_"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(title, "product_"+i);
+      clone.innerHTML = clone.innerHTML.replace(title, "product_"+q);
       var cou = "count_"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(cou, "count_"+i);
+      clone.innerHTML = clone.innerHTML.replace(cou, "count_"+q);
       var pri = "price_"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(pri, "price_"+i);
+      clone.innerHTML = clone.innerHTML.replace(pri, "price_"+q);
       var dis = "discount_"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(dis, "discount_"+i);
+      clone.innerHTML = clone.innerHTML.replace(dis, "discount_"+q);
       var we = "weight_"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(we, "weight_"+i);
+      clone.innerHTML = clone.innerHTML.replace(we, "weight_"+q);
       clone.innerHTML = clone.innerHTML.replace(id_name, clone.id);
       var c = "count"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(c, "count"+i);
-      var p = "price"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(p, "price"+i);
-      var d = "discount"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(d, "discount"+i);
-      var w = "weight"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(w, "weight"+i);
+      clone.innerHTML = clone.innerHTML.replace(c, "count"+q);
       var str = "row"+id_name.substring(3, id_name.length);
-      clone.innerHTML = clone.innerHTML.replace(str, "row"+i);
+      clone.innerHTML = clone.innerHTML.replace(str, "row"+q);
       original.parentNode.appendChild(clone);
     } else {
       if (i_list.length > 1) {
@@ -227,7 +243,6 @@
         anyChange();
       }
     }
-
   }
 
   function cities(){
@@ -370,10 +385,18 @@
     document.getElementById("cities").style.display = 'block';
   }
 
+  function show_prdct(div_id) {
+    show_flag = 1;
+    document.getElementById(div_id).style.display = 'block';
+  }
+
   function notShow() {
     if (!show_flag) {
       document.getElementById("states").style.display = 'none';
       document.getElementById("cities").style.display = 'none';
+      for (i = 1; i < 100; i++) {
+        document.getElementById("prdct"+i).style.display = 'none';
+      }
     }
     show_flag = 0;
   }
@@ -399,6 +422,22 @@
     input = document.getElementById("myInput-city");
     filter = input.value.toUpperCase();
     div = document.getElementById("myDropdown-city");
+    a = div.getElementsByTagName("a");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
+      }
+    }
+  }
+
+  function filter_prdct(input_id, div_id) {
+    var input, filter, ul, tr, a, i;
+    input = document.getElementById(input_id);
+    filter = input.value.toUpperCase();
+    div = document.getElementById(div_id);
     a = div.getElementsByTagName("a");
     for (i = 0; i < a.length; i++) {
       txtValue = a[i].textContent || a[i].innerText;
@@ -444,6 +483,24 @@
        } else {
           city.options.length = 1;
        }
+    }
+    xhr.open('GET', '/ajax?code=' + code, true);
+    xhr.send();
+  }
+
+  function searchPrdct(code, input_id, select_id, div_id, price_id, discount_id, weight_id) {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        document.getElementById(div_id).style.display = 'none';
+        var json = JSON.parse(this.responseText);
+        document.getElementById(input_id).value = json.productName
+        document.getElementById(select_id).value = json.productId
+        document.getElementById(price_id).value = json.price
+        document.getElementById(discount_id).value = json.discount
+        document.getElementById(weight_id).value = json.weight
+        anyChange();
+      }
     }
     xhr.open('GET', '/ajax?code=' + code, true);
     xhr.send();
