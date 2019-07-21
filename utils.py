@@ -6,6 +6,7 @@ import re
 import json
 import collections
 import xlrd
+import xlwt
 import datetime
 import jdatetime
 from suds.client import Client
@@ -155,7 +156,7 @@ def inventory(cursor):
         other_status_count = sum(st.values())-st['80']-st['2']-st['81']-st['7']-st['71']-st['11']-st['82']-st['83']
         
         inventory.append((r['productName'], r['productId'], r['count'], r['datetime'],
-            r['percentDiscount'], r['status'], other_status_count))
+            r['percentDiscount'], r['status'], other_status_count, r['vendor']))
     return inventory
 
 def for_edit_case_inventory(cursor):
@@ -393,6 +394,7 @@ def details(cursor, orderId, code):
         parcelCode = "-"
 
     if r['vendorName'] == u'سفارش موردی':
+        case_ord_res = cursor.case_orders.find_one({'orderId': orderId})
         if weight < 10000:
             wage = config.to10
         elif 10000 <= weight < 15000:
@@ -405,13 +407,23 @@ def details(cursor, orderId, code):
             wage = config.to30
         elif weight >= 30000:
             wage = config.gthan30
+        senderName = case_ord_res['senderFirstName'] + ' ' + case_ord_res['senderLastName']
+        senderCellNumber = case_ord_res['senderCellNumber']
+        senderPostalCode = case_ord_res['senderPostalCode']
+
+        
     else:
         wage = config.wage
-
+        senderName = ''
+        senderCellNumber = ''
+        senderPostalCode = ''
+        
     details = (r['orderId'], r['vendorName'], r['record_time']+' - '+r['record_date'],
         r['registerFirstName']+' '+r['registerLastName'], r['registerCellNumber'], r['registerPostalCode'],
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
-        r['products'],count, price, discount, orderId, status, wage, parcelCode, deliveryPrice)
+        r['products'],count, price, discount, orderId, status, wage, parcelCode, deliveryPrice,
+        senderName, senderCellNumber, senderPostalCode)
+
     return details
 
 def inventory_details(cursor, status, productId):
@@ -483,6 +495,8 @@ def typeOfServicesToString(serviceType, payType):
         sType = u'پست سفارشی'
     elif serviceType==3:
         sType = u'مطبئع'
+    else:
+        return None
 
     if payType==88:
         pType = u'ارسال رایگان'
@@ -490,6 +504,8 @@ def typeOfServicesToString(serviceType, payType):
         pType = u'پرداخت در محل'
     elif payType==2:
         pType = u'پرداخت آنلاین'
+    else:
+        return None
 
     return (sType, pType)
 
@@ -619,14 +635,20 @@ def GetStatus(cursor):
     client = Client(API_URI)
     #print(client)
     change_flag = 0
+
     status_records = cursor.status.find()
     for rec in status_records:
-        status = client.service.GetStatus(username = username, password = password,
-            parcelCode=rec['parcelCode'])
-        
+        if rec['status'] in [1, 11, 71]:
+            cursor.status.remove({'parcelCode': rec['parcelCode']})
+
+    status_records = cursor.status.find()
+    for rec in status_records:
         orders_records = cursor.orders.find_one({'parcelCode': rec['parcelCode']})
         if not orders_records:
             continue
+
+        status = client.service.GetStatus(username = username, password = password,
+            parcelCode=rec['parcelCode'])
 
         if (orders_records['status'] == 81) and (status == 2):
             continue
@@ -671,7 +693,6 @@ def GetStatus(cursor):
                     if vinvent:
                         vinvent['status'][str(status)]+= orders_records['products'][i]['count']
                         vinvent['status'][str(prev_status)]-= orders_records['products'][i]['count']
-                        print(vinvent['status'])
                         cursor.case_inventory.update_many(
                             {'productId': vinvent['productId']},
                             {'$set':{'status': vinvent['status']}}
@@ -681,18 +702,12 @@ def GetStatus(cursor):
                     if vinvent:
                         vinvent['status'][str(status)]+= orders_records['products'][i]['count']
                         vinvent['status'][str(prev_status)]-= orders_records['products'][i]['count']
-                        print(vinvent['status'])
                         cursor.vestano_inventory.update_many(
                             {'productId': vinvent['productId']},
                             {'$set':{'status': vinvent['status']}}
                             )
-        if (status == 11) or (status == 71):
-            cursor.status.remove({'parcelCode': rec['parcelCode']})
+        
     return change_flag
-
-        #print(status)
-    #print(client.service.GetStatus(username = username, password = password,
-            #parcelCode='21868000011930748946'))
 
 def GetStatus_one(cursor, parcelCode):
     client = Client(API_URI)
@@ -987,3 +1002,48 @@ def status83():
             }
             }
             )
+
+def write_excel(cursor):
+    #filename = "E:/projects/VESTANO/Vestano/static/pdf/inventory.xls"
+    filename = "/root/vestano/static/pdf/xls/inventory.xls"
+    invent = inventory(cursor)
+    excel_file = xlwt.Workbook()
+    today = jdatetime.datetime.today().strftime('%Y-%m-%d')
+    sheet = excel_file.add_sheet(today)
+    style0 = xlwt.easyxf('font: name Times New Roman, bold on;'
+        'pattern: pattern solid, fore_colour yellow;'
+        'align: horiz center;')
+    sheet.cols_right_to_left = 1
+    sheet.write(0, 0, u'عنوان کالا', style0)
+    sheet.write(0, 1, u'شناسه کالا', style0)
+    sheet.write(0, 2, u'موجودی', style0)
+    sheet.write(0, 3, u'صف پردازش', style0)
+    sheet.write(0, 4, u'آماده ارسال', style0)
+    sheet.write(0, 5, u'ارسال شده از وستانو', style0)
+    sheet.write(0, 6, u'توزیع شده', style0)
+    sheet.write(0, 7, u'تسویه شده', style0)
+    sheet.write(0, 8, u'برگشتی', style0)
+    sheet.write(0, 9, u'در انتظار کالا', style0)
+    sheet.write(0, 10, u'سایر وضعیت ها', style0)
+    for i in range(1, len(invent)+1):
+        row = i
+        for j in range(3):
+            col = j
+            ctype = 'string'
+            value = invent[i-1][j]
+            xf = 0
+            sheet.write(row, col, value)
+        q = 3
+        for s in ['80', '2', '81', '7', '71', '11', '82']:
+            col = q
+            ctype = 'string'
+            value = invent[i-1][5][s]
+            xf = 0
+            sheet.write(row, col, value)
+            q = q + 1
+        col = q
+        ctype = 'string'
+        value = invent[i-1][6]
+        xf = 0
+        sheet.write(row, col, value)
+    excel_file.save(filename)

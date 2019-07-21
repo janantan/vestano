@@ -216,7 +216,7 @@
         var pr = "product"+id_name.substring(3, id_name.length);
         clone.innerHTML = clone.innerHTML.replace(pr, "product"+q);
       }
-      for (ii=0; ii<"{{(inventory|length)+8}}"; ii++) {
+      for (ii=0; ii<"{{2*(inventory|length)+6}}"; ii++) {
         var pr = "prdct"+id_name.substring(3, id_name.length);
         clone.innerHTML = clone.innerHTML.replace(pr, "prdct"+q);
       }

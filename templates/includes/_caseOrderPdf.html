@@ -95,14 +95,27 @@
     				<fieldset class="fieldset" style="margin: 10px 0; border: none;">
     					<table style="border: 1px solid gray;">
     						<tr>
-    							<td style="height: 40px;"></td><td></td>
-    						</tr>
-    						<tr>
     							<td style="width: 150px; height: 40px;">
     								<span>تاریخ:</span>
     							</td>
     							<td style="width: 150px; height: 40px; text-align: center;">
     								<span>{{datetime}}</span>
+    							</td>
+    						</tr>
+    						<tr>
+    							<td style="width: 150px; height: 40px;">
+    								<span>نوع سرویس:</span>
+    							</td>
+    							<td style="width: 150px; height: 40px; text-align: center;">
+    								<span>{{serviceType}}</span>
+    							</td>
+    						</tr>
+    						<tr>
+    							<td style="width: 150px; height: 40px;">
+    								<span>شیوه پرداخت:</span>
+    							</td>
+    							<td style="width: 150px; height: 40px; text-align: center;">
+    								<span>{{payType}}</span>
     							</td>
     						</tr>
     						<tr>
@@ -112,9 +125,6 @@
     							<td style="height: 40px; text-align: center;">
     								<span>{{orderId}}</span>
     							</td>
-    						</tr>
-    						<tr>
-    							<td style="height: 40px;"></td><td></td>
     						</tr>
     					</table>
     				</fieldset>

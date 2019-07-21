@@ -16,6 +16,11 @@
 }
 
 @font-face {
+    font-family: "IranSans";
+    src:url("/static/fonts/Iranian-Sans.ttf") format('truetype'); 
+}
+
+@font-face {
     font-family: "W-aban";
     src:url("/static/fonts/W-aban.ttf") format('truetype'); 
 }
@@ -135,6 +140,17 @@ a.button:active {
     background: #999;
 }
 
+a.export {
+    display: inline-block;
+    text-decoration: none;
+    background-color: rgb(193,250,184);
+    font-family: "BNazanin";
+    font-size: 17px;
+    border: 1px solid #e1e1e1;
+    border-radius: 5px;
+    padding: 2px 5px;
+}
+
 #inventory thead tr {
     display:block;
 }
@@ -228,11 +244,13 @@ a.button:active {
 }
 
 #bg-img {
-    position:fixed;
+    position:unset;
     top:0px;
     left:0px;
+    padding: 0;
+    margin: 0;
     width:100%;
-    height:100%;
+    height: 93vh;
     opacity: 0.8;
     z-index:-1;
 }
@@ -297,6 +315,101 @@ a.button:active {
     width:25vw;
 }
 
+.div0 {
+    background: linear-gradient(90deg,rgba(0,23,41,.8),rgba(35,96,147,.8)),url(/static/img/first-page.jpg);
+    background-size: cover;
+}
+
+.div1 {
+    background: linear-gradient(90deg,rgba(0,23,41,.8),rgba(35,96,147,.8)),url(/static/img/fast-truck.jpg);
+    background-size: cover;
+    background-position: bottom;
+}
+
+.div1 input {
+    width: 25vw;
+    height: 8vh;
+    background: #fafafa;
+    border-radius: 5px;
+    border: 1px #e1e1e1;
+    text-align: center;
+}
+
+.div1 input::placeholder{
+    text-align: center;
+}
+
+.bg {
+    background: #eee;
+}
+
+.div2 {
+    height: 40vh;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.div2 h3 {
+    color: rgb(215, 212, 207);
+    margin-bottom: 2vh;
+    font-family: 'B-Roya';
+}
+
+.div3 {
+    margin-bottom: 7vh;
+}
+
+.div4 {
+    margin-top: 3vh;
+}
+
+.div5 {
+    float: right;
+    width: 25%;
+}
+
+.div5 h3 {
+    margin-right: 5vw;
+    font-family: 'B-Roya';
+}
+
+.div5 figure {
+    display: flex;
+    flex-direction: column;
+    margin-top: 7vh;
+}
+
+.div6 {
+    text-align: center;
+    height: 5vh;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.div6 span {
+    color: rgb(215, 212, 207);
+    font-family: 'B-Roya';
+}
+
+.footer {
+    font-family: B-Roya;
+    text-align: justify;
+    font-size: 15px;
+    font-weight: bold;
+    width: 25vw;
+    list-style: none;
+}
+
+.footer span {
+    text-align: center;
+}
+
+.footer p {
+    width: 80%;
+}
+
 /*#username::placeholder {
     color: rgb(215, 212, 207);
 }
@@ -323,15 +436,6 @@ a.button:active {
     position: fixed;
     top: -3vh;
     right: -2vw;
-}
-
-#first-statement figure img {
-    width: 100%;
-    height: 100vh;
-}
-
-#featured-article {
-
 }
 
 #featured-article h2 , h3 {
@@ -499,6 +603,7 @@ a.button:active {
 .navbar-link.logout {background-image: url(/static/img/logout.png);}
 .navbar-link.login {background-image: url(/static/img/icon/login.png);}
 .navbar-link.register {background-image: url(/static/img/icon/register.png);}
+.navbar-link.xls {background-image: url(/static/img/icon/xls.png);}
 
 .navbar-link.invent-search {background-image: url(/static/img/icon/invent-search.png);}
 
@@ -874,43 +979,12 @@ a.button:active {
   z-index: 1;
 }
 
-
-
-body > footer {
-    direction: ltr;
-    padding: 19px 0;
-}
-
 body > footer span {
-    direction: ltr;
-    float: left;
-    margin-right: 20px;
-}
-
-body > footer ul {
-    padding: 0;
-    margin: 0;
-    list-style: none;
-}
-
-body > footer ul li {
-    float: left;
-    margin-right: 10px;
+    margin-right: 2vw;
 }
 
 body > footer a {
     text-decoration: none;
-}            
-
-/*sudo element*/
-body > footer ul li::before {
-    content: "-";
-    margin-left: 10px;
-    color: #888;
-}
-
-body > footer ul li:last-child::before {
-    content: "";
 }
 
 form div {

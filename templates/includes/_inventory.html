@@ -1,6 +1,9 @@
 <div class="dropdown-content-inventory">
 	<input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
 </div>
+<div class="dropdown-content-inventory" style="margin-left: 13vw; border: none; background: none; top: 9vh;">
+	<a href="/export-excel" title="تولید خروجی از اطلاعات انبار" class="export navbar-link xls"><span style="margin-right: 2vw;">خروجی </span></a>
+</div>
 <fieldset class="fieldset" style="margin-top: 2vh;">
 	<legend>لیست موجودی انبار:</legend>
 	<table id="inventory">
@@ -61,7 +64,7 @@
 						<a href="javascript:window.open('/inventory-details/{{rec[1]}}', 'Details', 'width=1000,height=620,top=50,left=280');" title=""><span>{{rec[1]}}</span></a>
 					</td>
 					<td style="width: 12vw;">
-						<span>روژیاپ</span>
+						<span>{{rec[7]}}</span>
 					</td>
 					<td class="vw6">
 						<a href="javascript:window.open('/inventory-enterance-details/{{rec[1]}}', 'Details', 'width=1000,height=620,top=50,left=280');" title=""><span>{{rec[2]}}</span></a>

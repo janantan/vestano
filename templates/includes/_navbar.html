@@ -5,6 +5,12 @@
     </li>
   </ul>
 
+  {% if not request.url_rule.rule[1] %}
+    <ul>
+      <li style="margin-right: 5vw;"><a style="color: #0b4158;" href="/login">پنل کاربری</a></li>
+    </ul>
+  {% endif %}
+
   <!--<ul style="margin-right: 7vw;">
     <li><a class="navbar-link home" href="/home">خانه</a></li>-->
     <!---<li><a class="navbar-link blog" href="/blog">وبلاگ</a></li>--->

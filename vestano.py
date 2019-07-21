@@ -142,6 +142,9 @@ class SomeSoapService(spyne.Service):
 
                     p_list.append(p_dict)
 
+                if not utils.typeOfServicesToString(serviceType, payType):
+                    return 0
+
                 (sType, pType) = utils.typeOfServicesToString(serviceType, payType)
 
                 order_id = str(random2.randint(1000000, 9999999))
@@ -159,8 +162,10 @@ class SomeSoapService(spyne.Service):
                 'products' : p_list,
                 'serviceType' : sType,
                 'payType' : pType,
-                'record_date': orderDate,
-                'record_time': orderTime,
+                'orderDate': orderDate,
+                'orderTime': orderTime,
+                'record_date': jdatetime.datetime.now().strftime('%d / %m / %Y'),
+                'record_time': jdatetime.datetime.now().strftime('%M : %H'),
                 'parcelCode': '-',
                 'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
                 'status' : 80
@@ -292,7 +297,7 @@ def token_required(f):
 def bad_request():
     return abort(403)
    
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'username' in session:
         return redirect(url_for('home'))
@@ -343,8 +348,7 @@ def login():
 
     return render_template('login.html')
 
-@app.route('/home', methods=['GET'])
-@token_required
+@app.route('/', methods=['GET'])
 def home():
     return render_template('home.html')
 
@@ -406,124 +410,141 @@ def confirm_orders(code):
         'postalCode': result['registerPostalCode'],
         'products': result['products']
         }
-        soap_result = utils.SoapClient(order)
-        #print('errorcode: ', soap_result['ErrorCode'])
-        #soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408', 'PostDeliveryPrice':50000, 'VatTax':9000}
-        if soap_result['ErrorCode'] == -6:
-            postal_code_db = cursor.postal_codes.find_one({'Code': result['stateCode']})
-            print("postal_code_db['Code']: ", postal_code_db['Code'])
-            postalCode_flag = 1
-            for i in range (len(postal_code_db['postalCodes'])):
-                if result['cityCode'] == postal_code_db['postalCodes'][i]['Code']:
-                    order['postalCode'] = postal_code_db['postalCodes'][i]['postalCode']
-                    new_rec['registerPostalCode'] = postal_code_db['postalCodes'][i]['postalCode']
-                    postalCode_flag = 0
-                    break
-            if postalCode_flag:
-                order['postalCode'] = postal_code_db['refPostalCode']
-                new_rec['registerPostalCode'] = postal_code_db['refPostalCode']
 
+        try:
             soap_result = utils.SoapClient(order)
+            #print('errorcode: ', soap_result['ErrorCode'])
+            #soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408', 'PostDeliveryPrice':50000, 'VatTax':9000}
+            if soap_result['ErrorCode'] == -10:
+                flash(u'پاسخی از گیت وی دریافت نشد!', 'error')
+                return redirect(request.referrer)
 
-
-        
-        if not soap_result['ErrorCode']:
-
-            new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
-            new_rec['parcelCode'] = soap_result['ParcelCode']
-            new_rec['username'] = session['username']
-
-            #utils.ReadyToShip(soap_result['ParcelCode'])
-            new_rec['status'] = utils.GetStatus_one(cursor, soap_result['ParcelCode'])
-            new_rec['status_updated'] = False
-
-            costs = {
-            'price': price,
-            'PostDeliveryPrice': soap_result['PostDeliveryPrice'],
-            'VatTax': soap_result['VatTax'],
-            'registerCost': config.registerCost,
-            'wage': config.wage
-            }
-
-            new_rec['costs'] = costs
-
-            cursor.orders.insert_one(new_rec)
-            cursor.ready_to_ship.insert_one(new_rec)
-            new_rec['last update'] = datetime.datetime.now()
-            cursor.status.insert_one(new_rec)
-            cursor.temp_orders.remove({'orderId': code})
-            cursor.today_orders.remove({'orderId': code})
-            cursor.today_orders.insert_one(new_rec)
-
-            #update status in vestano_inventory
-            for i in range(len(new_rec['products'])):
-                if new_rec['vendorName'] == u'سفارش موردی':
-                    vinvent = cursor.case_inventory.find_one({'productId':new_rec['products'][i]['productId']})
-                    vinvent['status'][str(new_rec['status'])]+= new_rec['products'][i]['count']
-                    vinvent['status']['80']-= new_rec['products'][i]['count']
-                    cursor.case_inventory.update_many(
-                        {'productId': vinvent['productId']},
-                        {'$set':{'status': vinvent['status']}}
-                        )
-                else:
-                    vinvent = cursor.vestano_inventory.find_one({'productId':new_rec['products'][i]['productId']})
-                    vinvent['status'][str(new_rec['status'])]+= new_rec['products'][i]['count']
-                    vinvent['status']['80']-= new_rec['products'][i]['count']
-                    cursor.vestano_inventory.update_many(
-                        {'productId': vinvent['productId']},
-                        {'$set':{'status': vinvent['status']}}
-                        )
-
-            if new_rec['vendorName'] == u'سفارش موردی':
-                case_result = cursor.case_orders.find_one({'orderId': new_rec['orderId']})
-                state_result = cursor.states.find_one({'Code': new_rec['stateCode']})
-                for c in state_result['Cities']:
-                    if c['Code'] == new_rec['cityCode']:
-                        city = c['Name']
+            if soap_result['ErrorCode'] == -6:
+                postal_code_db = cursor.postal_codes.find_one({'Code': result['stateCode']})
+                print("postal_code_db['Code']: ", postal_code_db['Code'])
+                postalCode_flag = 1
+                for i in range (len(postal_code_db['postalCodes'])):
+                    if result['cityCode'] == postal_code_db['postalCodes'][i]['Code']:
+                        order['postalCode'] = postal_code_db['postalCodes'][i]['postalCode']
+                        new_rec['registerPostalCode'] = postal_code_db['postalCodes'][i]['postalCode']
+                        postalCode_flag = 0
                         break
+                if postalCode_flag:
+                    order['postalCode'] = postal_code_db['refPostalCode']
+                    new_rec['registerPostalCode'] = postal_code_db['refPostalCode']
 
-                if weight < 10000:
-                    vestano_wage = config.to10
-                elif 10000 <= weight < 15000:
-                    vestano_wage = config.to15
-                elif 15000 <= weight < 20000:
-                    vestano_wage = config.to20
-                elif 20000 <= weight < 25000:
-                    vestano_wage = config.to25
-                elif 25000 <= weight < 30000:
-                    vestano_wage = config.to30
-                elif weight >= 30000:
-                    vestano_wage = config.gthan30
+                soap_result = utils.SoapClient(order)
 
-                pdfkit.from_string(render_template('includes/_caseOrderPdf.html',
-                    datetime = jdatetime.datetime.now().strftime('%H:%M %Y/%m/%d'),
-                    orderId = new_rec['orderId'],
-                    parcelCode = new_rec['parcelCode'],
-                    sender = case_result['senderFirstName']+' '+case_result['senderLastName'],
-                    s_cellNumber = case_result['senderCellNumber'],
-                    s_address = case_result['senderAddress'],
-                    s_postalCode = case_result['senderPostalCode'],
-                    receiver = case_result['receiverFirstName']+' '+case_result['receiverLastName'],
-                    cellNumber = case_result['receiverCellNumber'],
-                    destination = state_result['Name']+' / '+city+' / '+case_result['registerAddress'],
-                    postalCode = new_rec['registerPostalCode'],
-                    weight = weight,
-                    sType = order['serviceType'],
-                    packing = case_result['packing'],
-                    carton = case_result['carton'],
-                    gathering = case_result['gathering'],
-                    without_ck = case_result['without_ck'],
-                    deliveryPrice = soap_result['PostDeliveryPrice'] + vestano_wage,
-                    VatTax = soap_result['VatTax']
-                    ), 'static/pdf/caseOrders/orderId_'+new_rec['orderId']+'.pdf')
+                if soap_result['ErrorCode'] == -10:
+                    flash(u'پاسخی از گیت وی دریافت نشد!', 'error')
+                    return redirect(request.referrer)
 
-            utils.removeFromInventory(cursor, new_rec['orderId'])
 
-            flash(u'سفارش تایید و آماده ارسال شد!', 'success')
-            return redirect(request.referrer)
-        else:
-            #print('error code: ', soap_result['ErrorCode'])
-            flash(soap_result['Description'], 'error')
+            
+            if not soap_result['ErrorCode']:
+
+                new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
+                new_rec['parcelCode'] = soap_result['ParcelCode']
+                new_rec['username'] = session['username']
+
+                #utils.ReadyToShip(soap_result['ParcelCode'])
+                #new_rec['status'] = utils.GetStatus_one(cursor, soap_result['ParcelCode'])
+                new_rec['status'] = 0
+                new_rec['status_updated'] = False
+
+                costs = {
+                'price': price,
+                'PostDeliveryPrice': soap_result['PostDeliveryPrice'],
+                'VatTax': soap_result['VatTax'],
+                'registerCost': config.registerCost,
+                'wage': config.wage
+                }
+
+                new_rec['costs'] = costs
+
+                cursor.orders.insert_one(new_rec)
+                cursor.ready_to_ship.insert_one(new_rec)
+                new_rec['last update'] = datetime.datetime.now()
+                cursor.status.insert_one(new_rec)
+                cursor.temp_orders.remove({'orderId': code})
+                cursor.today_orders.remove({'orderId': code})
+                cursor.today_orders.insert_one(new_rec)
+
+                #update status in vestano_inventory
+                for i in range(len(new_rec['products'])):
+                    if new_rec['vendorName'] == u'سفارش موردی':
+                        vinvent = cursor.case_inventory.find_one({'productId':new_rec['products'][i]['productId']})
+                        vinvent['status'][str(new_rec['status'])]+= new_rec['products'][i]['count']
+                        vinvent['status']['80']-= new_rec['products'][i]['count']
+                        cursor.case_inventory.update_many(
+                            {'productId': vinvent['productId']},
+                            {'$set':{'status': vinvent['status']}}
+                            )
+                    else:
+                        vinvent = cursor.vestano_inventory.find_one({'productId':new_rec['products'][i]['productId']})
+                        vinvent['status'][str(new_rec['status'])]+= new_rec['products'][i]['count']
+                        vinvent['status']['80']-= new_rec['products'][i]['count']
+                        cursor.vestano_inventory.update_many(
+                            {'productId': vinvent['productId']},
+                            {'$set':{'status': vinvent['status']}}
+                            )
+
+                if new_rec['vendorName'] == u'سفارش موردی':
+                    case_result = cursor.case_orders.find_one({'orderId': new_rec['orderId']})
+                    state_result = cursor.states.find_one({'Code': new_rec['stateCode']})
+                    for c in state_result['Cities']:
+                        if c['Code'] == new_rec['cityCode']:
+                            city = c['Name']
+                            break
+
+                    if weight < 10000:
+                        vestano_wage = config.to10
+                    elif 10000 <= weight < 15000:
+                        vestano_wage = config.to15
+                    elif 15000 <= weight < 20000:
+                        vestano_wage = config.to20
+                    elif 20000 <= weight < 25000:
+                        vestano_wage = config.to25
+                    elif 25000 <= weight < 30000:
+                        vestano_wage = config.to30
+                    elif weight >= 30000:
+                        vestano_wage = config.gthan30
+
+                    pdfkit.from_string(render_template('includes/_caseOrderPdf.html',
+                        datetime = jdatetime.datetime.now().strftime('%H:%M %Y/%m/%d'),
+                        orderId = new_rec['orderId'],
+                        parcelCode = new_rec['parcelCode'],
+                        sender = case_result['senderFirstName']+' '+case_result['senderLastName'],
+                        s_cellNumber = case_result['senderCellNumber'],
+                        s_address = case_result['senderAddress'],
+                        s_postalCode = case_result['senderPostalCode'],
+                        receiver = case_result['receiverFirstName']+' '+case_result['receiverLastName'],
+                        cellNumber = case_result['receiverCellNumber'],
+                        destination = state_result['Name']+' / '+city+' / '+case_result['registerAddress'],
+                        postalCode = new_rec['registerPostalCode'],
+                        weight = weight,
+                        sType = order['serviceType'],
+                        serviceType = new_rec['serviceType'],
+                        payType = new_rec['payType'],
+                        packing = case_result['packing'],
+                        carton = case_result['carton'],
+                        gathering = case_result['gathering'],
+                        without_ck = case_result['without_ck'],
+                        deliveryPrice = soap_result['PostDeliveryPrice'] + vestano_wage,
+                        VatTax = soap_result['VatTax']
+                        ), 'static/pdf/caseOrders/orderId_'+new_rec['orderId']+'.pdf')
+
+                utils.removeFromInventory(cursor, new_rec['orderId'])
+
+                flash(u'سفارش تایید و آماده ارسال شد!', 'success')
+                return redirect(request.referrer)
+            else:
+                #print('error code: ', soap_result['ErrorCode'])
+                flash(soap_result['Description'], 'error')
+                return redirect(request.referrer)
+
+        except:
+            flash(u'پاسخی از گیت وی دریافت نشد!', 'error')
             return redirect(request.referrer)
     else:
         flash(u'خطایی رخ داده است! (شناسه سفارش)', 'error')
@@ -1391,7 +1412,7 @@ def logout():
     session.pop('all_orders', None)
     session.pop('role', None)
     session.pop('jdatetime', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('home'))
 
 @app.route('/ajax', methods=['GET'])
 def ajax():
@@ -1534,6 +1555,14 @@ def update_status():
 @token_required
 def show_pdf(orderId):
     filename = '/root/vestano/static/pdf/caseOrders/orderId_'+orderId+'.pdf'
+    
+    return send_file(filename, as_attachment=True)
+
+@app.route('/export-excel', methods=['GET'])
+@token_required
+def export_excel():
+    utils.write_excel(cursor)
+    filename = '/root/vestano/static/pdf/xls/inventory.xls'
     
     return send_file(filename, as_attachment=True)
 

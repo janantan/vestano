@@ -253,7 +253,7 @@
         var pr = "product"+id_name.substring(3, id_name.length);
         clone.innerHTML = clone.innerHTML.replace(pr, "product"+q);
       }
-      for (ii=0; ii<"{{(inventory|length)+8}}"; ii++) {
+      for (ii=0; ii<"{{2*(inventory|length)+6}}"; ii++) {
         var pr = "prdct"+id_name.substring(3, id_name.length);
         clone.innerHTML = clone.innerHTML.replace(pr, "prdct"+q);
       }
@@ -532,11 +532,11 @@
       if (this.readyState == 4 && this.status == 200) {
         document.getElementById(div_id).style.display = 'none';
         var json = JSON.parse(this.responseText);
-        document.getElementById(input_id).value = json.productName
-        document.getElementById(select_id).value = json.productId
-        document.getElementById(price_id).value = json.price
-        document.getElementById(discount_id).value = json.discount
-        document.getElementById(weight_id).value = json.weight
+        document.getElementById(input_id).value = json.productName;
+        document.getElementById(select_id).value = json.productId;
+        document.getElementById(price_id).value = json.price;
+        document.getElementById(discount_id).value = json.discount;
+        document.getElementById(weight_id).value = json.weight;
         anyChange();
       }
     }

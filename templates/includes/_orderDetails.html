@@ -39,32 +39,87 @@
 						<span>{{details[2]}}</span>
 					</td>
 				</tr>
-				<tr>
-					<td>
-						<span class="blue bold">نام خریدار:</span>
-					</td>
-					<td>
-						<span>{{details[3]}}</span>
-					</td>
-					<td>
-						<span class="blue bold">تلفن ثابت:</span>
-					</td>
-					<td>
-						<span> - </span>
-					</td>
-					<td>
-						<span class="blue bold">تلفن همراه:</span>
-					</td>
-					<td>
-						<span>{{details[4]}}</span>
-					</td>
-					<td>
-						<span class="blue bold">کد پستی:</span>
-					</td>
-					<td>
-						<span>{{details[5]}}</span>
-					</td>
-				</tr>
+				{% if details[1] == 'سفارش موردی' %}
+					<tr>
+						<td>
+							<span class="blue bold">فرستنده:</span>
+						</td>
+						<td>
+							<span>{{details[18]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">تلفن ثابت:</span>
+						</td>
+						<td>
+							<span> - </span>
+						</td>
+						<td>
+							<span class="blue bold">تلفن همراه:</span>
+						</td>
+						<td>
+							<span>{{details[19]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">کد پستی:</span>
+						</td>
+						<td>
+							<span>{{details[20]}}</span>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span class="blue bold">گیرنده:</span>
+						</td>
+						<td>
+							<span>{{details[3]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">تلفن ثابت:</span>
+						</td>
+						<td>
+							<span> - </span>
+						</td>
+						<td>
+							<span class="blue bold">تلفن همراه:</span>
+						</td>
+						<td>
+							<span>{{details[4]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">کد پستی:</span>
+						</td>
+						<td>
+							<span>{{details[5]}}</span>
+						</td>
+					</tr>
+				{% else %}
+					<tr>
+						<td>
+							<span class="blue bold">نام خریدار:</span>
+						</td>
+						<td>
+							<span>{{details[3]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">تلفن ثابت:</span>
+						</td>
+						<td>
+							<span> - </span>
+						</td>
+						<td>
+							<span class="blue bold">تلفن همراه:</span>
+						</td>
+						<td>
+							<span>{{details[4]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">کد پستی:</span>
+						</td>
+						<td>
+							<span>{{details[5]}}</span>
+						</td>
+					</tr>
+				{% endif %}
 				<tr>
 					<td>
 						<span class="blue bold">وضعیت:</span>
