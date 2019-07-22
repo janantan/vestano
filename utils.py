@@ -121,6 +121,13 @@ def pending_orders(cursor):
     seven_days_before = d.strftime('%Y/%m/%d')
     for r in result:
         if r['datetime'] < seven_days_before:
+            for i in range(len(r['products'])):
+                vinvent = cursor.vestano_inventory.find_one({'productId':r['products'][i]['productId']})
+                vinvent['status']['82'] -= r['products'][i]['count']
+                cursor.vestano_inventory.update_many(
+                    {'productId': vinvent['productId']},
+                    {'$set':{'status': vinvent['status']}}
+                    )
             cursor.pending_orders.remove({'orderId': r['orderId']})
 
     result = cursor.pending_orders.find()

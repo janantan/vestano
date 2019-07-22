@@ -742,6 +742,7 @@ def delete_order(orderId):
 def return_order(orderId):
     rec = cursor.pending_orders.find_one({'orderId': orderId})
     cursor.today_orders.remove({'orderId': orderId})
+    rec['status'] = 80
     cursor.temp_orders.insert_one(rec)
     for i in range(len(rec['products'])):
         if rec['vendorName'] == u'سفارش موردی':
