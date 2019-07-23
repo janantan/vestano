@@ -350,6 +350,7 @@ def login():
 
 @app.route('/', methods=['GET'])
 def home():
+
     return render_template('home.html')
 
 @app.route('/user-pannel/orderList', methods=['GET'])
@@ -1496,6 +1497,56 @@ def case_ajax():
         
     return jsonify(ans)
 
+@app.route('/shipmentTrack-ajax', methods=['GET'])
+def shipmentTrack_ajax():
+    track_id = str(request.args.get('track_id'))
+    orderId = track_id
+    trackId = u'شماره پیگیری: ' + track_id
+    result = cursor.orders.find_one({'orderId':track_id})
+    if not result:
+        result = cursor.orders.find_one({'parcelCode':track_id})
+        if not result:
+            flash(u'سفارشی با این شماره رهگیری موجود نیست!', 'error')
+            return redirect(request.referrer)
+        trackId = u'بارکد: ' + track_id
+        orderId = result['orderId']
+
+    if result['vendorName'] == u'سفارش موردی':
+        r = cursor.case_orders.find_one({'orderId': orderId})
+        senderName = r['senderFirstName'] +' '+ r['senderLastName']
+    else:
+        senderName = u'سامانه پستی وستانو'
+
+    state_result = cursor.states.find_one({'Code': result['stateCode']})
+    for rec in state_result['Cities']:
+        if result['cityCode'] == rec['Code']:
+            state = state_result['Name']
+            city = rec['Name']
+            break
+
+    pNameList = []
+    weight_sum = 0
+    for i in range(len(result['products'])):
+        pNameList.append(result['products'][i]['productName'] +' - '+str(result['products'][i]['count']) + u' عدد ')
+        weight_sum += result['products'][i]['weight'] * result['products'][i]['count']
+
+    ans = {
+    'senderName': senderName,
+    'senderAdd': u'استان کرمانشاه - شهر کرمانشاه',
+    'trackId': trackId,
+    'receiverName': result['registerFirstName'] + ' ' + result['registerLastName'],
+    'receiverAdd': u'استان '+ state + u' - شهر ' + city,
+    'receiverCellNumber': result['registerCellNumber'],
+    'receiverPostalCode': result['registerPostalCode'],
+    'datetime': result['record_date'] + ' - ' + result['record_time'],
+    'products': ('<br />'.join(pNameList)),
+    'weight': str(weight_sum) + ' ' + u'گرم',
+    'serviceType': result['serviceType'],
+    'status': utils.statusToString(result['status']),
+    'parcelCode': result['parcelCode']
+    }
+    return jsonify(ans)
+
 @app.route('/fetch-stuff', methods=['GET'])
 def fetch_stuff():
     if 'username' in session:
@@ -1526,9 +1577,12 @@ def order_details(orderId, code):
 @app.route('/inventory-details/<status>/<productId>', methods=['GET', 'POST'])
 @token_required
 def inventory_details(status, productId):
+    r = cursor.vestano_inventory.find_one({'productId': productId})
+    productName = r['productName']
 
     return render_template('includes/_inventoryDetails.html',
-        details = utils.inventory_details(cursor, status, productId)
+        details = utils.inventory_details(cursor, status, productId),
+        productName = productName
         )
 
 @app.route('/inventory-enterance-details/<productId>', methods=['GET', 'POST'])

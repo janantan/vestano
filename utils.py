@@ -63,7 +63,7 @@ def temp_orders(cursor):
     for r in result:
         pNameList = []
         for i in range(len(r['products'])):
-            pNameList.append(r['products'][i]['productName'])
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         temp.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
@@ -81,7 +81,7 @@ def today_orders(cursor):
     for r in result:
         pNameList = []
         for i in range(len(r['products'])):
-            pNameList.append(r['products'][i]['productName'])
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         today.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
@@ -94,7 +94,7 @@ def canceled_orders(cursor):
     for r in result:
         pNameList = []
         for i in range(len(r['products'])):
-            pNameList.append(r['products'][i]['productName'])
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         cnl.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
@@ -107,7 +107,7 @@ def readyToShip_orders(cursor):
     for r in result:
         pNameList = []
         for i in range(len(r['products'])):
-            pNameList.append(r['products'][i]['productName'])
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         rts.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
@@ -135,7 +135,7 @@ def pending_orders(cursor):
     for r in result:
         pNameList = []
         for i in range(len(r['products'])):
-            pNameList.append(r['products'][i]['productName'])
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         pnd.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
@@ -148,7 +148,7 @@ def all_orders(cursor):
     for r in result:
         pNameList = []
         for i in range(len(r['products'])):
-            pNameList.append(r['products'][i]['productName'])
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
@@ -302,33 +302,6 @@ def accounting(cursor):
     acounting = {'record': record, 'totalCosts': totalCosts}
 
     return acounting
-
-def inventory_onclick(cursor, Id, item):
-    if item == "inventory_count":
-        repo_rec = cursor.repo_records.find_one({'productId': Id})
-        result = (repo_rec['action'], repo_rec['datetime_rec'], repo_rec['counts'], repo_rec['receiver'],
-            repo_rec['vendorsAgent'])
-    elif item == 'productId':
-        pass
-    elif item == 'on_process':
-        rec = details(cursor, Id)
-        if not rec:
-            return None
-        result = (rec[0], rec[9], rec[2], rec[3], rec[4], rec[8], rec[6], rec[7])
-    elif item == 'ready_to_ship':
-        pass
-    elif item == 'posted_from_vestano':
-        pass
-    elif item == 'distributed':
-        pass
-    elif item == 'ponied_up':
-        pass
-    elif item == 'returned':
-        pass
-    elif item == 'wait_for_stuff':
-        pass
-    elif item == 'other':
-        pass
 
 
 def details(cursor, orderId, code):

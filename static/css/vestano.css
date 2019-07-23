@@ -187,7 +187,7 @@ a.export {
 }
 
 #ordering tbody td {
-    width: 100vw;
+    width: 90vw;
 }
 
 #order-0 thead tr {
@@ -201,7 +201,7 @@ a.export {
 }
 
 #order-0 tbody td {
-    width: 100vw;
+    width: 90vw;
 }
 
 .order-0 td {
@@ -218,7 +218,7 @@ a.export {
 }
 
 #order-0 tfoot td {
-    width: 100vw;
+    width: 90vw;
 }
 
 .tfoot input {
@@ -326,10 +326,22 @@ a.export {
     background-position: bottom;
 }
 
-.div1 input {
-    width: 25vw;
-    height: 8vh;
-    background: #fafafa;
+.navbar-link.fp-search.fp-st {
+    width: 18vw;
+    height: 6vh;
+    background: #fafafa no-repeat right center;
+    border-radius: 5px;
+    border: 1px #e1e1e1;
+    text-align: center;
+}
+
+.div1-2 {
+    margin-top: 4vh;
+}
+
+.div1-2 input {
+    width: 9vw;
+    height: 4vh;
     border-radius: 5px;
     border: 1px #e1e1e1;
     text-align: center;
@@ -391,6 +403,50 @@ a.export {
 .div6 span {
     color: rgb(215, 212, 207);
     font-family: 'B-Roya';
+}
+
+.st-div-0 {
+    font-family: B-Roya;
+    font-weight: bold;
+    display: none;
+    color: rgba(0,23,41);
+}
+
+.st-fieldset-0 {
+    background: #fafafa;
+    margin: 0 10vw;
+    border-radius: 5px;
+    border: 1px #e1e1e1;
+    padding: 0;
+}
+
+.st-div-1 {
+    font-size: 1.3vw;
+    background: yellow;
+    border-radius: 5px;
+    padding: 1vh 2vw;
+}
+
+.st-div-2 {
+    width: 15%;
+    float: right;
+}
+
+.st-div-3 {
+    width: 35%;
+    float: right;
+}
+
+.st-span-1 {
+    color: red;
+}
+
+.st-span-2 {
+    color: rgba(0,23,41);
+}
+
+.st-div-0 ul {
+    list-style: none;
 }
 
 .footer {
@@ -606,6 +662,7 @@ a.export {
 .navbar-link.xls {background-image: url(/static/img/icon/xls.png);}
 
 .navbar-link.invent-search {background-image: url(/static/img/icon/invent-search.png);}
+.navbar-link.fp-search {background-image: url(/static/img/icon/fp-search.png);}
 
 .navbar-link.invent {background-image: url(/static/img/icon/inventory.png);}
 
