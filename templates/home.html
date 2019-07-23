@@ -1,6 +1,11 @@
 {% extends 'layout.html' %}
 
 {% block body %}
+	<div id="flash" class="container" style="display: none;">
+		<div class="alert alert-error" id="f-message">
+			سفارشی با این شماره رهگیری موجود نیست!
+		</div>
+	</div>
 	<div onclick="nowShowSubmit()">
 		<!--<div class="div0">
 			<figure style="margin: -1vh 0;">
@@ -9,7 +14,7 @@
 		</div>-->
 		<div style="margin-bottom: 7vh; background: #eee;"></div>
 		<div class="div1">
-			<form method="POST">
+			<form>
 				<div align="center" class="div2">
 					<h3>رهگیری مرسوله</h3>
 					<input id="shipment-track" class="navbar-link fp-search fp-st" type="search" name="shipment-track" onclick="showSubmit()" autocomplete="off" placeholder="شماره پیگیری"  />
@@ -21,14 +26,16 @@
 		</div>
 		<div class="div3"></div>
 		<div id="st-div-0" class="st-div-0">
-			{% include 'includes/_shipmentTrack.html' %}
+			<!--{% include 'includes/_shipmentTrack.html' %}-->
 		</div>
 		<div class="div3"></div>
 		{% include 'includes/_footer.html' %}
 	</div>
 
 	<script type="text/javascript">
-		show_flag = 0;
+		var show_flag = 0;
+		var x = document.getElementById("flash");
+
 		function showSubmit() {
 			show_flag = 1;
 			document.getElementById("div1-2").style.display = 'block';
@@ -46,21 +53,26 @@
 		    const xhr = new XMLHttpRequest();
 		    xhr.onreadystatechange = function() {
 		      if (this.readyState == 4 && this.status == 200) {
-		      	document.getElementById("st-div-0").style.display = 'block';
-		        var json = JSON.parse(this.responseText);
-		        document.getElementById('trackId').innerHTML = json.trackId;
-		        document.getElementById('senderName').innerHTML = json.senderName;
-		        document.getElementById('senderAdd').innerHTML = json.senderAdd;
-		        document.getElementById('receiverName').innerHTML = json.receiverName;
-		        document.getElementById('receiverAdd').innerHTML = json.receiverAdd;
-		        document.getElementById('receiverCellNumber').innerHTML = json.receiverCellNumber;
-		        document.getElementById('receiverPostalCode').innerHTML = json.receiverPostalCode;
-		        document.getElementById('datetime').innerHTML = json.datetime;
-		        document.getElementById('parcelCode').innerHTML = json.parcelCode;
-		        document.getElementById('productName').innerHTML = json.products;
-		        document.getElementById('weight').innerHTML = json.weight;
-		        document.getElementById('serviceType').innerHTML = json.serviceType;
-		        document.getElementById('status').innerHTML = json.status;
+		      	var json = JSON.parse(this.responseText);
+		      	if (json.success) {
+		      		document.getElementById("st-div-0").style.display = 'block';
+		      		document.getElementById('trackId').innerHTML = json.trackId;
+			        document.getElementById('senderName').innerHTML = json.senderName;
+			        document.getElementById('senderAdd').innerHTML = json.senderAdd;
+			        document.getElementById('receiverName').innerHTML = json.receiverName;
+			        document.getElementById('receiverAdd').innerHTML = json.receiverAdd;
+			        document.getElementById('receiverCellNumber').innerHTML = json.receiverCellNumber;
+			        document.getElementById('receiverPostalCode').innerHTML = json.receiverPostalCode;
+			        document.getElementById('datetime').innerHTML = json.datetime;
+			        document.getElementById('parcelCode').innerHTML = json.parcelCode;
+			        document.getElementById('productName').innerHTML = json.products;
+			        document.getElementById('weight').innerHTML = json.weight;
+			        document.getElementById('serviceType').innerHTML = json.serviceType;
+			        document.getElementById('status').innerHTML = json.status;
+		      	} else {
+		      		x.style.display = 'block';
+		      		setTimeout(function(){ x.style.display = "none" }, 5000);
+		      	}
 		      }
 		    }
 		    xhr.open('GET', '/shipmentTrack-ajax?track_id=' + track_id, true);

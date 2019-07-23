@@ -744,6 +744,9 @@ def return_order(orderId):
     rec = cursor.pending_orders.find_one({'orderId': orderId})
     cursor.today_orders.remove({'orderId': orderId})
     rec['status'] = 80
+    rec['record_date'] = jdatetime.datetime.now().strftime('%d / %m / %Y')
+    rec['record_time'] = jdatetime.datetime.now().strftime('%M : %H')
+    
     cursor.temp_orders.insert_one(rec)
     for i in range(len(rec['products'])):
         if rec['vendorName'] == u'سفارش موردی':
@@ -1117,6 +1120,7 @@ def inventory_management(sub_item):
             'action': 'add',
             'datetime' : record['datetime'],
             'count': int(request.form.get('count')),
+            'exist_count': int(request.form.get('count')),
             'person': session['username']
             }
             record['record'].append(first_add)
@@ -1164,6 +1168,7 @@ def inventory_management(sub_item):
             'action': 'add',
             'datetime' : record['datetime'],
             'count': int(request.form.get('count')),
+            'exist_count': int(request.form.get('count')),
             'person': session['username']
             }
             record['record'].append(first_add)
@@ -1178,6 +1183,7 @@ def inventory_management(sub_item):
                 'action': 'returned',
                 'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
                 'count': int(request.form.get('count')),
+                'exist_count': result['count'] + int(request.form.get('count')),
                 'person': session['username']
                 }
             else:
@@ -1185,6 +1191,7 @@ def inventory_management(sub_item):
                 'action': 'add',
                 'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
                 'count': int(request.form.get('count')),
+                'exist_count': result['count'] + int(request.form.get('count')),
                 'person': session['username']
                 }
             result['record'].append(add)
@@ -1250,6 +1257,7 @@ def inventory_management(sub_item):
             'action': 'add',
             'datetime' : record['datetime'],
             'count': int(request.form.get('count')),
+            'exist_count': int(request.form.get('count')),
             'person': session['username']
             }
             record['record'].append(first_add)
@@ -1268,6 +1276,7 @@ def inventory_management(sub_item):
             'action': 'release',
             'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
             'count': int(request.form.get('count')),
+            'exist_count': result['count'] - int(request.form.get('count')),
             'person': session['username']
             }
             result['record'].append(dec)
@@ -1502,12 +1511,13 @@ def shipmentTrack_ajax():
     track_id = str(request.args.get('track_id'))
     orderId = track_id
     trackId = u'شماره پیگیری: ' + track_id
+    success = 1
     result = cursor.orders.find_one({'orderId':track_id})
     if not result:
         result = cursor.orders.find_one({'parcelCode':track_id})
         if not result:
-            flash(u'سفارشی با این شماره رهگیری موجود نیست!', 'error')
-            return redirect(request.referrer)
+            success = 0
+            return jsonify({'success':success})
         trackId = u'بارکد: ' + track_id
         orderId = result['orderId']
 
@@ -1531,6 +1541,7 @@ def shipmentTrack_ajax():
         weight_sum += result['products'][i]['weight'] * result['products'][i]['count']
 
     ans = {
+    'success': success,
     'senderName': senderName,
     'senderAdd': u'استان کرمانشاه - شهر کرمانشاه',
     'trackId': trackId,

@@ -30,6 +30,9 @@
 						<th class="vw15">
 							<span>تعداد</span>
 						</th>
+						<th class="vw15">
+							<span>موجودی فعلی</span>
+						</th>
 						<th class="vw18">
 							<span>نام کاربری </span>
 						</th>
@@ -76,6 +79,15 @@
 						<td class="vw15">
 							<span>{{details[i]['count']}}</span>
 						</td>
+						{% if 'exist_count' in details[i] %}
+							<td class="vw15">
+								<span>{{details[i]['exist_count']}}</span>
+							</td>
+						{% else %}
+							<td class="vw15">
+								<span>-</span>
+							</td>
+						{% endif %}
 						<td class="vw18">
 							<span>{{details[i]['person']}}</span>
 						</td>

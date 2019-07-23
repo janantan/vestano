@@ -149,7 +149,7 @@ a.export {
     border: 1px solid #e1e1e1;
     border-radius: 5px;
     padding: 2px 5px;
-}
+} 
 
 #inventory thead tr {
     display:block;
@@ -170,6 +170,47 @@ a.export {
     width: 10vw;
     height: 5vh;
     text-align: center;
+}
+
+#accounting a {
+    text-decoration: none;
+}
+
+#accounting {
+    width: 80vw;
+}
+
+#accounting thead tr {
+    display:block;
+}
+
+#accounting thead tr th {
+    width: 6vw;
+    text-align: center;
+}
+
+#accounting tbody {
+    display:block;
+    height:74vh;
+    overflow:auto;
+}
+
+#accounting tbody td {
+    width: 6vw;
+    height: 5vh;
+    text-align: center;
+}
+
+#accounting th:first-child {
+    width: 3vw;
+}
+
+#accounting th:last-child {
+    width: 8vw;
+}
+
+#accounting td:first-child {
+    width: 3vw;
 }
 
 #ordering thead tr {
@@ -303,7 +344,7 @@ a.export {
     position:fixed;
     text-align: center;
     top:6vh;
-    right: 37.5vw;
+    right: 35.5vw;
     width:25vw;
 }
 
@@ -311,7 +352,7 @@ a.export {
     position:fixed;
     text-align: center;
     top:8.3vh;
-    right: 37.5vw;
+    right: 35.5vw;
     width:25vw;
 }
 
@@ -1045,7 +1086,7 @@ body > footer a {
 }
 
 form div {
-    margin-bottom: 10px;
+    margin-bottom: 0.5vh;
 }
 
 form label {
@@ -1065,8 +1106,8 @@ form input:focus, button:focus, textarea:focus {
 }
 
 form fieldset {
-    padding: 10px;
-    margin-bottom: 20px;
+    padding: 0.5vw;
+    margin-bottom: 0.5vh;
     border: 1px solid #e1e1e1;
     font-size: 18px;
 }
