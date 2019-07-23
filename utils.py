@@ -309,6 +309,7 @@ def details(cursor, orderId, code):
     price = 0
     count = 0
     weight = 0
+    Weight = 0
     discount = 0
     if code == 'temp':
         r = cursor.temp_orders.find_one({'orderId': orderId})
@@ -339,7 +340,7 @@ def details(cursor, orderId, code):
         r['products'][i]['if_pack'] = False
         r['products'][i]['pack_products'] = []
         price = price + p['price']*p['count']
-        weight = weight + p['weight']*p['count']
+        Weight = Weight + p['weight']*p['count']
         count = count + p['count']
         discount = discount + p['percentDiscount']
         if r['vendorName'] == u'سفارش موردی':
@@ -402,7 +403,7 @@ def details(cursor, orderId, code):
         r['registerFirstName']+' '+r['registerLastName'], r['registerCellNumber'], r['registerPostalCode'],
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
         r['products'],count, price, discount, orderId, status, wage, parcelCode, deliveryPrice,
-        senderName, senderCellNumber, senderPostalCode)
+        senderName, senderCellNumber, senderPostalCode, Weight)
 
     return details
 
