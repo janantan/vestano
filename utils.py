@@ -24,10 +24,6 @@ VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
 #VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
-#imp = Import('http://schemas.xmlsoap.org/soap/encoding/', location='http://schemas.xmlsoap.org/soap/encoding/')
-imp = Import('http://www.w3.org/2001/XMLSchema', location='http://www.w3.org/2001/XMLSchema')
-tns = "http://tempuri.org/"
-imp.filter.add(tns)
 
 #Config MongoDB
 def config_mongodb():
@@ -129,6 +125,7 @@ def pending_orders(cursor):
                     {'$set':{'status': vinvent['status']}}
                     )
             cursor.pending_orders.remove({'orderId': r['orderId']})
+            cursor.deleted_orders.insert_one(r)
 
     result = cursor.pending_orders.find()
     pnd = []
@@ -810,7 +807,6 @@ def GetDeliveryPrice(cityCode, price, weight, serviceType, payType):
 
 
 def SoapClient(order):
-    #client = Client(API_URI, doctor=ImportDoctor(imp))
     client = Client(API_URI)
     products = client.factory.create('ns0:ArrayOfTempProducts')
 

@@ -385,6 +385,18 @@ def confirm_orders(code):
                 inv = cursor.case_inventory.find_one({'productId':result['products'][i]['productId']})
             else:
                 inv = cursor.vestano_inventory.find_one({'productId':result['products'][i]['productId']})
+                if (result['products'][i]['price'] != inv['price']) or (result['products'][i]['weight'] != inv['weight']):
+                    record = {}
+                    record['productName'] = inv['productName']
+                    record['price'] = result['products'][i]['price']
+                    record['weight'] = result['products'][i]['weight']
+                    record['count'] = result['products'][i]['count']
+                    record['percentDiscount'] = result['products'][i]['percentDiscount']
+                    record['description'] = inv['percentDiscount']
+                    old_productId = result['products'][i]['productId']
+                    index = i
+                    new_productId = str(utils.AddStuff(record))
+                    result['products'][i]['productId'] = new_productId
 
             if (inv['count'] - result['products'][i]['count']) < 0:
                 flash(u'موجودی انبار کافی نیست!', 'error')
@@ -443,6 +455,8 @@ def confirm_orders(code):
 
             
             if not soap_result['ErrorCode']:
+
+                new_rec['products'][index]['productId'] = old_productId
 
                 new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
                 new_rec['parcelCode'] = soap_result['ParcelCode']
@@ -735,6 +749,7 @@ def delete_order(orderId):
                 )
     cursor.canceled_orders.remove({'orderId': orderId})
     cursor.today_orders.remove({'orderId': orderId})
+    cursor.deleted_orders.insert_one(rec)
     flash(u'سفارش حذف شد!', 'danger')
     return redirect(request.referrer)
 
