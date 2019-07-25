@@ -213,6 +213,40 @@ a.export {
     width: 3vw;
 }
 
+#registering thead tr {
+    display:block;
+}
+
+#registering tbody {
+    display:block;
+    height:75vh;
+    overflow:auto;
+}
+
+#registering tbody td {
+    width: auto;
+    text-align: center;
+}
+
+#registering tbody td label {
+    margin-top: 4vh;
+}
+
+.access {
+    display: inline-grid;
+}
+
+.access td {
+    height: 5vh;
+    width: 80vw !important;
+    text-align: right !important;
+}
+
+.access td label {
+    margin-top: 0 !important;
+    font-style: italic;
+}
+
 #ordering thead tr {
     display:block;
 }
@@ -505,6 +539,10 @@ a.export {
 
 .footer p {
     width: 80%;
+}
+
+.footer {
+    margin-right: 2.5vw;
 }
 
 /*#username::placeholder {

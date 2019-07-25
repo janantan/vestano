@@ -380,6 +380,7 @@ def confirm_orders(code):
         count = 0
         weight = 0
         discount = 0
+        old_productId = ""
         for i in range(len(result['products'])):
             if result['vendorName'] == u'سفارش موردی':
                 inv = cursor.case_inventory.find_one({'productId':result['products'][i]['productId']})
@@ -456,7 +457,8 @@ def confirm_orders(code):
             
             if not soap_result['ErrorCode']:
 
-                new_rec['products'][index]['productId'] = old_productId
+                if old_productId:
+                    new_rec['products'][index]['productId'] = old_productId
 
                 new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
                 new_rec['parcelCode'] = soap_result['ParcelCode']
@@ -1373,7 +1375,8 @@ def register():
             users['password'] = sha256_crypt.hash(str(request.form.get('password')))
 
             if len(request.form.getlist('api_user')):
-                users['role'] = request.form.getlist('api_user')
+                users['role'] = 'api'
+                users['acces'] = []
                 result = cursor.api_users.find_one({"username": users['username']})
                 if result:
                     flash(u'نام کاربری تکراری است. لطفا نام کاربری دیگری انتخاب کنید', 'danger')
@@ -1385,7 +1388,8 @@ def register():
                     else:
                         flash(u'کلمه عبور مطابقت ندارد', 'error')
             else:
-                users['role'] = request.form.getlist('role')
+                users['role'] = request.form.get('role')
+                users['access'] = request.form.getlist('access')
                 result = cursor.users.find_one({"username": users['username']})
                 if result:
                     flash(u'نام کاربری تکراری است. لطفا نام کاربری دیگری انتخاب کنید', 'danger')

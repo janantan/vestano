@@ -9,9 +9,9 @@
 			<div id="login-form">
 				<section>
 					<form method="POST" action="">
-						<fieldset style="height: 76vh;">
+						<fieldset style="height: 80vh;">
 							<legend>لطفا ثبت نام کنید</legend>
-							<table id="inventory">
+							<table id="registering">
 								<tr>
 				                    <td>					
 										<label class="right" for="name">نام کاربر یا فروشگاه</label>
@@ -53,41 +53,114 @@
 								</tr>
 								<tr>
 									<td>
-										<label class="right" for="role">سطوح دسترسی</label>
+										<label class="right" for="role">سطح کاربری</label>
+										<select id="role" name="role" onchange="defaultAccess()">
+											<option value="">(انتخاب کنید)</option>
+											<option value="admin">مدیر</option>
+											<option value="office">دفتر</option>
+											<option value="vendor_admin">مدیر فروشگاه</option>
+											<option value="support">پشتیبانی</option>
+										</select>
 									</td>
 								</tr>
 								<tr>
 									<td>
-										<label><input id="role1" type="checkbox" name="role" value="admin">مدیریت</label>
-									</td>
-									<td>
-										<label><input id="role2" type="checkbox" name="role" value="office">امور دفتری</label>
-									</td>
-									<td>
-										<label><input id="role3" type="checkbox" name="role" value="ticket">تیکت</label>
-									</td>
-									<td>
-										<label><input id="role4" type="checkbox" name="role" value="customers">امور مشتریان</label>
-									</td>
-									<td>
-										<label><input id="role5" type="checkbox" name="role" value="PR">روابط عمومی</label>
+										<label style="margin-bottom: 2vh;" class="right" for="access">سطوح دسترسی</label>
 									</td>
 								</tr>
-								<tr>
+								<tr class="access">
 									<td>
-										<label><input id="role6" type="checkbox" name="role" value="vendor">فروشگاه </label>
+										<label><input id="access1" type="checkbox" name="access" value="caseOrdering">ثبت سفارش موردی</label>
 									</td>
 									<td>
-										<label><input id="role7" type="checkbox" name="role" value="orders">سفارشات</label>
+										<label><input id="access2" type="checkbox" name="access" value="Ordering">ثبت سفارش</label>
 									</td>
 									<td>
-										<label><input id="role8" type="checkbox" name="role" value="accounting">حسابداری</label>
+										<label><input id="access3" type="checkbox" name="access" value="processList">صف پردازش (موردی)</label>
 									</td>
 									<td>
-										<label><input id="role9" type="checkbox" name="role" value="commercial">بازرگانی</label>
+										<label><input id="access4" type="checkbox" name="access" value="caseProcessList">صف پردازش (فروشگاه)</label>
 									</td>
 									<td>
-										<label><input id="role10" type="checkbox" name="role" value="inventory">انبارداری</label>
+										<label><input id="access5" type="checkbox" name="access" value="todayOrders">سفارشات امروز</label>
+									</td>
+									<td>
+										<label><input id="access6" type="checkbox" name="access" value="cnlOrders">سفارشات لغو شده</label>
+									</td>
+									<td>
+										<label><input id="access7" type="checkbox" name="access" value="rtsOrders">سفارشات آماده ارسال</label>
+									</td>
+									<td>
+										<label><input id="access8" type="checkbox" name="access" value="pndOrders">سفارشات در انتظار کالا</label>
+									</td>
+									<td>
+										<label><input id="access9" type="checkbox" name="access" value="allOrders">مشاهده همه سفارشات</label>
+									</td>
+									<td>
+										<label><input id="access10" type="checkbox" name="access" value="caseNewStuff">افزودن کالای موردی</label>
+									</td>
+									<td>
+										<label><input id="access11" type="checkbox" name="access" value="caseEditStuff">ویرایش کالای موردی</label>
+									</td>
+									<td>
+										<label><input id="access12" type="checkbox" name="access" value="newStuff">افزودن کالای جدید</label>
+									</td>
+									<td>
+										<label><input id="access13" type="checkbox" name="access" value="incStuff">افزودن کالای موجود</label>
+									</td>
+									<td>
+										<label><input id="access14" type="checkbox" name="access" value="editStuff">ویرایش کالا</label>
+									</td>
+									<td>
+										<label><input id="access15" type="checkbox" name="access" value="newPack">ایجاد بسته</label>
+									</td>
+									<td>
+										<label><input id="access16" type="checkbox" name="access" value="releaseStuff">خروج از انبار</label>
+									</td>
+									<td>
+										<label><input id="access17" type="checkbox" name="access" value="searchStuff">جستجو در انبار</label>
+									</td>
+									<td>
+										<label><input id="access18" type="checkbox" name="access" value="inventory">انبارداری</label>
+									</td>
+									<td>
+										<label><input id="access19" type="checkbox" name="access" value="stuffPrice">مبلغ تمام شده کالا</label>
+									</td>
+									<td>
+										<label><input id="access20" type="checkbox" name="access" value="deliveryPrice">هزینه ارسال</label>
+									</td>
+									<td>
+										<label><input id="access21" type="checkbox" name="access" value="vatTax">ارزش افزوده و حق ثبت</label>
+									</td>
+									<td>
+										<label><input id="access22" type="checkbox" name="access" value="wage">کارمزد</label>
+									</td>
+									<td>
+										<label><input id="access23" type="checkbox" name="access" value="vendorAcc">بدهکار / بستانکار فروشگاه</label>
+									</td>
+									<td>
+										<label><input id="access24" type="checkbox" name="access" value="postAcc">بدهکار / بستانکار پست</label>
+									</td>
+									<td>
+										<label><input id="access25" type="checkbox" name="access" value="vestanoAcc">بدهکار / بستانکار وستانو</label>
+									</td>
+									<td>
+										<label><input id="access26" type="checkbox" name="access" value="status-payType">وضعیت و روش پرداخت</label>
+									</td>
+									<td>
+										<label><input id="access27" type="checkbox" name="access" value="financialRep">گزارشات و تسویه مالی</label>
+									</td>
+									<td>
+										<label><input id="access28" type="checkbox" name="access" value="searchPage">مشاهده گزارشات (صفحه جستجو)</label>
+									</td>
+									<td>
+										<label><input id="access29" type="checkbox" name="access" value="ticket">تیکت</label>
+									</td>
+									<td>
+										<label><input id="access30" type="checkbox" name="access" value="incCredit">افزایش اعتبار </label>
+									</td>
+									<td>
+										<label><input id="access31" type="checkbox" name="access" value="requestForStuff">درخواست حواله و خروج از انبار</label>
 									</td>
 								</tr>
 								<tr>
@@ -108,29 +181,52 @@
 		function apiUser(id_name) {
 			var check = document.getElementById(id_name).checked;
 			if (check == true) {
-				document.getElementById('role1').disabled = true;
-				document.getElementById('role2').disabled = true;
-				document.getElementById('role3').disabled = true;
-				document.getElementById('role4').disabled = true;
-				document.getElementById('role5').disabled = true;
-				document.getElementById('role6').disabled = true;
-				document.getElementById('role7').disabled = true;
-				document.getElementById('role8').disabled = true;
-				document.getElementById('role9').disabled = true;
-				document.getElementById('role10').disabled = true;
+				document.getElementById('role').disabled = true;
+				document.getElementById('role').value = "";
+				for (i = 1; i < 32; i++) {
+					document.getElementById('access'+i).disabled = true;
+					document.getElementById('access'+i).checked = false;
+				}
 			} else {
-				document.getElementById('role1').disabled = false;
-				document.getElementById('role2').disabled = false;
-				document.getElementById('role3').disabled = false;
-				document.getElementById('role4').disabled = false;
-				document.getElementById('role5').disabled = false;
-				document.getElementById('role6').disabled = false;
-				document.getElementById('role7').disabled = false;
-				document.getElementById('role8').disabled = false;
-				document.getElementById('role9').disabled = false;
-				document.getElementById('role10').disabled = false;
+				document.getElementById('role').disabled = false;
+				for (i = 1; i < 32; i++) {
+					document.getElementById('access'+i).disabled = false;
+				}
 			}
 
+		}
+
+		function defaultAccess() {
+			var role = document.getElementById('role').value;
+			if (role == 'admin') {
+				for (i = 1; i < 32; i++) {
+					document.getElementById('access'+i).checked = true;
+				}
+			} else if (role == 'office') {
+				for (i = 1; i < 32; i++) {
+					document.getElementById('access'+i).checked = true;
+				}
+				document.getElementById('access30').checked = false;
+				document.getElementById('access31').checked = false;
+			} else if (role == 'vendor_admin') {
+				for (i = 1; i < 32; i++) {
+					document.getElementById('access'+i).checked = false;
+				}
+				document.getElementById('access2').checked = true;
+				document.getElementById('access18').checked = true;
+				for (i = 5; i <= 9; i++) {
+					document.getElementById('access'+i).checked = true;
+				}
+				for (i = 27; i <= 31; i++) {
+					document.getElementById('access'+i).checked = true;
+				}
+			} else if (role == 'support') {
+				for (i = 1; i < 32; i++) {
+					document.getElementById('access'+i).checked = false;
+				}
+				document.getElementById('access28').checked = true;
+				document.getElementById('access29').checked = true;
+			}
 		}
 	</script>
 {% endblock %}
