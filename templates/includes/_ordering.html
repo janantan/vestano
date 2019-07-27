@@ -496,7 +496,7 @@
         var json = JSON.parse(this.responseText);
         document.getElementById(input_id).value = json.productName
         document.getElementById(select_id).value = json.productId
-        document.getElementById(price_id).value = json.price
+        document.getElementById(price_id).value = json.price;
         document.getElementById(discount_id).value = json.discount
         document.getElementById(weight_id).value = json.weight
         anyChange();

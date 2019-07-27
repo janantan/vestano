@@ -25,12 +25,28 @@
 	{% set search = "background:yellow;" %}
 {% endif %}
 <div id="tab">
-	<a href="/user-pannel/inventory-management/case" style={{case}} class="button">افزودن کالای موردی</a>
-	<a href="/user-pannel/inventory-management/cEdit" style={{cEdit}} class="button">ویرایش کالای موردی</a>
-	<a href="/user-pannel/inventory-management/new" style={{new}} class="button">افزودن کالای جدید</a>
-	<a href="/user-pannel/inventory-management/inc" style={{inc}} class="button">افزودن کالای موجود</a>
-	<a href="/user-pannel/inventory-management/edit" style={{edit}} class="button">ویرایش کالا</a>
-	<a href="/user-pannel/inventory-management/pack" style={{pack}} class="button">ایجاد بسته</a>
-	<a href="/user-pannel/inventory-management/release" style={{release}} class="button">خروجی از انبار</a>
-	<a href="/user-pannel/inventory-management/search" style={{search}} class="button" style="margin-right: 2vw;">جستجو در انبار</a>
+	{% if 'caseNewStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-management/case" style={{case}} class="button">افزودن کالای موردی</a>
+	{% endif %}
+	{% if 'caseEditStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-management/cEdit" style={{cEdit}} class="button">ویرایش کالای موردی</a>
+	{% endif %}
+	{% if 'newStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-management/new" style={{new}} class="button">افزودن کالای جدید</a>
+	{% endif %}
+	{% if 'incStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-management/inc" style={{inc}} class="button">افزودن کالای موجود</a>
+	{% endif %}
+	{% if 'editStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-management/edit" style={{edit}} class="button">ویرایش کالا</a>
+	{% endif %}
+	{% if 'newPack' in session['access'] %}
+		<a href="/user-pannel/inventory-management/pack" style={{pack}} class="button">ایجاد بسته</a>
+	{% endif %}
+	{% if 'releaseStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-management/release" style={{release}} class="button">خروجی از انبار</a>
+	{% endif %}
+	{% if 'searchStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-management/search" style={{search}} class="button" style="margin-right: 2vw;">جستجو در انبار</a>
+	{% endif %}
 </div>

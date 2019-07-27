@@ -1,0 +1,54 @@
+<div style="position: absolute; top: 9vh;">
+	<a class="button" style="margin:0;" title="بازگشت به صفحه قبل" href="/user-pannel/tickets"><span>بازگشت</span></a>
+	<a class="button" style="margin:0;" title="پاسخ به تیکت"><span>پاسخ</span></a>
+	<a class="button" style="margin:0;" title="ارجاع تیکت"><span>ارجاع</span></a>
+</div>
+<fieldset class="fieldset show-ticket-fieldset" style="margin-top: 5vh;">
+	<legend>تیکت شماره {{ticket_num[6:]}} :</legend>
+	<table id="inventory">
+		<thead></thead>
+		<tbody>
+			{% for rec in ticket_details %}
+				<tr>
+					<td>
+						<div class="show-ticket-div-1">
+							<span>از:</span>
+						</div>
+						<div class="show-ticket-div-2">
+							<a title="شماره تماس: {{rec['sender_phone']}}"><span>{{rec['sender_name']}} </span></a><span style="color: gray;">({{rec['sender_username']}})</span>
+						</div>
+						<div class="show-ticket-div-1">
+							<span>به:</span>
+						</div>
+						<div class="show-ticket-div-2">
+							<span>{{rec['departement']}}</span>
+						</div>
+						<div class="show-ticket-div-1">
+							<span>موضوع:</span>
+						</div>
+						<div class="show-ticket-div-2">
+							<span>{{rec['title']}}</span>
+						</div>
+						{% if rec['attch_path'] %}
+							<div class="show-ticket-div-1">
+								<span>فایل پیوست:</span>
+							</div>
+							<div class="show-ticket-div-2">
+								<a style="color: blue;" href="{{rec['attch_path'][28:]}}"><span>دانلود</span></a>
+							</div>
+						{% endif %}
+						<div class="show-ticket-div-1">
+							<span>متن تیکت:</span>
+						</div>
+						<div>
+							<p>
+								{{rec['text']}}
+							</p>
+						</div>
+						<hr>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</fieldset>

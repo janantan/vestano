@@ -1,0 +1,40 @@
+<form method="POST" action="" enctype="multipart/form-data">
+  <fieldset class="new-ticket-fieldset">
+    <legend>ثبت تیکت جدید:</legend>
+    <div>
+      <label>لطفا واحد مربوطه ارجاع تیکت را انتخاب کنید<span> *</span></label>
+      <select id="ticket-departement" name="ticket-departement" required>
+        <option value="" disabled selected>(انتخاب کنید)</option>
+        <option value="management">مدیریت</option>
+        <option value="orders">سفارشات</option>
+        <option value="inventory">انبارداری</option>
+        <option value="accounting">حسابداری</option>
+        <option value="technical">فنی</option>
+      </select>
+    </div>
+    <div>
+      <label>عنوان یا موضوع تیکت<span> *</span></label>
+      <input id="ticket-title" type="text" name="ticket-title" placeholder="عنوان یا موضوع" required />
+    </div>
+    <div>
+      <label>نام و نام خانوادگی<span> *</span></label>
+      <input id="ticket-sender-name" type="text" name="ticket-sender-name" placeholder="" required />
+    </div>
+    <div>
+      <label>شماره تماس<span> *</span></label>
+      <input id="ticket-sender-phone" type="text" name="ticket-sender-phone" placeholder="" required />
+    </div>
+    <div>
+      <label>متن تیکت<span> *</span></label>
+      <textarea id="ticket-text" name="ticket-text" placeholder="" required></textarea>
+    </div>
+    <div>
+      <label>فایل پیوست</label>
+      <input type="file" name="ticket-attachment" />
+    </div>
+    <div style="margin-top: 3vh; margin-right: 22vw;">
+      <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال تیکت" />
+      <a style="margin-right: 1vw;" class="button" title="بازگشت به صفحه قبل" href="/user-pannel/tickets"><span class="new-ticket-span">بازگشت</span></a>
+    </div>
+  </fieldset>
+</form>

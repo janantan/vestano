@@ -1037,7 +1037,7 @@ a.export {
 }
 
 #add-srch-prdct {
-    margin-top: 2.5vh;
+    margin-top: 1vh;
 }
 
 #add-srch-prdct input {
@@ -1113,6 +1113,73 @@ a.export {
   overflow: auto;
   border: 1px solid #e1e1e1;
   z-index: 1;
+}
+
+.new-ticket-fieldset {
+    height: 81vh;
+}
+
+.new-ticket-fieldset div {
+    margin-top: 1vh;
+}
+
+.new-ticket-fieldset span {
+    color: red;
+    font-size: 14px;
+}
+
+.new-ticket-span {
+    color: black !important;
+    font-size: 17px !important;
+}
+
+.new-ticket-fieldset select {
+    width: 11vw;
+}
+
+.new-ticket-fieldset textarea {
+    width: 40%;
+    height: 20%;
+    color: black;
+    font-size: 15px;
+    font-family: "B-Roya";
+}
+
+.show-ticket-fieldset {
+    height: 78vh;
+    font-family: 'B-Roya';
+    padding: 2vh 2vw;
+}
+
+.show-ticket-fieldset tbody {
+    height: 74vh !important;
+}
+
+.show-ticket-fieldset tbody td {
+    width: 80vw !important;
+    text-align: right !important;
+}
+
+.show-ticket-fieldset div {
+    margin-top: 2vh;
+}
+
+.show-ticket-fieldset p {
+    margin-right: 5vw;
+    text-align: justify;
+    width: 80%;
+    padding: 0 3vw;
+}
+
+.show-ticket-div-1 {
+    float: right;
+    font-weight: bold;
+    font-style: italic;
+}
+
+.show-ticket-div-2 {
+    margin-right: 5vw;
+    font-weight: bold;
 }
 
 body > footer span {

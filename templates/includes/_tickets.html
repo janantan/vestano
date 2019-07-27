@@ -1,0 +1,138 @@
+<div class="dropdown-content-inventory">
+	<input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
+</div>
+<div style="position: absolute; top: 9vh;">
+	<a class="button" style="margin:0;" href="/user-pannel/new-ticket"><span>تیکت جدید</span></a>
+	<a class="button" style="margin:0;" href=""><span>حذف تیکت</span></a>
+	<a class="button" style="margin:0;" href=""><span>پاسخ به تیکت</span></a>
+</div>
+<fieldset class="fieldset" style="margin-top: 5vh; height: 78vh;">
+	<legend>لیست تیکت ها:</legend>
+	<table id="inventory">
+		<thead>
+			<tr style="background: yellow;" class="first-row">
+				<th style="width: 4vw;">
+					<span>انتخاب</span>
+				</th>
+				<th>
+					<span>شماره تیکت</span>
+				</th>
+				<th>
+					<span>فرستنده</span>
+				</th>
+				<th class="vw14">
+					<span>عنوان</span>
+				</th>
+				<th>
+					<span>واحد مربوطه</span>
+				</th>
+				<th class="vw20">
+					<span>متن</span>
+				</th>
+				<th>
+					<span>تاریخ و زمان ارسال</span>
+				</th>
+				<th style="width: 1vw;"></th>
+			</tr>
+		</thead>
+		<tbody id="myDropdown" style="height: 72vh; font-family: 'B-Roya';">
+			{% for rec in tickets %}
+				<tr class="rows">
+					<td style="width: 4vw;">
+						<span>{{loop.index}}</span>
+					</td>
+					<td>
+						<a href="/user-pannel/show-ticket/{{rec['number']}}" title=""><span>{{rec['number']}}</span></a>
+					</td>
+					<td>
+						<a href="/user-pannel/show-ticket/{{rec['number']}}" title="{{rec['sender_username']}}"><span>{{rec['sender_name']}}</span></a>
+					</td>
+					<td class="vw14">
+						<a href="/user-pannel/show-ticket/{{rec['number']}}" title=""><span>{{rec['title']}}</span></a>
+					</td>
+					<td>
+						<a href="/user-pannel/show-ticket/{{rec['number']}}" title=""><span>{{rec['departement']}}</span></a>
+					</td>
+					<td class="vw20">
+						<a href="/user-pannel/show-ticket/{{rec['number']}}" title="{{rec['text']}}"><span>{{rec['text'][0:40]}}</span></a>
+					</td>
+					<td>
+						<a href="/user-pannel/show-ticket/{{rec['number']}}" title=""><span>{{rec['datetime']}}</span></a>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</fieldset>
+
+<script type="text/javascript">
+	function filter() {
+		var input, value, tr, div, i;
+		var sum=0; sum80=0; sum2=0; sum81=0; sum7=0; sum71=0; sum11=0; sum82=0; sum_other=0;
+		input = document.getElementById("myInput-inventory");
+		value = input.value.toUpperCase();
+		div = document.getElementById("myDropdown");
+		tr = div.getElementsByTagName("tr");
+		if (isNaN(value)) {
+			for (i = 0; i < (tr.length - 1); i++) {
+				span = tr[i].getElementsByTagName("span");
+				txtValue = span[1].textContent;
+				if (txtValue.toUpperCase().indexOf(value) > -1) {
+					tr[i].style.display = "";
+					sum = sum + parseInt(span[4].textContent);
+					sum80 = sum80 + parseInt(span[5].textContent);
+					sum2 = sum2 + parseInt(span[6].textContent);
+					sum81 = sum81 + parseInt(span[7].textContent);
+					sum7 = sum7 + parseInt(span[8].textContent);
+					sum71 = sum71 + parseInt(span[9].textContent);
+					sum11 = sum11 + parseInt(span[10].textContent);
+					sum82 = sum82 + parseInt(span[11].textContent);
+					sum_other = sum_other + parseInt(span[12].textContent);
+
+				} else {
+					tr[i].style.display = "none";
+				}
+				document.getElementById('count_sum').innerHTML = sum;
+				document.getElementById('count80').innerHTML = sum80;
+				document.getElementById('count2').innerHTML = sum2;
+				document.getElementById('count81').innerHTML = sum81;
+				document.getElementById('count7').innerHTML = sum7;
+				document.getElementById('count71').innerHTML = sum71;
+				document.getElementById('count11').innerHTML = sum11;
+				document.getElementById('count82').innerHTML = sum82;
+				document.getElementById('count_other').innerHTML = sum_other;
+				document.getElementById("sum").style.display = "";
+			}
+		} else {
+			for (i = 0; i < (tr.length - 1); i++) {
+				span = tr[i].getElementsByTagName("span");
+				txtValue = span[2].textContent;
+				if (txtValue.toUpperCase().indexOf(value) > -1) {
+					tr[i].style.display = "";
+					sum = sum + parseInt(span[4].textContent);
+					sum80 = sum80 + parseInt(span[5].textContent);
+					sum2 = sum2 + parseInt(span[6].textContent);
+					sum81 = sum81 + parseInt(span[7].textContent);
+					sum7 = sum7 + parseInt(span[8].textContent);
+					sum71 = sum71 + parseInt(span[9].textContent);
+					sum11 = sum11 + parseInt(span[10].textContent);
+					sum82 = sum82 + parseInt(span[11].textContent);
+					sum_other = sum_other + parseInt(span[12].textContent);
+
+				} else {
+					tr[i].style.display = "none";
+				}
+				document.getElementById('count_sum').innerHTML = sum;
+				document.getElementById('count80').innerHTML = sum80;
+				document.getElementById('count2').innerHTML = sum2;
+				document.getElementById('count81').innerHTML = sum81;
+				document.getElementById('count7').innerHTML = sum7;
+				document.getElementById('count71').innerHTML = sum71;
+				document.getElementById('count11').innerHTML = sum11;
+				document.getElementById('count82').innerHTML = sum82;
+				document.getElementById('count_other').innerHTML = sum_other;
+				document.getElementById("sum").style.display = "";
+			}
+		}
+	}
+</script>

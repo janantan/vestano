@@ -10,6 +10,7 @@ from cerberus import Validator
 from spyne.protocol.soap import Soap11
 from spyne.model.primitive import Unicode, Integer, String
 from spyne.model.complex import Array, Iterable, ComplexModel
+from werkzeug.utils import secure_filename
 import requests
 import random2
 import uuid
@@ -26,9 +27,14 @@ import utils, config
 #Config mongodb
 cursor = utils.config_mongodb()
 
+#ATTACHED_FILE_FOLDER = '/root/vestano/static/attachments/'
+ATTACHED_FILE_FOLDER = 'E:/projects/VESTANO/Vestano/static/attachments/'
+
 app = Flask(__name__)
 
 app.secret_key = 'secret@vestano@password_hash@840'
+
+app.config['ATTACHED_FILE_FOLDER'] = ATTACHED_FILE_FOLDER
 #app.config.update({
     #'RECAPTCHA_ENABLED': True,
     #'RECAPTCHA_SITE_KEY': '6Lc-0asUAAAAAMBA5mQR2Svai9uFEtNJe5gvu8_z',
@@ -271,7 +277,7 @@ def token_required(f):
             session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
             session['all_orders'] = cursor.orders.estimated_document_count()
         except:
-            return redirect(url_for('logout'))            
+            return redirect(url_for('token_logout'))            
 
         result = cursor.users.find_one({"user_id": data['user_id']})
         if result:
@@ -280,6 +286,7 @@ def token_required(f):
                 session['username'] = username
                 session['message'] = result['name']
                 session['role'] = result['role']
+                session['access'] = result['access']
                 session['jdatetime'] = jdatetime.datetime.today().strftime('%d / %m / %Y')
                 session['temp_orders'] = cursor.temp_orders.estimated_document_count()
                 session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
@@ -338,7 +345,11 @@ def login():
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60)},
                     app.secret_key)
                 token = TOKEN.decode('UTF-8')
-                return redirect(url_for('temp_orders'))
+                session['role'] = result['role']
+                if (session['role'] == 'office') or (session['role'] == 'admin'):
+                    return redirect(url_for('temp_orders'))
+                elif (session['role'] == 'vendor_admin'):
+                    return redirect(url_for('today_orders'))
             #else:
                 #flash(u'معتبر نیست!', 'danger')
             else:
@@ -356,6 +367,10 @@ def home():
 @app.route('/user-pannel/orderList', methods=['GET'])
 @token_required
 def temp_orders():
+    if ('processList' or 'caseProcessList') not in session['access']:
+        flash(u'شما مجوز لازم برای ورود به این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
     session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
     session['today_orders'] = cursor.today_orders.estimated_document_count()
@@ -372,6 +387,10 @@ def temp_orders():
 @app.route('/confirm-order/<code>', methods=['GET'])
 @token_required
 def confirm_orders(code):
+    if ('processList' or 'caseProcessList') not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     result = cursor.temp_orders.find_one({"orderId": code})
     if result:
         (sType, pType) = utils.typeOfServicesToCode(result['serviceType'], result['payType'])
@@ -380,24 +399,33 @@ def confirm_orders(code):
         count = 0
         weight = 0
         discount = 0
-        old_productId = ""
+        old_productId = []
+        index = []
         for i in range(len(result['products'])):
             if result['vendorName'] == u'سفارش موردی':
                 inv = cursor.case_inventory.find_one({'productId':result['products'][i]['productId']})
             else:
                 inv = cursor.vestano_inventory.find_one({'productId':result['products'][i]['productId']})
-                if (result['products'][i]['price'] != inv['price']) or (result['products'][i]['weight'] != inv['weight']):
+                #check if product price + vestano post wage is equal to inventory price or not?
+                #if not a new product should be define.
+                if ((result['products'][i]['price']+config.defaultWageForDefineStuff) != inv['price']) or (result['products'][i]['weight'] != inv['weight']) or (len(result['products'])>1):
                     record = {}
                     record['productName'] = inv['productName']
-                    record['price'] = result['products'][i]['price']
+                    if i > 0:
+                        record['price'] = result['products'][i]['price']
+                    else:
+                        record['price'] = result['products'][i]['price'] + config.defaultWageForDefineStuff
                     record['weight'] = result['products'][i]['weight']
                     record['count'] = result['products'][i]['count']
                     record['percentDiscount'] = result['products'][i]['percentDiscount']
                     record['description'] = inv['percentDiscount']
-                    old_productId = result['products'][i]['productId']
-                    index = i
+                    old_productId.append(result['products'][i]['productId'])
+                    index.append(i)
                     new_productId = str(utils.AddStuff(record))
                     result['products'][i]['productId'] = new_productId
+                else:
+                    old_productId.append("")
+                    index.append("")
 
             if (inv['count'] - result['products'][i]['count']) < 0:
                 flash(u'موجودی انبار کافی نیست!', 'error')
@@ -457,8 +485,10 @@ def confirm_orders(code):
             
             if not soap_result['ErrorCode']:
 
-                if old_productId:
-                    new_rec['products'][index]['productId'] = old_productId
+                if len(old_productId):
+                    for i in range(len(old_productId)):
+                        if old_productId[i]:
+                            new_rec['products'][index[i]]['productId'] = old_productId[i]
 
                 new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
                 new_rec['parcelCode'] = soap_result['ParcelCode']
@@ -573,6 +603,9 @@ def confirm_orders(code):
 @app.route('/user-pannel/ready-to-ship', methods=['GET'])
 @token_required
 def readyToShip_orders():
+    if 'rtsOrders' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
 
     return render_template('user_pannel.html',
         item='readyToShip',
@@ -584,6 +617,9 @@ def readyToShip_orders():
 @app.route('/user-pannel/today-orders', methods=['GET'])
 @token_required
 def today_orders():
+    if 'todayOrders' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
 
     return render_template('user_pannel.html',
         item='todayOrders',
@@ -595,6 +631,9 @@ def today_orders():
 @app.route('/user-pannel/pending-orders', methods=['GET'])
 @token_required
 def pending_orders():
+    if 'pndOrders' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
 
     return render_template('user_pannel.html',
         item='pendingOrders',
@@ -606,6 +645,9 @@ def pending_orders():
 @app.route('/user-pannel/all-orders', methods=['GET'])
 @token_required
 def all_orders():
+    if 'allOrders' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
 
     return render_template('user_pannel.html',
         item='allOrders',
@@ -617,6 +659,10 @@ def all_orders():
 @app.route('/finish-process/<orderId>', methods=['GET'])
 @token_required
 def finish_process(orderId):
+    if ('processList' or 'caseProcessList') not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     new_rec = cursor.ready_to_ship.find_one({'orderId': orderId})
     this_status = utils.GetStatus_one(cursor, new_rec['parcelCode'])
     if this_status != 2:
@@ -659,6 +705,9 @@ def finish_process(orderId):
 @app.route('/user-pannel/canceled-orders', methods=['GET'])
 @token_required
 def canceled_orders():
+    if 'cnlOrders' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
 
     return render_template('user_pannel.html',
         item='cnlOrders',
@@ -670,6 +719,10 @@ def canceled_orders():
 @app.route('/cancel-order/<orderId>', methods=['GET'])
 @token_required
 def cancel_orders(orderId):
+    if ('processList' or 'caseProcessList') not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     rec = cursor.temp_orders.find_one({'orderId': orderId})
     cursor.today_orders.update_many(
         {'orderId': orderId},
@@ -702,6 +755,10 @@ def cancel_orders(orderId):
 @app.route('/pending-order/<orderId>', methods=['GET'])
 @token_required
 def pending_order(orderId):
+    if ('processList' or 'caseProcessList') not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     rec = cursor.temp_orders.find_one({'orderId': orderId})
     rec['status'] = 82
     cursor.today_orders.update_many(
@@ -733,6 +790,10 @@ def pending_order(orderId):
 @app.route('/delete-order/<orderId>', methods=['GET'])
 @token_required
 def delete_order(orderId):
+    if ('processList' or 'caseProcessList') not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     rec = cursor.canceled_orders.find_one({'orderId': orderId})
     for i in range(len(rec['products'])):
         if rec['vendorName'] == u'سفارش موردی':
@@ -758,6 +819,10 @@ def delete_order(orderId):
 @app.route('/return-order/<orderId>', methods=['GET'])
 @token_required
 def return_order(orderId):
+    if ('processList' or 'caseProcessList') not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     rec = cursor.pending_orders.find_one({'orderId': orderId})
     cursor.today_orders.remove({'orderId': orderId})
     rec['status'] = 80
@@ -789,6 +854,10 @@ def return_order(orderId):
 @app.route('/edit-order/<orderId>', methods=['GET', 'POST'])
 @token_required
 def edit_orders(orderId):
+    if ('Ordering' or 'caseOrdering') not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     edit_result = cursor.canceled_orders.find_one({'orderId': orderId})
     state_result = cursor.states.find_one({'Code': edit_result['stateCode']})
     stateName = state_result['Name']
@@ -960,6 +1029,10 @@ def edit_orders(orderId):
 @app.route('/user-pannel/<item>', methods=['GET', 'POST'])
 @token_required
 def ordering(item):
+    if 'Ordering' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     if 'username' in session:
         ordered_products = []
         username = session['username']
@@ -1017,6 +1090,10 @@ def ordering(item):
 @app.route('/user-pannel/case-orders', methods=['GET', 'POST'])
 @token_required
 def case_orders():
+    if 'caseOrdering' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     if 'username' in session:
         ordered_products = []
         username = session['username']
@@ -1169,7 +1246,7 @@ def inventory_management(sub_item):
         elif sub_item == 'new':
             record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             record['productName'] = request.form.get('productName')
-            record['price'] = int(request.form.get('price'))
+            record['price'] = int(request.form.get('price')) + config.defaultWageForDefineStuff
             record['weight'] = int(request.form.get('weight'))
             record['count'] = int(request.form.get('count'))
             if request.form.get('percentDiscount'):
@@ -1229,7 +1306,7 @@ def inventory_management(sub_item):
                 {'$set':{
                 'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
                 'productName': request.form.get('productName'),
-                'price': int(request.form.get('price')),
+                'price': int(request.form.get('price')) + config.defaultWageForDefineStuff,
                 'percentDiscount': int(request.form.get('percentDiscount')),
                 'weight': int(request.form.get('weight')),
                 'vendor': request.form.get('vendor')
@@ -1239,14 +1316,14 @@ def inventory_management(sub_item):
             edit_result = utils.editStuff(
                 request.form.get('product'),
                 int(request.form.get('weight')),
-                int(request.form.get('price'))
+                int(request.form.get('price')) + config.defaultWageForDefineStuff
                 )
             flash(u'ثبت شد!', 'success')
 
         elif sub_item == 'pack':
             record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             record['productName'] = request.form.get('packName')
-            record['price'] = int(request.form.get('price'))
+            record['price'] = int(request.form.get('price')) + config.defaultWageForDefineStuff
             #record['weight'] = int(request.form.get('weight'))
             record['count'] = int(request.form.get('count'))
             if request.form.get('percentDiscount'):
@@ -1323,6 +1400,9 @@ def inventory_management(sub_item):
 @app.route('/user-pannel/inventory', methods=['GET', 'POST'])
 @token_required
 def inventory():
+    if 'inventory' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
 
     return render_template('user_pannel.html',
         item="inventory",
@@ -1355,6 +1435,64 @@ def accounting():
         accounting = utils.accounting(cursor)
         )
 
+@app.route('/user-pannel/tickets', methods=['GET'])
+@token_required
+def tickets():
+
+    return render_template('user_pannel.html',
+        item="tickets",
+        tickets = utils.tickets(cursor)
+        )
+
+@app.route('/user-pannel/new-ticket', methods=['GET', 'POST'])
+@token_required
+def new_ticket():
+    if request.method == 'POST':
+        record = {'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
+        record['departement'] = request.form.get('ticket-departement')
+        record['title'] = request.form.get('ticket-title')
+        record['sender_name'] = request.form.get('ticket-sender-name')
+        record['sender_phone'] = request.form.get('ticket-sender-phone')
+        record['text'] = request.form.get('ticket-text')
+        record['number'] = 'VES-T-' + str(random2.randint(10000000, 99999999))
+        record['ref_ticket'] = ''
+        record['sender_username'] = session['username']
+        record['vendor'] = ''
+
+        file = request.files['ticket-attachment']
+        if file:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['ATTACHED_FILE_FOLDER'], filename))
+            file_type  = filename.rsplit('.', 1)[1].lower()
+            directory = app.config['ATTACHED_FILE_FOLDER']
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            os.rename(directory + filename,
+                directory + record['number'] +'.'+ file_type)
+
+            record['attch_path'] = directory + record['number'] +'.'+ file_type
+        else:
+            record['attch_path'] = ''
+
+        flash(u'تیکت با موفقیت ارسال شد. شماره ارجاع: '+record['number'], 'success')
+
+        cursor.tickets.insert_one(record)
+
+
+    return render_template('user_pannel.html',
+        item="newTicket"
+        )
+
+@app.route('/user-pannel/show-ticket/<ticket_num>', methods=['GET'])
+@token_required
+def show_ticket(ticket_num):
+
+    return render_template('user_pannel.html',
+        item = "showTicket",
+        ticket_num = ticket_num,
+        ticket_details = utils.ticket_details(cursor, ticket_num)
+        )
+
 @app.route('/about')
 def about():
 
@@ -1363,7 +1501,7 @@ def about():
 @app.route('/register', methods=['GET', 'POST'])
 @token_required
 def register():
-    if 'admin' in session['role']:
+    if (session['role'] == 'admin') or (session['role'] == 'vendor_admin'):
         if request.method == 'POST':
             users = {'created_date': datetime.datetime.now()}
             users['name'] = request.form.get('name')
@@ -1408,6 +1546,10 @@ def register():
 @app.route('/change-password', methods=['GET', 'POST'])
 @token_required
 def change_password():
+    if 'username' not in session:
+        flash(u'دسترسی لازم را ندارید!', 'danger')
+        return redirect(request.referrer)
+
     if request.method == 'POST':
         current_pass = request.form.get('current_pass')
         new_pass = request.form.get('password')
@@ -1441,8 +1583,23 @@ def logout():
     session.pop('today_orders', None)
     session.pop('all_orders', None)
     session.pop('role', None)
+    session.pop('access', None)
     session.pop('jdatetime', None)
     return redirect(url_for('home'))
+
+@app.route('/token-logout')
+def token_logout():
+    # remove the username from the session if it's there
+    session.pop('username', None)
+    session.pop('message', None)
+    session.pop('temp_orders', None)
+    session.pop('canceled_orders', None)
+    session.pop('today_orders', None)
+    session.pop('all_orders', None)
+    session.pop('role', None)
+    session.pop('access', None)
+    session.pop('jdatetime', None)
+    return redirect(url_for('login'))
 
 @app.route('/ajax', methods=['GET'])
 def ajax():

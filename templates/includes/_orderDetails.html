@@ -8,7 +8,7 @@
         <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
     </head>
     <body class="card" style="direction: rtl; margin: 0 auto;">
-    	<fieldset class="fieldset" style="background-color: #bcd1fe">
+    	<fieldset class="fieldset" style="background-color: #bcd1fe; height: 80vh;">
     		<div>
     			<span style="font-weight: bold;">اطلاعات سفارش</span>
     		</div>
@@ -333,7 +333,7 @@
 					} else if (url.includes('delete-order')) {
 						opener.location.href = '/user-pannel/canceled-orders';
 						close();
-					} else if (url.includes('pending-order')) {
+					} else if (url.includes('return-order')) {
 						opener.location.href = '/user-pannel/pending-orders';
 						close();
 					} else {

@@ -20,8 +20,8 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
-#VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
+#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
 
@@ -568,11 +568,44 @@ def Products(cursor, product):
     'productId': product,
     'count': result['count'],
     'vendor': result['vendor'],
-    'price': result['price'],
+    'price': result['price'] - config.defaultWageForDefineStuff,
     'weight': result['weight'],
     'discount': result['percentDiscount']
     }
     return ans
+
+def tickets_departements(departement):
+    if departement == 'management':
+        dep = u'مدیریت' 
+    elif departement == 'orders':
+        dep = u'سفارشات' 
+    elif departement == 'inventory':
+        dep = u'انبارداری' 
+    elif departement == 'accounting':
+        dep = u'حسابداری' 
+    elif departement == 'technical':
+        dep = u'فنی' 
+    return dep
+
+def tickets(cursor):
+    result = cursor.tickets.find()
+    tickets = []
+    for rec in result:
+        rec['departement'] = tickets_departements(rec['departement'])
+        tickets.append(rec)
+    return tickets
+
+def ticket_details(cursor, ticket_num):
+    tickets_list = []
+    while True:
+        result = cursor.tickets.find_one({'number': ticket_num})
+        result['departement'] = tickets_departements(result['departement'])
+        tickets_list.append(result)
+        if result['ref_ticket']:
+            ticket_num = result['ref_ticket']
+        else:
+            break
+    return tickets_list
 
 def GetCities(stateId):
     client = Client(API_URI)

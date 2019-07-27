@@ -1,3 +1,4 @@
+defaultWageForDefineStuff = 100000
 wage = 110000
 registerCost = 4360
 to10 = 20000

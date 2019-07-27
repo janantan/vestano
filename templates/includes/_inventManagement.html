@@ -152,7 +152,7 @@
       <form method="POST" action="">
         <div class="mrg-vh1">
           <label>کالای مورد نظر را انتخاب کنید:</label>
-          <select id="product" name="product" onchange="product3('product')" required>
+          <select id="product" name="product" onchange="product4('product')" required>
             <option value="" disabled selected>(انخاب کنید)</option>
             {% for item in inventory %}
               <option value="{{item[1]}}">{{item[0]}}</option>
@@ -312,14 +312,14 @@
         <label>نام کالا را وارد کنید:</label>
         <div class="dropdown mrg-vh4">
           <!--<button onclick="search()" class="dropbtn">جستجو</button>-->
-          <div id="myDropdown" class="dropdown-content">
-            <input type="text" placeholder="جستجو .." id="myInput" onclick="show()" onkeyup="filter()" size="28">
+          <div id="myDropdown" class="dropdown-content" style="max-height: none;">
+            <input type="text" placeholder="جستجو .." id="myInput" autocomplete="off" onclick="show()" onkeyup="filter()" size="30" style="width: 15vw;">
             <table id="inventory" style="display: none;">
               <tbody style="height: 45vh; width: 15vw;">
                 {% for item in inventory %}
                   <tr>
-                    <td>
-                      <a href="#" onclick="searchFunction('{{item[1]}}')">{{item[0]}}</a>
+                    <td style="width: unset;">
+                      <a href="#" style="width: unset;" onclick="searchFunction('{{item[1]}}')">{{item[0]}}</a>
                     </td>
                   </tr>
                 {% endfor %}
@@ -458,6 +458,37 @@
   }
 
   function product3(id_name) {
+    var product_name = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+
+            document.getElementById('features').style.display = 'block';
+
+            document.getElementById('delete-button').href = "/delete-stuff/"+json.productId
+            document.getElementById('productName').value = json.productName
+            document.getElementById('p_Id').value = json.productId
+            document.getElementById('vendor').value = json.vendor
+            document.getElementById('price').value = json.price
+            document.getElementById('weight').value = json.weight
+            document.getElementById('exist_count').value = json.count
+            document.getElementById('percentDiscount').value = json.discount
+
+            if (json.vendor != 'سفارش موردی') {
+              document.getElementById('exist_count').disabled = true;
+            } else {
+              document.getElementById('exist_count').disabled = false;
+            }
+       }
+    }
+    xhr.open('GET', '/case-ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
+  function product4(id_name) {
     var product_name = document.getElementById(id_name).value;
 
     const xhr = new XMLHttpRequest();
