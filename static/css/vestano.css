@@ -740,6 +740,10 @@ a.export {
 .navbar-link.register {background-image: url(/static/img/icon/register.png);}
 .navbar-link.xls {background-image: url(/static/img/icon/xls.png);}
 
+.navbar-link.reply {background-image: url(/static/img/icon/reply.png);}
+.navbar-link.forward {background-image: url(/static/img/icon/forward.png);}
+.navbar-link.back {background-image: url(/static/img/icon/back.png);}
+
 .navbar-link.invent-search {background-image: url(/static/img/icon/invent-search.png);}
 .navbar-link.fp-search {background-image: url(/static/img/icon/fp-search.png);}
 
@@ -1165,21 +1169,110 @@ a.export {
 }
 
 .show-ticket-fieldset p {
-    margin-right: 5vw;
     text-align: justify;
-    width: 80%;
     padding: 0 3vw;
 }
 
 .show-ticket-div-1 {
     float: right;
     font-weight: bold;
-    font-style: italic;
+    color: red;
 }
 
 .show-ticket-div-2 {
-    margin-right: 5vw;
+    margin-right: 5.5vw;
     font-weight: bold;
+    color: rgba(21,76,122);
+}
+
+.show-ticket-fieldset textarea {
+    width: 100%;
+    height: 40%;
+    padding: 1vw;
+    color: black;
+    font-size: 15px;
+    font-family: "B-Roya";
+}
+
+tr.border-bottom td {
+  border-bottom:1px solid #eaeaea;
+}
+
+tr#rows:hover {
+    background-color: #daebef;
+    cursor: pointer;
+}
+
+#delete { 
+    background:url(/static/img/icon/delete.png) center top; 
+    width:16px;
+    height:16px;
+    display: block;
+    float: left;
+    margin: 0 1vw 0 2vw;
+}
+
+#reply {
+    background:url(/static/img/icon/reply.png) center top; 
+    width:16px;
+    height:16px;
+    display: block;
+    float: left;
+    margin: 0 1vw;
+}
+
+#inbox {
+    background:url(/static/img/icon/inbox.png) center top; 
+    width:26px;
+    height:26px;
+    display: block;
+    float: right;
+    margin: 1.5vh 1vw 0 1vw;
+}
+
+#outbox {
+    background:url(/static/img/icon/outbox.png) center top; 
+    width:26px;
+    height:26px;
+    display: block;
+    float: right;
+    margin: 1vh 1vw;
+}
+
+#new {
+    background:url(/static/img/icon/new.png) center top; 
+    width:26px;
+    height:26px;
+    display: block;
+    float: right;
+    margin: 1vh 1vw;
+}
+
+#back {
+    background:url(/static/img/icon/back.png) center top; 
+    width:20px;
+    height:20px;
+    display: block;
+    float: left;
+    margin: 4vh 1vw;
+}
+
+#forward {
+    background:url(/static/img/icon/forward.png) center top; 
+    width:20px;
+    height:20px;
+    display: block;
+    float: left;
+    margin: 4vh 1vw;
+}
+
+#reply2 {
+    background:url(/static/img/icon/reply2.png) center top; 
+    width:20px;
+    height:20px;
+    display: block;
+    float: left;
+    margin: 4vh 1vw;
 }
 
 body > footer span {

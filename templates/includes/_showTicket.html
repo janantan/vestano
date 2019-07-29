@@ -1,54 +1,127 @@
-<div style="position: absolute; top: 9vh;">
-	<a class="button" style="margin:0;" title="بازگشت به صفحه قبل" href="/user-pannel/tickets"><span>بازگشت</span></a>
-	<a class="button" style="margin:0;" title="پاسخ به تیکت"><span>پاسخ</span></a>
-	<a class="button" style="margin:0;" title="ارجاع تیکت"><span>ارجاع</span></a>
+<div>
+	<div style="position: absolute; top: 9vh;">
+		{% if session['role']!='vendor_admin' %}
+			<a title="تیکت های دریافتی" href="/user-pannel/tickets"><span id="inbox"></span></a>
+			<a title="تیکت های ارسالی" href=""><span id="outbox"></span></a>
+		{% else %}
+			<a title="تیکت های دریافتی"><span id="inbox"></span></a>
+			<a title="تیکت های ارسالی" href="/user-pannel/tickets"><span id="outbox"></span></a>
+		{% endif %}
+		<a title="ایجاد تیکت جدید" href="/user-pannel/new-ticket"><span id="new"></span></a>
+	</div>
+	<div style="position: absolute; top: 9vh; left: 5vw;">
+		<a title="بازگشت به صفحه قبل" href="/user-pannel/tickets"><span id="back"></span></a>
+		{% if session['role']!='vendor_admin' %}
+			<a href="" title="پاسخ به تیکت"><span id="reply2"></span></a>
+			<a href="" title="ارجاع تیکت"><span id="forward"></span></a>
+		{% else %}
+			<a title="پاسخ به تیکت"><span id="reply2"></span></a>
+			<a title="ارجاع تیکت"><span id="forward"></span></a>
+		{% endif %}
+	</div>	
 </div>
-<fieldset class="fieldset show-ticket-fieldset" style="margin-top: 5vh;">
+<fieldset class="fieldset show-ticket-fieldset" style="height: 77vh; margin-top: 5vh;">
 	<legend>تیکت شماره {{ticket_num[6:]}} :</legend>
 	<table id="inventory">
 		<thead></thead>
 		<tbody>
-			{% for rec in ticket_details %}
+			<tr>
+				<td style="border-bottom: 1px solid gray; margin-top: 2vw;">
+					<div>
+						<div style="float: right; width: 30%;">
+							<fieldset style="border: none; padding: 1vh 2vw;">
+								<div class="show-ticket-div-1" style="">
+									<span>فرستنده:</span>
+								</div>
+								<div class="show-ticket-div-2">
+									<a style="color: rgba(21,76,122);" title="شماره تماس: {{ticket_details['sender_phone']}}"><span>{{ticket_details['sender_name']}} </span></a><span style="color: rgb(162,180,194);">({{ticket_details['sender_username']}})</span>
+								</div>
+								<div class="show-ticket-div-1">
+									<span>گیرنده:</span>
+								</div>
+								<div class="show-ticket-div-2">
+									<span>واحد {{ticket_details['departement']}}</span>
+								</div>
+								<div class="show-ticket-div-1">
+									<span>موضوع:</span>
+								</div>
+								<div class="show-ticket-div-2">
+									<span>{{ticket_details['title']}}</span>
+								</div>
+								<div class="show-ticket-div-1">
+									<span>تاریخ ایجاد:</span>
+								</div>
+								<div class="show-ticket-div-2">
+									<span>{{ticket_details['datetime']}}</span>
+								</div>
+								<div class="show-ticket-div-1">
+									<span>فایل پیوست:</span>
+								</div>
+								{% if ticket_details['attch_path'] %}
+									<div class="show-ticket-div-2">
+										<a style="color: blue;" href="http://localhost:5000/{{ticket_details['attch_path'][28:]}}"><span>دانلود</span></a>
+									</div>
+								{% else %}
+									<div class="show-ticket-div-2">
+										<span>ندارد</span>
+									</div>
+								{% endif %}
+							</fieldset>
+						</div>
+						<div style="float: right; width: 70%;">
+							<fieldset style="border: none; background: #fafafa; padding: 1vh 2vw; min-height: 23vh;">
+								{% for line in ticket_details['text'] %}
+									<p>
+										{{line}}
+									</p>
+								{% endfor %}
+							</fieldset>
+						</div>
+					</div>
+				</td>
+			</tr>
+			{% for i in range(ticket_details['reply']['sender']|length) %}
 				<tr>
 					<td>
-						<div class="show-ticket-div-1">
-							<span>از:</span>
-						</div>
-						<div class="show-ticket-div-2">
-							<a title="شماره تماس: {{rec['sender_phone']}}"><span>{{rec['sender_name']}} </span></a><span style="color: gray;">({{rec['sender_username']}})</span>
-						</div>
-						<div class="show-ticket-div-1">
-							<span>به:</span>
-						</div>
-						<div class="show-ticket-div-2">
-							<span>{{rec['departement']}}</span>
-						</div>
-						<div class="show-ticket-div-1">
-							<span>موضوع:</span>
-						</div>
-						<div class="show-ticket-div-2">
-							<span>{{rec['title']}}</span>
-						</div>
-						{% if rec['attch_path'] %}
-							<div class="show-ticket-div-1">
-								<span>فایل پیوست:</span>
-							</div>
-							<div class="show-ticket-div-2">
-								<a style="color: blue;" href="{{rec['attch_path'][28:]}}"><span>دانلود</span></a>
-							</div>
-						{% endif %}
-						<div class="show-ticket-div-1">
-							<span>متن تیکت:</span>
-						</div>
 						<div>
-							<p>
-								{{rec['text']}}
-							</p>
+							<span>{{ticket_details['reply']['sender'][i]['name']}}</span>
+							<span style="color: rgb(162,180,194);">({{ticket_details['reply']['sender'][i]['username']}})</span>:
+							<span style="float: left;">{{ticket_details['reply']['datetime'][i]}}</span>
 						</div>
-						<hr>
+						<div  style="margin-top: 0;">
+							{% if ticket_details['reply']['sender'][i]['name'] == 'پشتیبانی' %}
+								<fieldset style="border: none; background: rgb(214, 254, 208); padding: 1vh 2vw;">
+									{% for line in ticket_details['reply']['text'][i] %}
+										<p>
+											{{line}}
+										</p>
+									{% endfor %}
+								</fieldset>
+							{% else %}
+								<fieldset style="border: none; background: #f8e8dd; padding: 1vh 2vw;">
+									{% for line in ticket_details['reply']['text'][i] %}
+										<p>
+											{{line}}
+										</p>
+									{% endfor %}
+								</fieldset>
+							{% endif %}
+						</div>
 					</td>
 				</tr>
 			{% endfor %}
+			<tr>
+				<td>
+					<form method="POST" action="">
+						<div>
+							<textarea id="ticket-reply" name="ticket-reply" placeholder="لطفا پاسخ خود را بنویسید"></textarea>
+						</div>
+						<div>
+							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال پاسخ" />
+						</div>
+					</form>
+				</td>
+			</tr>
 		</tbody>
 	</table>
 </fieldset>

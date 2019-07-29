@@ -364,12 +364,35 @@ def details(cursor, orderId, code):
             i += 1
 
     (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
-    if 'parcelCode' in r.keys():
-        parcelCode = r['parcelCode']
-        deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price, weight, sType, pType)
-        deliveryPrice = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
+
+    parcelCode = r['parcelCode']
+
+    if 'costs' in r.keys():
+        #deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price, weight, sType, pType)
+        #deliveryPrice = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
+        deliveryPrice = r['costs']['PostDeliveryPrice'] + r['costs']['VatTax']
     else:
-        parcelCode = "-"
+        if 'temp_delivery_costs' in r.keys():
+            deliveryPrice = r['temp_delivery_costs']
+        else:
+            deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price, weight, sType, pType)
+            deliveryPrice = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
+            if code == 'temp':
+                cursor.temp_orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'temp_delivery_costs': deliveryPrice}})
+            elif code == 'today':
+                cursor.today_orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'temp_delivery_costs': deliveryPrice}})
+            elif code == 'cnl':
+                cursor.canceled_orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'temp_delivery_costs': deliveryPrice}})
+            elif code == 'pnd':
+                cursor.pending_orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'temp_delivery_costs': deliveryPrice}})
 
     if r['vendorName'] == u'سفارش موردی':
         case_ord_res = cursor.case_orders.find_one({'orderId': orderId})
@@ -587,8 +610,11 @@ def tickets_departements(departement):
         dep = u'فنی' 
     return dep
 
-def tickets(cursor):
-    result = cursor.tickets.find()
+def tickets(cursor, role, session_username):
+    if role == 'vendor_admin':
+        result = cursor.tickets.find({'sender_username': session_username})
+    else:
+        result = cursor.tickets.find()
     tickets = []
     for rec in result:
         rec['departement'] = tickets_departements(rec['departement'])
@@ -596,16 +622,9 @@ def tickets(cursor):
     return tickets
 
 def ticket_details(cursor, ticket_num):
-    tickets_list = []
-    while True:
-        result = cursor.tickets.find_one({'number': ticket_num})
-        result['departement'] = tickets_departements(result['departement'])
-        tickets_list.append(result)
-        if result['ref_ticket']:
-            ticket_num = result['ref_ticket']
-        else:
-            break
-    return tickets_list
+    result = cursor.tickets.find_one({'number': ticket_num})
+    result['departement'] = tickets_departements(result['departement'])
+    return result
 
 def GetCities(stateId):
     client = Client(API_URI)

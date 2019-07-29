@@ -21,14 +21,15 @@ import jwt
 import datetime
 import jdatetime
 import pdfkit
+import copy
 import json
 import utils, config
 
 #Config mongodb
 cursor = utils.config_mongodb()
 
-#ATTACHED_FILE_FOLDER = '/root/vestano/static/attachments/'
-ATTACHED_FILE_FOLDER = 'E:/projects/VESTANO/Vestano/static/attachments/'
+ATTACHED_FILE_FOLDER = '/root/vestano/static/attachments/'
+#ATTACHED_FILE_FOLDER = 'E:/projects/VESTANO/Vestano/static/attachments/'
 
 app = Flask(__name__)
 
@@ -276,6 +277,7 @@ def token_required(f):
             session['pending_orders'] = cursor.pending_orders.estimated_document_count()
             session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
             session['all_orders'] = cursor.orders.estimated_document_count()
+            #session['unread_tickets'] = cursor.tickets.find({'read': False}).count()
         except:
             return redirect(url_for('token_logout'))            
 
@@ -291,6 +293,10 @@ def token_required(f):
                 session['temp_orders'] = cursor.temp_orders.estimated_document_count()
                 session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
                 session['today_orders'] = cursor.today_orders.estimated_document_count()
+                if session['role'] == 'vendor_admin':
+                    session['unread_tickets'] = cursor.tickets.find({'read': False}).count()
+                else:
+                    session['unread_tickets'] = cursor.tickets.find({'sender_reply': True}).count()
                 flash(result['name'] + u' عزیز خوش آمدید', 'success-login')
         
         else:
@@ -394,13 +400,20 @@ def confirm_orders(code):
     result = cursor.temp_orders.find_one({"orderId": code})
     if result:
         (sType, pType) = utils.typeOfServicesToCode(result['serviceType'], result['payType'])
-        new_rec = result
+        new_rec = copy.deepcopy(result)
         price = 0
         count = 0
         weight = 0
         discount = 0
         old_productId = []
         index = []
+        if result['products'][0]['count'] > 1:
+            new_list = copy.deepcopy(result['products'][0])
+            new_count = new_list['count'] - 1
+            result['products'][0]['count'] = 1
+            result['products'].append(new_list)
+            result['products'][-1]['count'] = new_count
+
         for i in range(len(result['products'])):
             if result['vendorName'] == u'سفارش موردی':
                 inv = cursor.case_inventory.find_one({'productId':result['products'][i]['productId']})
@@ -414,6 +427,7 @@ def confirm_orders(code):
                     if i > 0:
                         record['price'] = result['products'][i]['price']
                     else:
+                        #if result['products'][i]['count'] > 1:
                         record['price'] = result['products'][i]['price'] + config.defaultWageForDefineStuff
                     record['weight'] = result['products'][i]['weight']
                     record['count'] = result['products'][i]['count']
@@ -484,11 +498,6 @@ def confirm_orders(code):
 
             
             if not soap_result['ErrorCode']:
-
-                if len(old_productId):
-                    for i in range(len(old_productId)):
-                        if old_productId[i]:
-                            new_rec['products'][index[i]]['productId'] = old_productId[i]
 
                 new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
                 new_rec['parcelCode'] = soap_result['ParcelCode']
@@ -1441,7 +1450,7 @@ def tickets():
 
     return render_template('user_pannel.html',
         item="tickets",
-        tickets = utils.tickets(cursor)
+        tickets = utils.tickets(cursor, session['role'], session['username'])
         )
 
 @app.route('/user-pannel/new-ticket', methods=['GET', 'POST'])
@@ -1453,11 +1462,15 @@ def new_ticket():
         record['title'] = request.form.get('ticket-title')
         record['sender_name'] = request.form.get('ticket-sender-name')
         record['sender_phone'] = request.form.get('ticket-sender-phone')
-        record['text'] = request.form.get('ticket-text')
+        record['text'] = request.form.get('ticket-text').split("\n")
         record['number'] = 'VES-T-' + str(random2.randint(10000000, 99999999))
         record['ref_ticket'] = ''
         record['sender_username'] = session['username']
         record['vendor'] = ''
+        record['reply'] = {'sender':[], 'text':[], 'datetime':[]}
+        record['read'] = False
+        record['support_reply'] = False
+        record['sender_reply'] = True
 
         file = request.files['ticket-attachment']
         if file:
@@ -1483,9 +1496,44 @@ def new_ticket():
         item="newTicket"
         )
 
-@app.route('/user-pannel/show-ticket/<ticket_num>', methods=['GET'])
+@app.route('/user-pannel/show-ticket/<ticket_num>', methods=['GET', 'POST'])
 @token_required
 def show_ticket(ticket_num):
+    result = cursor.tickets.find_one({'number':ticket_num})
+    if session['role'] == 'vendor_admin':
+        cursor.tickets.update_many(
+            {"number": ticket_num},
+            {'$set': {'read': True}})
+
+    if request.method == 'POST':
+        if not request.form.get('ticket-reply'):
+            flash(u'فیلد پاسخ خالی است!', 'danger')
+            return redirect(request.referrer)
+
+        if session['role'] == 'vendor_admin':
+            user_result = cursor.users.find_one({'username':session['username']})
+            result['reply']['sender'].append({'name': user_result['name'], 'username': session['username']})
+            support_reply = False
+            sender_reply = True
+            read = True
+        else:
+            result['reply']['sender'].append({'name': u'پشتیبانی', 'username': session['username']})
+            support_reply = True
+            sender_reply = False
+            read = False
+
+        result['reply']['text'].append(request.form.get('ticket-reply').split("\n"))
+        result['reply']['datetime'].append(jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'))
+        cursor.tickets.update_many(
+        {"number": ticket_num},
+        {'$set': {
+        'reply': result['reply'],
+        'read': read,
+        'support_reply': support_reply,
+        'sender_reply': sender_reply
+        }})
+        flash(u'پاسخ تیکت با موفقیت ارسال شد.', 'success')
+        return redirect(request.referrer)
 
     return render_template('user_pannel.html',
         item = "showTicket",
@@ -1585,6 +1633,7 @@ def logout():
     session.pop('role', None)
     session.pop('access', None)
     session.pop('jdatetime', None)
+    session.pop('unread_tickets', None)
     return redirect(url_for('home'))
 
 @app.route('/token-logout')
@@ -1599,6 +1648,7 @@ def token_logout():
     session.pop('role', None)
     session.pop('access', None)
     session.pop('jdatetime', None)
+    session.pop('unread_tickets', None)
     return redirect(url_for('login'))
 
 @app.route('/ajax', methods=['GET'])
