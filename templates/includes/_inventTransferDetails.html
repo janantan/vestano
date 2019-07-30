@@ -1,0 +1,609 @@
+<fieldset class="fieldset transfer-fieldset" style="background: #fafafa; margin-top: 1vh; height: 82vh;">
+  <legend>حواله شماره {{number[6:]}}:</legend>
+  <div style="margin-bottom: 2vh;">
+    <span class="font14" style="font-weight: bold;">
+      *حواله درخواستی " {{transfer_details['transfer_req_type']}} " و به شرح زیر است:
+    </span>
+  </div>
+  {% if sub_item == 'new' %}
+    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 70vh;">
+      <form method="POST" action="">
+        <div>
+          <label>نام کالا</label>
+          <input id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" required />
+        </div>
+        <table class="pack-tbl">
+          <tbody style="height: 30vh;">
+            <tr>
+              <td>
+                <label style="margin-right: 0;">شرکت فروشنده</label>
+                <select style="margin-right: 0;" id="vendor" name="vendor" style="width: 8vw; padding-right: 1vw; margin-top: 1vh;" required>
+                  <option value="{{transfer_details['vendor']}}">{{transfer_details['vendor']}}</option>
+                  <option value="روژیاپ">روژیاپ</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label style="margin-right: 0;">قیمت (ریال)</label>
+                <input style="margin-right: 0;" id="price" type="number" name="price" value="{{transfer_details['price']}}" placeholder="قیمت (ریال) (ریال)" required />
+              </td>
+              <td>
+                <label>وزن (گرم)</label>
+                <input id="weight" type="number" name="weight" value="{{transfer_details['weight']}}" placeholder="وزن (گرم) (گرم)" required />
+              </td>
+              <td>
+                <label>تعداد</label>
+                <input id="count" type="number" name="count" value="{{transfer_details['count']}}" placeholder="تعداد موجودی (عدد)" required />
+              </td>
+              <td>
+                <label>درصد تخفیف</label>
+                <input id="percentDiscount" type="number" value="{{transfer_details['percentDiscount']}}" name="percentDiscount" placeholder="درصد تحفیف (%)"  />
+              </td>
+              <td>
+                <label>روش ارسال به انبار</label>
+                <select id="shipment" name="shipment" required>
+                  <option value="{{transfer_details['shipment']}}" selected>{{transfer_details['shipment']}}</option>
+                  <option value="زمینی با خودرو وستانو">زمینی با خودرو وستانو</option>
+                  <option value="زمینی با خودرو فروشگاه">زمینی با خودرو فروشگاه</option>
+                  <option value="کشتی">کشتی</option>
+                  <option value="هواپیما">هواپیما</option>
+                </select>
+              </td>
+              <td>
+                <label for="pcal1">زمان ارسال به انبار</label>
+                <input type="text" id="pcal1" class="pdate" value="{{transfer_details['shipment_date']}}" name="shipment_date" required>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="mrg-vh4">
+          <label>توضیحات کالا</label>
+          <textarea id="descriptionTD" name="description" placeholder="">{{transfer_details['description']}}</textarea>
+        </div>
+        {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
+          <div class="mrg-vh8">
+            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse-reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+          </div>
+        {% endif %}
+          
+        {% if session['role'] == 'admin' %}
+          <div class="mrg-vh4">
+            <a style="margin-left: 3vw;" class="button" href="/inventory-transfer-accept/{{number}}"><span>تایید درخواست</span></a>
+            <a class="button" href="/inventory-transfer-refuse/{{number}}"><span>رد درخواست</span></a>
+          </div>
+        {% elif session['role'] == 'vendor_admin' %}
+          <div class="mrg-vh4">
+            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش حواله" />
+          </div>
+        {% endif %}
+      </form>
+    </fieldset>
+  {% elif sub_item == 'inc' %}
+    <fieldset class="fieldset mrg-vh2" style="height: 68vh; background: rgb(255,255,230);">
+      <form method="POST" action="">
+        <fieldset id="features" class="fieldset" style="height: 50vh; border: none; background: rgb(255,255,230);">
+          <div>
+            <label>نام کالا</label>
+            <input id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" required />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">شناسه کالا</label>
+            <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" value="{{transfer_details['productId']}}" placeholder="" required size="20" />
+            <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
+            <select style="margin:0 4vw;" id="vendor" name="vendor" disabled style="margin-right: 2vw;" required>
+              <option value="{{transfer_details['vendor']}}" selected>{{transfer_details['vendor']}}</option>
+              <option value="روژیاپ">روژیاپ</option>
+            </select>
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">قیمت (ریال)</label>
+            <input style="margin: 0 2vw;" id="price" type="number" name="price" value="{{transfer_details['price']}}" placeholder="قیمت (ریال) (ریال)" disabled required />
+            <label style="display:inline-block; margin-right: 4.1vw;">وزن (گرم)</label>
+            <input style="margin:0 5vw;" id="weight" type="number" name="weight" value="{{transfer_details['weight']}}" placeholder="وزن (گرم) (گرم)" disabled required />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">موجودی فعلی</label>
+            <input style="margin: 0 1.5vw;" id="exist_count" type="number" name="exist_count" value="{{transfer_details['exist_count']}}" placeholder="تعداد ورودی جدید" disabled required />
+            <label style="display:inline-block; margin-right: 5vw;">درصد تخفیف</label>
+            <input style="margin:0 3.7vw;" id="percentDiscount" type="number" name="percentDiscount" value="{{transfer_details['percentDiscount']}}" placeholder="درصد تحفیف (%)" disabled required  />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">ورودی جدید</label>
+            <input style="margin: 0 2vw;" id="count" type="number" name="count" value="{{transfer_details['count']}}" placeholder="تعداد ورودی جدید" required />
+            <label style="display:inline-block; margin-right: 4vw;">روش ارسال به انبار</label>
+            <select style="margin-right: 2vw;" id="shipment" name="shipment" required>
+              <option value="{{transfer_details['shipment']}}" selected>{{transfer_details['shipment']}}</option>
+              <option value="زمینی با خودرو وستانو">زمینی با خودرو وستانو</option>
+              <option value="زمینی با خودرو فروشگاه">زمینی با خودرو فروشگاه</option>
+              <option value="کشتی">کشتی</option>
+              <option value="هواپیما">هواپیما</option>
+            </select>
+            <label for="pcal1" class="mrg-vh2" style="display:inline-block; margin-right: 4vw;">زمان ارسال به انبار</label>
+            <input type="text" id="pcal1" class="pdate" name="shipment_date" value="{{transfer_details['shipment_date']}}" required>
+            <label style="display:inline-block; margin-right: 4vw;"><input id="count" type="checkbox" value="yes" name="returned" />کالای برگشتی</label>
+          </div>
+          {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
+            <div class="mrg-vh4">
+              <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse-reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+            </div>
+          {% endif %}
+          {% if session['role'] == 'admin' %}
+            <div class="mrg-vh2">
+              <a style="margin-left: 3vw;" class="button" href=""><span>تایید درخواست</span></a>
+              <a class="button" href=""><span>رد درخواست</span></a>
+            </div>
+          {% elif session['role'] == 'vendor_admin' %}
+            <div class="mrg-vh2">
+              <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش حواله" />
+            </div>
+          {% endif %}
+        </fieldset>
+      </form>
+    </fieldset>
+
+  {% elif sub_item == 'edit' %}
+    <fieldset class="fieldset" style="height: 65vh; background: rgb(255,255,230);">
+      <form method="POST" action="">
+        <fieldset id="features" class="fieldset" style="height: 50vh; border: none; background: rgb(255,255,230);">
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">نام کالا</label>
+            <input style="margin-right: 4vw;" id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" required />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">شناسه کالا</label>
+            <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" value="{{transfer_details['productId']}}" placeholder="" disabled required size="20" />
+            <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
+            <select style="margin:0 4vw;" id="vendor" name="vendor" style="margin-right: 2vw;" required>
+              <option value="{{transfer_details['vendor']}}" selected>{{transfer_details['vendor']}}</option>
+              <option value="روژیاپ">روژیاپ</option>
+            </select>
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">قیمت (ریال)</label>
+            <input style="margin: 0 2vw;" id="price" type="number" name="price" value="{{transfer_details['price']}}" placeholder="قیمت (ریال) (ریال)" required />
+            <label style="display:inline-block; margin-right: 4.1vw;">وزن (گرم)</label>
+            <input style="margin:0 5vw;" id="weight" type="number" name="weight" value="{{transfer_details['weight']}}" placeholder="وزن (گرم) (گرم)" required />
+          </div>
+          <div class="mrg-vh4">
+            <label style="display:inline-block;">موجودی فعلی</label>
+            <input style="margin: 0 1.5vw;" id="exist_count" type="number" name="exist_count" value="{{transfer_details['exist_count']}}" placeholder="تعداد ورودی جدید" disabled required />
+            <label style="display:inline-block; margin-right: 5vw;">درصد تخفیف</label>
+            <input style="margin:0 3.7vw;" id="percentDiscount" type="number" name="percentDiscount" value="{{transfer_details['percentDiscount']}}" placeholder="درصد تحفیف (%)" required  />
+          </div>
+          {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
+            <div class="mrg-vh8">
+              <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse-reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+            </div>
+          {% endif %}
+          {% if session['role'] == 'admin' %}
+            <div class="mrg-vh2">
+              <a style="margin-left: 3vw;" class="button" href=""><span>تایید درخواست</span></a>
+              <a class="button" href=""><span>رد درخواست</span></a>
+            </div>
+          {% elif session['role'] == 'vendor_admin' %}
+            <div class="mrg-vh2">
+              <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش حواله" />
+            </div>
+          {% endif %}
+        </fieldset>
+      </form>
+    </fieldset>
+
+  {% elif sub_item == 'pack' %}
+    <fieldset class="fieldset" style="background: rgb(255,255,230); height:72vh;">
+      <form method="POST" action="" style="margin-block-end: 0;">
+        <div class="mrg-vh1" style="float: right;">
+          <label>نام کالا</label>
+          <input id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" required />
+        </div>
+        <div class="mrg-vh1 mrg-vw23">
+          <label class="mrg-vw2">شرکت فروشنده</label>
+          <select id="vendor" name="vendor" class="mrg-vw2" style="width: 8vw; padding-right: 1vw; margin-top: 1vh;" required>
+            <option value="{{transfer_details['vendor']}}">{{transfer_details['vendor']}}</option>
+            <option value="روژیاپ">روژیاپ</option>
+          </select>
+        </div><br>
+        <div>
+          <fieldset class="fieldset" style="padding:0; margin-bottom:0;">
+            <legend>اقلام موجود در بسته</legend>
+            <table id="order-0">
+              <tbody style="height: 16vh;">
+                <tr>
+                  <th>
+                    <span>نام محصول</span>
+                  </th>
+                  <th>
+                    <span>تعداد</span>
+                  </th>
+                  <th>
+                    <span>قیمت (ریال)</span>
+                  </th>
+                  <th>
+                    <span>درصد تخفیف</span>
+                  </th>
+                  <th>
+                    <span>وزن (گرم)</span>
+                  </th>
+                  <th>
+                    <span>عملیات</span>
+                  </th>
+                </tr>
+                {% for i in range(transfer_details['pack_products']|length) %}
+                  <tr id="row{{i+1}}" class="order-0">
+                    <td>
+                      <select id="product{{i+1}}" name="product_{{i+1}}" onchange="product('product{{i+1}}')" required>
+                        <option value="{{transfer_details['pack_products'][i]['productId']}}" selected>{{transfer_details['pack_products'][i]['productName']}}</option>
+                        {% for item in inventory %}
+                          <option value="{{item[1]}}">{{item[0]}}</option>
+                          }
+                        {% endfor %}
+                      </select>
+                    </td>
+                    <td>
+                      <input id="count{{i+1}}" type="text" name="count_{{i+1}}" value="{{transfer_details['pack_products'][i]['count']}}" size="4" value="1" required/>
+                    </td>
+                    <td>
+                      <input id="price{{i+1}}" type="text" name="price_{{i+1}}" value="{{transfer_details['pack_products'][i]['price']}}" size="6" required/>
+                    </td>
+                    <td>
+                      <input id="discount{{i+1}}" type="text" name="discount_{{i+1}}" value="{{transfer_details['pack_products'][i]['percentDiscount']}}" size="6" required/>
+                    </td>
+                    <td>
+                      <input id="weight{{i+1}}" type="text" name="weight_{{i+1}}" value="{{transfer_details['pack_products'][i]['weight']}}" size="6" required/>
+                    </td>
+                    <td>
+                      <a href="javascript:addrow('row{{i+1}}','del')" title="حذف" class="del-box"> - </a>
+                      <a href="javascript:addrow('row{{i+1}}', 'add')" title="افزودن" class="add-box"> + </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </fieldset>
+        </div>
+        <table class="pack-tbl">
+          <tbody>
+            <tr>
+              <td>
+                <label style="margin-right: 0;">قیمت (ریال)</label>
+                <input style="margin-right: 0;" id="price" type="number" name="price" value="{{transfer_details['price']}}" placeholder="قیمت (ریال) (ریال)" required />
+              </td>
+              <td>
+                <label>وزن (گرم)</label>
+                <input id="weight" type="number" name="weight" value="{{transfer_details['weight']}}" placeholder="وزن (گرم) (گرم)" required />
+              </td>
+              <td>
+                <label>تعداد</label>
+                <input id="count" type="number" name="count" value="{{transfer_details['count']}}" placeholder="تعداد موجودی (عدد)" required />
+              </td>
+              <td>
+                <label>درصد تخفیف</label>
+                <input id="percentDiscount" type="number" value="{{transfer_details['percentDiscount']}}" name="percentDiscount" placeholder="درصد تحفیف (%)"  />
+              </td>
+              <td>
+                <label>روش ارسال به انبار</label>
+                <select id="shipment" name="shipment" required>
+                  <option value="{{transfer_details['shipment']}}" selected>{{transfer_details['shipment']}}</option>
+                  <option value="زمینی با خودرو وستانو">زمینی با خودرو وستانو</option>
+                  <option value="زمینی با خودرو فروشگاه">زمینی با خودرو فروشگاه</option>
+                  <option value="کشتی">کشتی</option>
+                  <option value="هواپیما">هواپیما</option>
+                </select>
+              </td>
+              <td>
+                <label for="pcal1">زمان ارسال به انبار</label>
+                <input type="text" id="pcal1" class="pdate" value="{{transfer_details['shipment_date']}}" name="shipment_date" required>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="mrg-vh1">
+          <label>توضیحات</label>
+          <textarea id="description" style="height: 8vh;" name="description" placeholder="">{{transfer_details['description']}}</textarea>
+        </div>
+        {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
+          <div class="mrg-vh1">
+            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse-reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+          </div>
+        {% endif %}
+        {% if session['role'] == 'admin' %}
+          <div class="mrg-vh1">
+            <a style="margin-left: 3vw;" class="button" href=""><span>تایید درخواست</span></a>
+            <a class="button" href=""><span>رد درخواست</span></a>
+          </div>
+        {% elif session['role'] == 'vendor_admin' %}
+          <div class="mrg-vh1">
+            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش حواله" />
+          </div>
+        {% endif %}
+      </form>
+    </fieldset>
+  {% elif sub_item == 'release' %}
+    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 72vh;">
+      <form method="POST" action="">
+        <div class="mrg-vh2">
+          <label style="display:inline-block;">نام کالا</label>
+          <input style="margin-right: 4vw;" id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" required />
+        </div>
+        <div class="mrg-vh4">
+          <label style="display:inline-block;">شناسه کالا</label>
+          <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" value="{{transfer_details['productId']}}" placeholder="" disabled required size="20" />
+          <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
+          <select style="margin:0 4vw;" id="vendor" name="vendor" style="margin-right: 2vw;" required>
+            <option value="{{transfer_details['vendor']}}" selected>{{transfer_details['vendor']}}</option>
+            <option value="روژیاپ">روژیاپ</option>
+          </select>
+        </div>
+        <div class="mrg-vh2">
+          <label>موجودی فعلی</label>
+          <input id="exist_count" type="text" name="exist_count" value="{{transfer_details['exist_count']}}" placeholder="" size="20" disabled />
+        </div>
+        <div class="mrg-vh4">
+          <label>تعداد مرجوعی کالا</label>
+          <input id="count" type="number" name="count" value="{{transfer_details['count']}}" placeholder="تعداد مرجوعی (عدد)" required />
+        </div>
+        <div class="mrg-vh2" style="float: right;">
+          <label>روش تحویل از انبار</label>
+          <select id="shipment" name="shipment" required>
+            <option value="{{transfer_details['shipment']}}" disabled selected>{{transfer_details['shipment']}}</option>
+            <option value="زمینی با خودرو وستانو">زمینی با خودرو وستانو</option>
+            <option value="زمینی با خودرو فروشگاه">زمینی با خودرو فروشگاه</option>
+            <option value="کشتی">کشتی</option>
+            <option value="هواپیما">هواپیما</option>
+          </select>
+        </div>
+        <div class="mrg-vh2" style="margin-right: 15vw;">
+          <label for="pcal1" class="mrg-vh2">زمان تحویل از انبار</label>
+          <input type="text" id="pcal1" class="pdate" name="shipment_date" value="{{transfer_details['shipment_date']}}" required>
+        </div>
+        {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
+          <div class="mrg-vh4">
+            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse-reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+          </div>
+        {% endif %}
+        {% if session['role'] == 'admin' %}
+          <div class="mrg-vh2">
+            <a style="margin-left: 3vw;" class="button" href=""><span>تایید درخواست</span></a>
+            <a class="button" href=""><span>رد درخواست</span></a>
+          </div>
+        {% elif session['role'] == 'vendor_admin' %}
+          <div class="mrg-vh2">
+            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش حواله" />
+          </div>
+        {% endif %}
+      </form>
+    </fieldset>
+  {% endif %}
+</fieldset>
+
+<script type="text/javascript">
+  var i=1;
+  var i_list = [];
+  for (var jj = 1; jj < "{{transfer_details['pack_products']|length + 1}}"; jj++) {
+    i_list.push("row"+ jj);
+  }
+  //var i_list = ["row1"];
+  var show_flag = 0;
+  function addrow(id_name, action) {
+      var original = document.getElementById(id_name);
+    var clone = original.cloneNode(true); // "deep" clone
+    if (action == 'add'){
+      clone.id = "row" + ++i;
+      i_list.push(clone.id);
+      for (ii=0; ii<2; ii++) {
+        var pr = "product"+id_name.substring(3, id_name.length);
+        clone.innerHTML = clone.innerHTML.replace(pr, "product"+i);
+      }
+      var title = "product_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(title, "product_"+i);
+      var attachments = "count_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(attachments, "count_"+i);
+      var pri = "price_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(pri, "price_"+i);
+      var dis = "discount_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(dis, "discount_"+i);
+      var we = "weight_"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(we, "weight_"+i);
+      clone.innerHTML = clone.innerHTML.replace(id_name, clone.id);
+      var c = "count"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(c, "count"+i);
+      var p = "price"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(p, "price"+i);
+      var d = "discount"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(d, "discount"+i);
+      var w = "weight"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(w, "weight"+i);
+      var str = "row"+id_name.substring(3, id_name.length);
+      clone.innerHTML = clone.innerHTML.replace(str, "row"+i);
+      original.parentNode.appendChild(clone);
+    } else {
+      if (i_list.length > 1) {
+        original.parentNode.removeChild(original);
+        i_list.splice(i_list.indexOf(id_name), 1);
+      }
+    }
+
+  }
+
+  function product1(id_name) {
+    var product_name = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+
+            document.getElementById('features').style.display = 'block';
+
+            
+            document.getElementById('p_Id').value = json.productId
+            document.getElementById('vendor').value = json.vendor
+            document.getElementById('price').value = json.price
+            document.getElementById('weight').value = json.weight
+            document.getElementById('exist_count').value = json.count
+            document.getElementById('percentDiscount').value = json.discount
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
+  function product2(id_name) {
+    var product_name = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+
+            document.getElementById('features').style.display = 'block';
+            document.getElementById('exist_count').value = json.count
+            document.getElementById('vendor').value = json.vendor
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
+  function product3(id_name) {
+    var product_name = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+
+            document.getElementById('features').style.display = 'block';
+
+            document.getElementById('delete-button').href = "/delete-stuff/"+json.productId
+            document.getElementById('productName').value = json.productName
+            document.getElementById('p_Id').value = json.productId
+            document.getElementById('vendor').value = json.vendor
+            document.getElementById('price').value = json.price
+            document.getElementById('weight').value = json.weight
+            document.getElementById('exist_count').value = json.count
+            document.getElementById('percentDiscount').value = json.discount
+
+            if (json.vendor != 'سفارش موردی') {
+              document.getElementById('exist_count').disabled = true;
+            } else {
+              document.getElementById('exist_count').disabled = false;
+            }
+       }
+    }
+    xhr.open('GET', '/case-ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
+  function product4(id_name) {
+    var product_name = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+
+            document.getElementById('features').style.display = 'block';
+
+            document.getElementById('productName').value = json.productName
+            document.getElementById('p_Id').value = json.productId
+            document.getElementById('vendor').value = json.vendor
+            document.getElementById('price').value = json.price
+            document.getElementById('weight').value = json.weight
+            document.getElementById('exist_count').value = json.count
+            document.getElementById('percentDiscount').value = json.discount
+
+            if (json.vendor != 'سفارش موردی') {
+              document.getElementById('exist_count').disabled = true;
+            } else {
+              document.getElementById('exist_count').disabled = false;
+            }
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
+  function product(id_name) {
+    var product_name = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+            
+            document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
+            document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
+            document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + product_name, true);
+    xhr.send();
+  }
+
+  function show() {
+    show_flag = 1;
+    document.getElementById("inventory").style.display = 'block';
+  }
+
+  function notShow() {
+    if (!show_flag) {
+      document.getElementById("inventory").style.display = 'none';
+    }
+    show_flag = 0;
+  }
+
+  function filter() {
+    var input, filter, ul, tr, a, i;
+    input = document.getElementById("myInput");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("myDropdown");
+    a = div.getElementsByTagName("a");
+    tr = div.getElementsByTagName("tr");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+
+  function searchFunction(product_id) {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.responseText);
+
+            document.getElementById('myInput').value = json.productName;
+
+            document.getElementById('search-result').style.display = 'block';
+            document.getElementById("inventory").style.display = 'none';
+
+            document.getElementById('p_name').innerHTML = json.productName
+            document.getElementById('p_id').innerHTML = json.productId
+            document.getElementById('vendor').innerHTML = json.vendor
+            document.getElementById('count').innerHTML = json.count
+            document.getElementById('weight').innerHTML = json.weight + ' گرم'
+            document.getElementById('price').innerHTML = json.price + ' ریال'
+       }
+    }
+    xhr.open('GET', '/ajax?code=' + product_id, true);
+    xhr.send();
+  }
+
+  function transferReqDetails(number) {
+    window.open("/user-pannel/inventory-transfer-details/"+number, "_self");
+  }
+
+  var objCal1 = new AMIB.persianCalendar( 'pcal1' );
+
+</script>

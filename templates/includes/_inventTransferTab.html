@@ -1,0 +1,46 @@
+{% set newT = "background:#eee;" %}
+{% set incT = "background:#eee;" %}
+{% set editT = "background:#eee;" %}
+{% set packT = "background:#eee;" %}
+{% set releaseT = "background:#eee;" %}
+{% set searchT = "background:#eee;" %}
+{% set listT = "background:#eee;" %}
+
+{% if "newT" in request.base_url %}
+	{% set newT = "background:yellow;" %}
+{% elif "incT" in request.base_url %}
+	{% set incT = "background:yellow;" %}
+{% elif "editT" in request.base_url %}
+	{% set editT = "background:yellow;" %}
+{% elif "packT" in request.base_url %}
+	{% set packT = "background:yellow;" %}
+{% elif "releaseT" in request.base_url %}
+	{% set releaseT = "background:yellow;" %}
+{% elif "searchT" in request.base_url %}
+	{% set searchT = "background:yellow;" %}
+{% elif "listT" in request.base_url %}
+	{% set listT = "background:yellow;" %}
+{% endif %}
+<div id="tab">
+	{% if 'newStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-transfer/newT" style={{newT}} class="button">افزودن کالای جدید</a>
+	{% endif %}
+	{% if 'incStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-transfer/incT" style={{incT}} class="button">افزودن کالای موجود</a>
+	{% endif %}
+	{% if 'editStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-transfer/editT" style={{editT}} class="button">ویرایش کالا</a>
+	{% endif %}
+	{% if 'newPack' in session['access'] %}
+		<a href="/user-pannel/inventory-transfer/packT" style={{packT}} class="button">ایجاد بسته</a>
+	{% endif %}
+	{% if 'releaseStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-transfer/releaseT" style={{releaseT}} class="button">خروجی از انبار</a>
+	{% endif %}
+	{% if 'searchStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-transfer/searchT" style={{searchT}} class="button" style="margin-right: 2vw;">جستجو در انبار</a>
+	{% endif %}
+	{% if 'searchStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-transfer/listT" style={{listT}} class="button">لیست حواله ها</a>
+	{% endif %}
+</div>

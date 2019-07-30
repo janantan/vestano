@@ -1,79 +1,12 @@
-<fieldset class="fieldset" onclick="notShow()" style="background: #fafafa">
-  <legend>مدیریت انبار:</legend>
-  {% include 'includes/_inventoryTab.html' %}
-  {% if sub_item == 'case' %}
-    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 66vh;">
-      <form method="POST" action="">
-        <div class="mrg-vh1">
-          <label>نام کالا</label>
-          <input id="productName" type="text" name="productName" placeholder="" size="50" required />
-          <select id="vendor" name="vendor" class="mrg-vw2" required>
-            <option value="سفارش موردی">سفارش موردی</option>
-          </select>
-        </div>
-        <div class="mrg-vh2">
-          <label>مشخصات</label>
-          <input id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
-          <input id="weight" type="number" name="weight" placeholder="وزن (گرم)" required />
-          <input id="count" type="number" name="count" placeholder="تعداد موجودی (عدد)" required />
-          <input id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)"  />
-        </div>
-        <div class="mrg-vh2">
-          <label>توضیحات</label>
-          <textarea id="description" name="description" placeholder=""></textarea>
-        </div>
-        <div class="mrg-vh4">
-          <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت محصول " />
-        </div>
-      </form>
-    </fieldset>
-  {% elif sub_item == 'cEdit' %}
-    <fieldset class="fieldset mrg-vh2" style="height: 65vh; background: rgb(255,255,230);">
-      <form method="POST" action="">
-        <div class="mrg-vh1">
-          <label>کالای مورد نظر را انتخاب کنید:</label>
-          <select id="product" name="product" onchange="product3('product')" required>
-            <option value="" disabled selected>(انخاب کنید)</option>
-            {% for item in for_edit_case_inventory %}
-              <option value="{{item[1]}}">{{item[0]}}</option>
-              }
-            {% endfor %}
-          </select>
-        </div>
-        <fieldset id="features" class="fieldset mrg-vh2" style="height: 50vh; border: none; background: rgb(255,255,230); display: none;">
-          <div class="mrg-vh4">
-            <label style="display:inline-block;">نام کالا</label>
-            <input style="margin-right: 4vw;" id="productName" type="text" name="productName" placeholder="" size="50" required />
-          </div>
-          <div class="mrg-vh4">
-            <label style="display:inline-block;">شناسه کالا</label>
-            <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" placeholder="" disabled required size="20" />
-            <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
-            <select style="margin:0 4vw;" id="vendor" name="vendor" style="margin-right: 2vw;" required>
-              <option value="" disabled selected>شرکت فروشنده</option>
-              <option value="سفارش موردی">سفارش موردی</option>
-            </select>
-          </div>
-          <div class="mrg-vh4">
-            <label style="display:inline-block;">قیمت</label>
-            <input style="margin: 0 4.5vw;" id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
-            <label style="display:inline-block; margin-right: 2.1vw;">وزن</label>
-            <input style="margin:0 7vw;" id="weight" type="number" name="weight" placeholder="وزن (گرم)" required />
-          </div>
-          <div class="mrg-vh4">
-            <label style="display:inline-block;">موجودی فعلی</label>
-            <input style="margin: 0 1.5vw;" id="exist_count" type="number" name="exist_count" placeholder="تعداد ورودی جدید" required />
-            <label style="display:inline-block; margin-right: 5vw;">درصد تخفیف</label>
-            <input style="margin:0 3.7vw;" id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)" required  />
-          </div>
-          <div class="mrg-vh4">
-            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت ویرایش " />
-            <a id="delete-button" class="button" title="حذف کالا از انبار" style="background-color: #f3f3f3; float: left; margin-left: 30vw;">حذف کالا</a>
-          </div>
-        </fieldset>
-      </form>
-    </fieldset>
-  {% elif sub_item == 'new' %}
+{% if sub_item == 'listT' %}
+  <div class="dropdown-content-inventory" style="margin-top: 3vw;">
+    <input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
+  </div>
+{% endif %}
+<fieldset class="fieldset transfer-fieldset" onclick="notShow()" style="background: #fafafa;">
+  <legend>حواله به انبار:</legend>
+  {% include 'includes/_inventTransferTab.html' %}
+  {% if sub_item == 'newT' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 66vh;">
       <form method="POST" action="">
         <div class="mrg-vh1">
@@ -91,16 +24,30 @@
           <input id="count" type="number" name="count" placeholder="تعداد موجودی (عدد)" required />
           <input id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)"  />
         </div>
+        <div class="mrg-vh2" style="float: right;">
+          <label>روش ارسال به انبار</label>
+          <select id="shipment" name="shipment" required>
+            <option value="" disabled selected>انتخاب کنید</option>
+            <option value="زمینی با خودرو وستانو">زمینی با خودرو وستانو</option>
+            <option value="زمینی با خودرو فروشگاه">زمینی با خودرو فروشگاه</option>
+            <option value="کشتی">کشتی</option>
+            <option value="هواپیما">هواپیما</option>
+          </select>
+        </div>
+        <div class="mrg-vh2" style="margin-right: 15vw;">
+          <label for="pcal1" class="mrg-vh2">زمان ارسال به انبار</label>
+          <input type="text" id="pcal1" class="pdate" name="shipment_date" required>
+        </div>
         <div class="mrg-vh2">
           <label>توضیحات</label>
-          <textarea id="description" name="description" placeholder=""></textarea>
+          <textarea id="descriptionT" name="description" placeholder=""></textarea>
         </div>
         <div class="mrg-vh4">
-          <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت محصول " />
+          <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال حواله" />
         </div>
       </form>
     </fieldset>
-  {% elif sub_item == 'inc' %}
+  {% elif sub_item == 'incT' %}
     <fieldset class="fieldset mrg-vh2" style="height: 65vh; background: rgb(255,255,230);">
       <form method="POST" action="">
         <div class="mrg-vh1">
@@ -135,19 +82,29 @@
             <label style="display:inline-block; margin-right: 5vw;">درصد تخفیف</label>
             <input style="margin:0 3.7vw;" id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)" disabled required  />
           </div>
-          <div class="mrg-vh8">
+          <div class="mrg-vh4">
             <label style="display:inline-block;">ورودی جدید</label>
             <input style="margin: 0 2vw;" id="count" type="number" name="count" placeholder="تعداد ورودی جدید" required />
+            <label style="display:inline-block; margin-right: 4vw;">روش ارسال به انبار</label>
+            <select style="margin-right: 2vw;" id="shipment" name="shipment" required>
+              <option value="" disabled selected>انتخاب کنید</option>
+              <option value="زمینی با خودرو وستانو">زمینی با خودرو وستانو</option>
+              <option value="زمینی با خودرو فروشگاه">زمینی با خودرو فروشگاه</option>
+              <option value="کشتی">کشتی</option>
+              <option value="هواپیما">هواپیما</option>
+            </select>
+            <label for="pcal1" class="mrg-vh2" style="display:inline-block; margin-right: 4vw;">زمان ارسال به انبار</label>
+            <input type="text" id="pcal1" class="pdate" name="shipment_date" required>
             <label style="display:inline-block; margin-right: 4vw;"><input id="count" type="checkbox" value="yes" name="returned" />کالای برگشتی</label>
           </div>
           <div class="mrg-vh4">
-            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت محصول " />
+            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال حواله" />
           </div>
         </fieldset>
       </form>
     </fieldset>
 
-  {% elif sub_item == 'edit' %}
+  {% elif sub_item == 'editT' %}
     <fieldset class="fieldset mrg-vh2" style="height: 65vh; background: rgb(255,255,230);">
       <form method="POST" action="">
         <div class="mrg-vh1">
@@ -188,16 +145,15 @@
           </div>
           <div class="mrg-vh4">
             <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت ویرایش " />
-            <a id="delete-button" class="button" title="حذف کالا از انبار" style="background-color: #f3f3f3; float: left; margin-left: 30vw;">حذف کالا</a>
           </div>
         </fieldset>
       </form>
     </fieldset>
 
-  {% elif sub_item == 'pack' %}
+  {% elif sub_item == 'packT' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230);">
       <form method="POST" action="" style="margin-block-end: 0;">
-        <div class="mrg-vh1">
+        <div>
           <label>نام بسته</label>
           <input id="packName" type="text" name="packName" placeholder="" size="50" required />
           <select id="vendor" name="vendor" class="mrg-vw2" required>
@@ -209,7 +165,7 @@
           <fieldset class="fieldset" style="padding:0; margin-bottom:0;">
             <legend>اقلام موجود در بسته</legend>
             <table id="order-0">
-              <tbody style="height: 22vh;">
+              <tbody style="height: 16vh;">
                 <tr>
                   <th>
                     <span>نام محصول</span>
@@ -271,12 +227,24 @@
           <label>توضیحات</label>
           <textarea id="description" style="height: 8vh;" name="description" placeholder=""></textarea>
         </div>
+        <div>
+          <label style="display:inline-block;">روش ارسال به انبار</label>
+            <select id="shipment" name="shipment" required>
+              <option value="" disabled selected>انتخاب کنید</option>
+              <option value="زمینی با خودرو وستانو">زمینی با خودرو وستانو</option>
+              <option value="زمینی با خودرو فروشگاه">زمینی با خودرو فروشگاه</option>
+              <option value="کشتی">کشتی</option>
+              <option value="هواپیما">هواپیما</option>
+            </select>
+            <label for="pcal1" class="mrg-vh2" style="display:inline-block; margin-right: 4vw;">زمان ارسال به انبار</label>
+            <input type="text" id="pcal1" class="pdate" name="shipment_date" required>
+        </div>
         <div class="mrg-vh1">
-          <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ایجاد بسته" />
+          <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال حواله" />
         </div>
       </form>
     </fieldset>
-  {% elif sub_item == 'release' %}
+  {% elif sub_item == 'releaseT' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 65vh;">
       <form method="POST" action="">
         <div class="mrg-vh1">
@@ -302,13 +270,27 @@
             <label>تعداد مرجوعی کالا</label>
             <input id="count" type="number" name="count" placeholder="تعداد مرجوعی (عدد)" required />
           </div>
-          <div class="mrg-vh12">
-            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت مرجوعی" />
+          <div class="mrg-vh2" style="float: right;">
+            <label>روش تحویل از انبار</label>
+            <select id="shipment" name="shipment" required>
+              <option value="" disabled selected>انتخاب کنید</option>
+              <option value="زمینی با خودرو وستانو">زمینی با خودرو وستانو</option>
+              <option value="زمینی با خودرو فروشگاه">زمینی با خودرو فروشگاه</option>
+              <option value="کشتی">کشتی</option>
+              <option value="هواپیما">هواپیما</option>
+            </select>
+          </div>
+          <div class="mrg-vh2" style="margin-right: 15vw;">
+            <label for="pcal1" class="mrg-vh2">زمان تحویل از انبار</label>
+            <input type="text" id="pcal1" class="pdate" name="shipment_date" required>
+          </div>
+          <div class="mrg-vh4">
+            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال حواله مرجوعی" />
           </div>
         </fieldset>
       </form>
     </fieldset>
-  {% elif sub_item == 'search' %}
+  {% elif sub_item == 'searchT' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 65vh;">
       <div class="mrg-vh1">
         <label>نام کالا را وارد کنید:</label>
@@ -376,6 +358,98 @@
           </table>
         </fieldset>
       </div>
+    </fieldset>
+  {% elif sub_item == 'listT' %}
+    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 65vh;">
+      <legend>لیست حواله ها:</legend>
+      <table id="inventory-transfer">
+        <thead>
+          <tr style="background: yellow;" class="first-row">
+            <th style="width: 4vw;">
+              <span>ردیف</span>
+            </th>
+            <th>
+              <span>شماره حواله</span>
+            </th>
+            <th>
+              <span>فرستنده</span>
+            </th>
+            <th class="vw14">
+              <span>نوع حواله</span>
+            </th>
+            <th class="vw20">
+              <span>نام کالا</span>
+            </th>
+            <th class="vw8">
+              <span>تعداد</span>
+            </th>
+            <th>
+              <span>زمان ثبت درخواست</span>
+            </th>
+            <th class="vw8">
+              <span>وضعیت</span>
+            </th>
+            <th class="vw8">
+              <span>اقدام</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="myDropdown" style="height: 66vh; font-family: 'B-Roya';" >
+          {% for rec in transfer_req %}
+          {% if (session['role'] == 'vendor_admin') and (not rec['read']) %}
+            <tr id="rows" style="font-weight: bold;" class="border-bottom" onclick="transferReqDetails('{{rec['number']}}')">
+          {% elif (session['role'] != 'vendor_admin') and (rec['req_status']=='بررسی نشده' or rec['req_status']=='ویرایش شده') %}
+            <tr id="rows" style="font-weight: bold;" class="border-bottom" onclick="transferReqDetails('{{rec['number']}}')">
+          {% else %}
+            <tr id="rows" class="border-bottom" onclick="transferReqDetails('{{rec['number']}}')">
+          {% endif %}
+              <td style="width: 4vw;">
+                <span>{{loop.index}}</span>
+              </td>
+              <td>
+                <span id="req-number">{{rec['number']}}</span>
+              </td>
+              <td>
+                <span>{{rec['vendor']}}</span>
+              </td>
+              <td class="vw14">
+                <span>{{rec['request_type']}}</span>
+              </td>
+              <td class="vw20">
+                <a title="شناسه کالا : {{rec['productId']}}"><span>{{rec['productName']}}</span></a>
+              </td>
+              {% if 'count' in rec %}
+                <td class="vw8">
+                  <span>{{rec['count']}}</span>
+                </td>
+              {% else %}
+                <td class="vw8">
+                  <span>-</span>
+                </td>
+              {% endif %}
+              {% if 'shipment' not in rec %}
+                <td>
+                  <span>{{rec['datetime']}}</span>
+                </td>
+              {% elif rec['request_type'] == 'خروج از انبار' %}
+                <td>
+                  <a title="زمان تحویل از انبار: {{rec['shipment_date']}}"><span>{{rec['datetime']}}</span>
+                </td>
+              {% else %}
+                <td>
+                  <a title="زمان ارسال به انبار: {{rec['shipment_date']}}"><span>{{rec['datetime']}}</span>
+                </td>
+              {% endif %}
+              <td class="vw8">
+                <span>{{rec['req_status']}}</span>
+              </td>
+              <td class="vw8">
+                <a href="" title="حذف حواله"><span style="float: unset; margin: auto;" id="delete"></span></a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </fieldset>
   {% endif %}
 </fieldset>
@@ -509,7 +583,6 @@
 
             document.getElementById('features').style.display = 'block';
 
-            document.getElementById('delete-button').href = "/delete-stuff/"+json.productId
             document.getElementById('productName').value = json.productName
             document.getElementById('p_Id').value = json.productId
             document.getElementById('vendor').value = json.vendor
@@ -599,5 +672,97 @@
     xhr.open('GET', '/ajax?code=' + product_id, true);
     xhr.send();
   }
+
+  function transferReqDetails(number) {
+    //var number = document.getElementById(id_name).innerHTML
+    window.open("/user-pannel/inventory-transfer-details/"+number, "_self");
+  }
+
+  function filter() {
+    var input, value, tr, div, i;
+    input = document.getElementById("myInput-inventory");
+    value = input.value.toUpperCase();
+    div = document.getElementById("myDropdown");
+    tr = div.getElementsByTagName("tr");
+    if (isNaN(value)) {
+      for (i = 0; i < (tr.length); i++) {
+        span = tr[i].getElementsByTagName("span");
+        txtValue = span[2].textContent;
+        if (txtValue.toUpperCase().indexOf(value) > -1) {
+          tr[i].style.display = "";
+        } else {
+          txtValue = span[3].textContent;
+          if (txtValue.toUpperCase().indexOf(value) > -1) {
+            tr[i].style.display = "";
+          } else {
+            txtValue = span[4].textContent;
+            if (txtValue.toUpperCase().indexOf(value) > -1) {
+              tr[i].style.display = "";
+            } else {
+              txtValue = span[7].textContent;
+              if (txtValue.toUpperCase().indexOf(value) > -1) {
+                tr[i].style.display = "";
+              } else {
+                txtValue = span[1].textContent;
+                if (txtValue.toUpperCase().indexOf(value) > -1) {
+                  tr[i].style.display = "";
+                } else {
+                  txtValue = span[6].textContent;
+                  txtValue = txtValue.replace(/\s/g, '');
+                  txtValue = reverse_date_1(txtValue);
+                  if (txtValue.toUpperCase().indexOf(value) > -1) {
+                    tr[i].style.display = "";
+                  } else {
+                    tr[i].style.display = "none";
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } else {
+      for (i = 0; i < (tr.length); i++) {
+        span = tr[i].getElementsByTagName("span");
+        txtValue = span[5].textContent;
+        if (txtValue.toUpperCase().indexOf(value) > -1) {
+          tr[i].style.display = "";
+        } else {
+          txtValue = span[1].textContent;
+          if (txtValue.toUpperCase().indexOf(value) > -1) {
+            tr[i].style.display = "";
+          } else {
+            txtValue = span[6].textContent;
+            if (txtValue.toUpperCase().indexOf(value) > -1) {
+              tr[i].style.display = "";
+            } else {
+              tr[i].style.display = "none";
+            }
+          }
+        }
+      }
+      span = tr[0].getElementsByTagName("span");
+      txtValue = span[5].textContent;
+      txtValue = txtValue.replace(/\s/g, '');
+      //alert(txtValue)
+    }
+  }
+
+  function reverse_date_1(s) {
+    s = s.split("/").reverse().join("/");
+    return s;
+  }
+
+  function reverse_date_2(s) {
+    s = s.split(" / ").reverse().join(" / ");
+    return s;
+  } 
+
+  function reverse_time(s) {
+    s = s.split(":").reverse().join(":");
+    return s;
+  }
+
+  var objCal1 = new AMIB.persianCalendar( 'pcal1' );
 
 </script>

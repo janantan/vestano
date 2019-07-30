@@ -626,6 +626,45 @@ def ticket_details(cursor, ticket_num):
     result['departement'] = tickets_departements(result['departement'])
     return result
 
+def transfer_req_type(req_type):
+    if req_type == 'new':
+        req = u'ایجاد کالای جدید' 
+    elif req_type == 'inc':
+        req = u'افزودن کالای موجود' 
+    elif req_type == 'edit':
+        req = u'ویرایش کالا' 
+    elif req_type == 'release':
+        req = u'خروج از انبار' 
+    elif req_type == 'pack':
+        req = u'ایجاد بسته' 
+    return req
+
+def transfer_req(cursor):
+    result = cursor.inventory_transfer.find()
+    transfer_list = []
+    for r in result:
+        if 'productId' in r.keys():
+            r_result = cursor.vestano_inventory.find_one({'productId': r['productId']})
+            r['productName'] = r_result['productName']
+        r['request_type'] = transfer_req_type(r['request_type'])
+        transfer_list.append(r)
+    return transfer_list
+
+def transfer_details(cursor, number):
+    result = cursor.inventory_transfer.find_one({'number':number})
+    result['transfer_req_type'] = transfer_req_type(result['request_type'])
+    if 'productId' in result.keys():
+        r_result = cursor.vestano_inventory.find_one({'productId': result['productId']})
+        result['productName'] = r_result['productName']
+        if result['request_type'] != 'edit':
+            result['price'] = r_result['price']
+            result['percentDiscount'] = r_result['percentDiscount']
+            result['weight'] = r_result['weight']
+            result['exist_count'] = r_result['count']
+        else:
+            result['exist_count'] = r_result['count']
+    return result
+
 def GetCities(stateId):
     client = Client(API_URI)
     #Get list of cities

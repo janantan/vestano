@@ -172,6 +172,30 @@ a.export {
     text-align: center;
 }
 
+#inventory-transfer a {
+    text-decoration: none;
+}
+#inventory-transfer thead tr {
+    display:block;
+}
+
+#inventory-transfer thead tr th {
+    width: 10vw;
+    text-align: center;
+}
+
+#inventory-transfer tbody {
+    display:block;
+    height:76vh;
+    overflow:auto;
+}
+
+#inventory-transfer tbody td {
+    width: 10vw;
+    height: 5vh;
+    text-align: center;
+}
+
 #accounting a {
     text-decoration: none;
 }
@@ -812,6 +836,22 @@ a.export {
     font-family: "B-Roya";
 }
 
+#descriptionT {
+    width: 40%;
+    height: 10vh;
+    color: black;
+    font-size: 16px;
+    font-family: "B-Roya";
+}
+
+#descriptionTD {
+    width: 31vw;
+    height: 6vh;
+    color: black;
+    font-size: 14px;
+    font-family: "B-Roya";
+}
+
 #order tr th {
     width: 20vw;
 }
@@ -829,6 +869,9 @@ a.export {
 .fieldset input {
     font-family: B-Roya;
     font-size: 16px;
+}
+
+.transfer-fieldset input {
 }
 
 .fieldset legend {
@@ -909,6 +952,10 @@ a.export {
     width: 10vw !important;
 }
 
+.mrg-vh23 {
+    margin-top: 23vh;
+}
+
 .mrg-vh20 {
     margin-top: 20vh;
 }
@@ -919,6 +966,10 @@ a.export {
 
 .mrg-vh8 {
     margin-top: 8vh;
+}
+
+.mrg-vh6 {
+    margin-top: 6vh;
 }
 
 .mrg-vh4 {
@@ -939,6 +990,14 @@ a.export {
 
 .mrg-vw2 {
     margin-right: 2vw;
+}
+
+.mrg-vw50 {
+    margin-right: 50vw;
+}
+
+.mrg-vw23 {
+    margin-right: 23vw;
 }
 
 .mrg-vw20 {
@@ -1273,6 +1332,22 @@ tr#rows:hover {
     display: block;
     float: left;
     margin: 4vh 1vw;
+}
+
+.inv-trsf tbody tr td {
+    text-align: right !important;
+}
+
+.pack-tbl td input {
+    margin-right: 2vw;
+}
+
+.pack-tbl td label {
+    margin-right: 2vw;
+}
+
+.pack-tbl td select {
+    margin-right: 2vw;
 }
 
 body > footer span {
