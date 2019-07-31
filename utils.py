@@ -655,8 +655,8 @@ def transfer_details(cursor, number):
     result['transfer_req_type'] = transfer_req_type(result['request_type'])
     if 'productId' in result.keys():
         r_result = cursor.vestano_inventory.find_one({'productId': result['productId']})
-        result['productName'] = r_result['productName']
         if result['request_type'] != 'edit':
+            result['productName'] = r_result['productName']
             result['price'] = r_result['price']
             result['percentDiscount'] = r_result['percentDiscount']
             result['weight'] = r_result['weight']
@@ -698,6 +698,10 @@ def GetStates():
     states_list = []
     for item in states_dict['State']:
         states_list.append(client.dict(item))
+
+    #initial states in database:
+    #for state in states_list:
+        #cursor.states.insert_one(state)
     return states_list
 
 def GetStatus(cursor):

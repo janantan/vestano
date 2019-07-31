@@ -1335,6 +1335,7 @@ def inventory_management(sub_item):
             record['price'] = int(request.form.get('price')) + config.defaultWageForDefineStuff
             #record['weight'] = int(request.form.get('weight'))
             record['count'] = int(request.form.get('count'))
+            record['weight'] = int(request.form.get('weight'))
             if request.form.get('percentDiscount'):
                 record['percentDiscount'] = int(request.form.get('percentDiscount'))
             else:
@@ -1368,7 +1369,6 @@ def inventory_management(sub_item):
             record['record'].append(first_add)
 
             record['pack_products'] = pack_products
-            record['weight'] = weight
             record['productId'] = str(utils.AddStuff(record))
             record['status'] = utils.add_empty_status()
             cursor.vestano_inventory.insert_one(record)
@@ -1474,6 +1474,7 @@ def inventory_transfer(sub_item):
             record['price'] = int(request.form.get('price'))
             #record['weight'] = int(request.form.get('weight'))
             record['count'] = int(request.form.get('count'))
+            record['weight'] = int(request.form.get('weight'))
             if request.form.get('percentDiscount'):
                 record['percentDiscount'] = int(request.form.get('percentDiscount'))
             else:
@@ -1497,7 +1498,6 @@ def inventory_transfer(sub_item):
                     pack_products.append(pack_product)
 
             record['pack_products'] = pack_products
-            record['weight'] = weight
             record['shipment'] = request.form.get('shipment')
             record['shipment_date'] = request.form.get('shipment_date')
             record['username'] = session['username']
@@ -1556,79 +1556,71 @@ def inventory_transfer_details(number):
             return redirect(request.referrer)
 
         if sub_item == 'new':
-            record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
-            record['productName'] = request.form.get('productName')
-            record['price'] = int(request.form.get('price')) + config.defaultWageForDefineStuff
-            record['weight'] = int(request.form.get('weight'))
-            record['count'] = int(request.form.get('count'))
-            if request.form.get('percentDiscount'):
-                record['percentDiscount'] = int(request.form.get('percentDiscount'))
-            else:
-                record['percentDiscount'] = 0
-            record['description'] = request.form.get('description')
-            record['vendor'] = request.form.get('vendor')
-            record['shipment'] = request.form.get('shipment')
-            record['shipment_date'] = request.form.get('shipment_date')
-            record['username'] = session['username']
-            record['request_type'] = 'new'
-            record['req_status'] = u'بررسی نشده'
-            record['number'] = 'VES-I-' + str(random2.randint(10000000, 99999999))
-
-            cursor.inventory_transfer.insert_one(record)
-            flash(u'نتیجه درخواست شما پس از بررسی اعلام خواهد شد! شماره حواله: '+record['number'], 'success')
+            cursor.inventory_transfer.update_many(
+                {'number': number},
+                {'$set':{
+                'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'productName': request.form.get('productName'),
+                'price': int(request.form.get('price')),
+                'weight': int(request.form.get('weight')),
+                'count': int(request.form.get('count')),
+                'percentDiscount': int(request.form.get('percentDiscount')),
+                'description': request.form.get('description'),
+                'vendor': request.form.get('vendor'),
+                'shipment': request.form.get('shipment'),
+                'shipment_date': request.form.get('shipment_date'),
+                'req_status': u'ویرایش شده',
+                'refuse_reason': '',
+                'read': False
+                }
+                }
+                )
+            flash(u'ویرایش انجام شد. نتیجه درخواست شما پس از بررسی اعلام خواهد شد! شماره حواله: '+number, 'success')
 
         elif sub_item == 'inc':
-            record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
-            incT_res = cursor.vestano_inventory.find_one({'productId': request.form.get('product')})
-            record['productId'] = request.form.get('product')
-            record['count'] = int(request.form.get('count'))
-            record['returned'] = request.form.getlist('returned')
-            record['vendor'] = incT_res['vendor']
-            record['shipment'] = request.form.get('shipment')
-            record['shipment_date'] = request.form.get('shipment_date')
-            record['username'] = session['username']
-            record['request_type'] = 'inc'
-            record['req_status'] = u'بررسی نشده'
-            record['number'] = 'VES-I-' + str(random2.randint(10000000, 99999999))
-
-            cursor.inventory_transfer.insert_one(record)
-            flash(u'نتیجه درخواست شما پس از بررسی اعلام خواهد شد! شماره حواله: '+record['number'], 'success')
+            cursor.inventory_transfer.update_many(
+                {'number': number},
+                {'$set':{
+                'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'count': int(request.form.get('count')),
+                'returned': request.form.getlist('returned'),
+                'shipment': request.form.get('shipment'),
+                'shipment_date': request.form.get('shipment_date'),
+                'req_status': u'ویرایش شده',
+                'refuse_reason': '',
+                'read': False
+                }
+                }
+                )
+            flash(u'ویرایش انجام شد. نتیجه درخواست شما پس از بررسی اعلام خواهد شد! شماره حواله: '+number, 'success')
 
         elif sub_item == 'edit':
-            record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
-            record['productId'] = request.form.get('product')
-            record['productName'] = request.form.get('productName'),
-            record['price'] = int(request.form.get('price')) + config.defaultWageForDefineStuff,
-            record['percentDiscount'] = int(request.form.get('percentDiscount')),
-            record['weight'] = int(request.form.get('weight')),
-            record['vendor'] = request.form.get('vendor')
-            record['username'] = session['username']
-            record['request_type'] = 'edit'
-            record['req_status'] = u'بررسی نشده'
-            record['number'] = 'VES-I-' + str(random2.randint(10000000, 99999999))
-
-            cursor.inventory_transfer.insert_one(record)
-            flash(u'نتیجه درخواست شما پس از بررسی اعلام خواهد شد! شماره حواله: '+record['number'], 'success')
+            cursor.inventory_transfer.update_many(
+                {'number': number},
+                {'$set':{
+                'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'productName': request.form.get('productName'),
+                'price': int(request.form.get('price')),
+                'weight': int(request.form.get('weight')),
+                'percentDiscount': int(request.form.get('percentDiscount')),
+                'vendor': request.form.get('vendor'),
+                'req_status': u'ویرایش شده',
+                'refuse_reason': '',
+                'read': False
+                }
+                }
+                )
+            flash(u'ویرایش انجام شد. نتیجه درخواست شما پس از بررسی اعلام خواهد شد! شماره حواله: '+number, 'success')
 
         elif sub_item == 'pack':
-            record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
-            record['productName'] = request.form.get('packName')
-            record['price'] = int(request.form.get('price')) + config.defaultWageForDefineStuff
-            #record['weight'] = int(request.form.get('weight'))
-            record['count'] = int(request.form.get('count'))
-            if request.form.get('percentDiscount'):
-                record['percentDiscount'] = int(request.form.get('percentDiscount'))
-            else:
-                record['percentDiscount'] = 0
-            record['description'] = request.form.get('description')
-            record['vendor'] = request.form.get('vendor')
-
             pack_products = []
             weight = 0
             for i in range (1, 100):
                 if request.form.get('product_'+str(i)):
+                    ppr = cursor.vestano_inventory.find_one({'productId':request.form.get('product_'+str(i))})
                     pack_product = {}
                     pack_product['productId'] = request.form.get('product_'+str(i))
+                    pack_product['productName'] = ppr['productName']
                     pack_product['count'] = int(request.form.get('count_'+str(i)))
                     pack_product['weight'] = int(request.form.get('weight_'+str(i)))
                     pack_product['price'] = int(request.form.get('price_'+str(i)))
@@ -1636,40 +1628,43 @@ def inventory_transfer_details(number):
                     weight += int(request.form.get('weight_'+str(i)))
                     pack_products.append(pack_product)
 
-            record['pack_products'] = pack_products
-            record['weight'] = weight
-            record['shipment'] = request.form.get('shipment')
-            record['shipment_date'] = request.form.get('shipment_date')
-            record['username'] = session['username']
-            record['request_type'] = 'pack'
-            record['req_status'] = u'بررسی نشده'
-            record['number'] = 'VES-I-' + str(random2.randint(10000000, 99999999))
-
-            cursor.inventory_transfer.insert_one(record)
-            flash(u'نتیجه درخواست شما پس از بررسی اعلام خواهد شد! شماره حواله: '+record['number'], 'success')
+            cursor.inventory_transfer.update_many(
+                {'number': number},
+                {'$set':{
+                'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'productName': request.form.get('productName'),
+                'price': int(request.form.get('price')),
+                'weight': int(request.form.get('weight')),
+                'count': int(request.form.get('count')),
+                'percentDiscount': int(request.form.get('percentDiscount')),
+                'description': request.form.get('description'),
+                'pack_products': pack_products,
+                'vendor': request.form.get('vendor'),
+                'shipment': request.form.get('shipment'),
+                'shipment_date': request.form.get('shipment_date'),
+                'req_status': u'ویرایش شده',
+                'refuse_reason': '',
+                'read': False
+                }
+                }
+                )
+            flash(u'ویرایش انجام شد. نتیجه درخواست شما پس از بررسی اعلام خواهد شد! شماره حواله: '+number, 'success')
 
         elif sub_item == 'release':
-            releaseT_res = cursor.vestano_inventory.find_one({'productId': request.form.get('product')})
-            if int(request.form.get('count')) > releaseT_res['count']:
-                flash(u'تعداد مرجوعی از موجودی انبار بیشتر است!', 'danger')
-                return redirect(request.referrer)
-
-            record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
-            record['productId'] = request.form.get('product')
-            record['count'] = int(request.form.get('count'))
-            record['vendor'] = releaseT_res['vendor']
-            record['shipment'] = request.form.get('shipment')
-            record['shipment_date'] = request.form.get('shipment_date')
-            record['username'] = session['username']
-            record['request_type'] = 'release'
-            record['req_status'] = u'بررسی نشده'
-            record['number'] = 'VES-I-' + str(random2.randint(10000000, 99999999))
-
-            cursor.inventory_transfer.insert_one(record)
-            flash(u'نتیجه درخواست شما پس از بررسی اعلام خواهد شد! شماره حواله: '+record['number'], 'success')
-
-        elif sub_item == 'listT':
-            pass
+            cursor.inventory_transfer.update_many(
+                {'number': number},
+                {'$set':{
+                'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'count': int(request.form.get('count')),
+                'shipment': request.form.get('shipment'),
+                'shipment_date': request.form.get('shipment_date'),
+                'req_status': u'ویرایش شده',
+                'refuse_reason': '',
+                'read': False
+                }
+                }
+                )
+            flash(u'ویرایش انجام شد. نتیجه درخواست شما پس از بررسی اعلام خواهد شد! شماره حواله: '+number, 'success')
 
     return render_template('user_pannel.html',
         item='inventoryTransferDetails',
@@ -1683,6 +1678,12 @@ def inventory_transfer_details(number):
 @token_required
 def inventory_transfer_accept(number):
     result = cursor.inventory_transfer.find_one({'number':number})
+    if result['req_status'] == u'تایید شد':
+            flash(u'درخواست قبلا تایید شده است!', 'success')
+            return redirect(request.referrer)
+    if result['req_status'] == u'رد درخواست':
+            flash(u'درخواست قبلا رد شده است!', 'danger')
+            return redirect(request.referrer)
     if result['request_type'] == 'new':
         record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
         record['productName'] = result['productName']
@@ -1705,10 +1706,14 @@ def inventory_transfer_accept(number):
         record['record'].append(first_add)
 
         cursor.vestano_inventory.insert_one(record)
+        cursor.inventory_transfer.update_many(
+            {'number': number},
+            {'$set':{'productId': record['productId']}})
         flash(u'محصول جدید ثبت شد. شناسه کالا: ' + str(record['productId']), 'success')
 
     elif result['request_type'] == 'inc':
         vest_res = cursor.vestano_inventory.find_one({'productId': result['productId']})
+        print(vest_res['count'])
         if result['returned']:
             add = {
             'action': 'returned',
@@ -1723,7 +1728,7 @@ def inventory_transfer_accept(number):
             'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
             'count': result['count'],
             'exist_count': vest_res['count'] + result['count'],
-            'person': session['username']
+            'person': u'حواله '+number
             }
         vest_res['record'].append(add)
         cursor.vestano_inventory.update_many(
@@ -1737,7 +1742,7 @@ def inventory_transfer_accept(number):
             )
         flash(u'درخواست با موفقیت ثبت شد!', 'success')
 
-    elif sub_item == 'edit':
+    elif result['request_type'] == 'edit':
         cursor.vestano_inventory.update_many(
             {'productId': result['productId']},
             {'$set':{
@@ -1757,7 +1762,7 @@ def inventory_transfer_accept(number):
             )
         flash(u'درخواست با موفقیت ثبت شد!', 'success')
 
-    elif sub_item == 'pack':
+    elif result['request_type'] == 'pack':
         record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
         record['productName'] = result['productName']
         record['price'] = result['price'] + config.defaultWageForDefineStuff
@@ -1778,7 +1783,7 @@ def inventory_transfer_accept(number):
             pack_product['weight'] = result['pack_products'][i]['weight']
             pack_product['price'] = result['pack_products'][i]['price']
             pack_product['percentDiscount'] = result['pack_products'][i]['percentDiscount']
-            weight += result['pack_products'][i]['productId']
+            weight += result['pack_products'][i]['weight']
             pack_products.append(pack_product)
 
         record['record'] = []
@@ -1796,10 +1801,13 @@ def inventory_transfer_accept(number):
         record['productId'] = str(utils.AddStuff(record))
         record['status'] = utils.add_empty_status()
         cursor.vestano_inventory.insert_one(record)
+        cursor.inventory_transfer.update_many(
+            {'number': number},
+            {'$set':{'productId': record['productId']}})
         flash(u'بسته جدید ایجاد شد. شناسه کالا: ' + str(record['productId']), 'success')
 
-    elif sub_item == 'release':
-        ves_res = cursor.vestano_inventory.find_one({'productId': request.form.get('product')})
+    elif result['request_type'] == 'release':
+        ves_res = cursor.vestano_inventory.find_one({'productId': result['productId']})
         dec = {
         'action': 'release',
         'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
@@ -1807,12 +1815,13 @@ def inventory_transfer_accept(number):
         'exist_count': ves_res['count'] - result['count'],
         'person': u'حواله '+number
         }
+        print(dec)
         ves_res['record'].append(dec)
         if result['count'] > ves_res['count']:
             flash(u'تعداد مرجوعی از موجودی انبار بیشتر است!', 'danger')
             return redirect(request.referrer)
         cursor.vestano_inventory.update_many(
-            {'productId': result['count']},
+            {'productId': result['productId']},
             {'$set':{
             'datetime': dec['datetime'],
             'count': ves_res['count'] - result['count'],
@@ -1830,6 +1839,28 @@ def inventory_transfer_accept(number):
         }
         }
         )
+    return redirect(request.referrer)
+
+@app.route('/inventory-transfer-refuse/<number>', methods=['GET', 'POST'])
+@token_required
+def inventory_transfer_refuse(number):
+    result = cursor.inventory_transfer.find_one({'number':number})
+    if result['req_status'] == u'تایید شد':
+        flash(u'خطا! این درخواست قبلا تایید شده است!', 'danger')
+        return redirect(request.referrer)
+    if result['read']:
+        flash(u'رد درخواست قبلا به اطلاع فروشگاه رسیده است!', 'danger')
+        return redirect(request.referrer)
+    cursor.inventory_transfer.update_many(
+        {'number': number},
+        {'$set':{
+        'refuse_reason': request.args.get('refuse_reason'),
+        'req_status': u'رد درخواست',
+        'read': False
+        }
+        }
+        )
+    flash(u'رد درخواست اعمال شد!', 'success')
     return redirect(request.referrer)
 
 
@@ -1865,7 +1896,6 @@ def delete_from_inventory(productId):
 @app.route('/user-pannel/accounting', methods=['GET', 'POST'])
 @token_required
 def accounting():
-
     return render_template('user_pannel.html',
         item="accounting",
         accounting = utils.accounting(cursor)

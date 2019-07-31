@@ -960,6 +960,10 @@ a.export {
     margin-top: 20vh;
 }
 
+.mrg-vh10 {
+    margin-top: 10vh;
+}
+
 .mrg-vh12 {
     margin-top: 12vh;
 }
@@ -1004,6 +1008,14 @@ a.export {
     margin-right: 20vw;
 }
 
+.hgt-74 {
+    height: 74vh;
+}
+
+.hgt-71 {
+    height: 71vh;
+}
+
 .font12 {
     font-size: 12px;
 }
@@ -1022,6 +1034,14 @@ a.export {
 
 .red {
     color: red;
+}
+
+.green {
+    color: #00ac00;
+}
+
+.orange {
+    color: orange;
 }
 
 .bg-yellow {

@@ -1,3 +1,6 @@
+<div style="position: absolute; top: 5vh; left: 5vw;">
+  <a title="بازگشت به لیست حواله ها" href="/user-pannel/inventory-transfer/listT"><span id="back"></span></a>
+</div>
 <fieldset class="fieldset transfer-fieldset" style="background: #fafafa; margin-top: 1vh; height: 82vh;">
   <legend>حواله شماره {{number[6:]}}:</legend>
   <div style="margin-bottom: 2vh;">
@@ -63,17 +66,20 @@
         </div>
         {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
           <div class="mrg-vh8">
-            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse-reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
           </div>
+          {% set class = "mrg-vh4" %}
+        {% else %}
+          {% set class = "mrg-vh12" %}
         {% endif %}
           
         {% if session['role'] == 'admin' %}
           <div class="mrg-vh4">
             <a style="margin-left: 3vw;" class="button" href="/inventory-transfer-accept/{{number}}"><span>تایید درخواست</span></a>
-            <a class="button" href="/inventory-transfer-refuse/{{number}}"><span>رد درخواست</span></a>
+            <a id="refuse-btn" class="button" href="" onclick="refuseBtn()"><span>رد درخواست</span></a>
           </div>
         {% elif session['role'] == 'vendor_admin' %}
-          <div class="mrg-vh4">
+          <div class={{class}}>
             <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش حواله" />
           </div>
         {% endif %}
@@ -85,11 +91,11 @@
         <fieldset id="features" class="fieldset" style="height: 50vh; border: none; background: rgb(255,255,230);">
           <div>
             <label>نام کالا</label>
-            <input id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" required />
+            <input id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" disabled required />
           </div>
           <div class="mrg-vh4">
             <label style="display:inline-block;">شناسه کالا</label>
-            <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" value="{{transfer_details['productId']}}" placeholder="" required size="20" />
+            <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" value="{{transfer_details['productId']}}" placeholder="" disabled required size="20" />
             <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
             <select style="margin:0 4vw;" id="vendor" name="vendor" disabled style="margin-right: 2vw;" required>
               <option value="{{transfer_details['vendor']}}" selected>{{transfer_details['vendor']}}</option>
@@ -120,21 +126,25 @@
               <option value="هواپیما">هواپیما</option>
             </select>
             <label for="pcal1" class="mrg-vh2" style="display:inline-block; margin-right: 4vw;">زمان ارسال به انبار</label>
-            <input type="text" id="pcal1" class="pdate" name="shipment_date" value="{{transfer_details['shipment_date']}}" required>
-            <label style="display:inline-block; margin-right: 4vw;"><input id="count" type="checkbox" value="yes" name="returned" />کالای برگشتی</label>
+            <input type="text" id="pcal1" class="pdate" name="shipment_date" value="{{transfer_details['shipment_date']}}" required/>
+            {% if transfer_details['returned'] %}{% set ck='checked' %}{% else %}{% set ck='' %}{% endif %}
+            <label style="display:inline-block; margin-right: 4vw;"><input id="count" type="checkbox" value="yes" name="returned" {{ck}} />کالای برگشتی</label>
           </div>
           {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
             <div class="mrg-vh4">
-              <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse-reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+              <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
             </div>
+            {% set class = "mrg-vh2" %}
+          {% else %}
+            {% set class = "mrg-vh8" %}
           {% endif %}
           {% if session['role'] == 'admin' %}
             <div class="mrg-vh2">
-              <a style="margin-left: 3vw;" class="button" href=""><span>تایید درخواست</span></a>
-              <a class="button" href=""><span>رد درخواست</span></a>
+              <a style="margin-left: 3vw;" class="button" href="/inventory-transfer-accept/{{number}}"><span>تایید درخواست</span></a>
+              <a id="refuse-btn" class="button" href="" onclick="refuseBtn()"><span>رد درخواست</span></a>
             </div>
           {% elif session['role'] == 'vendor_admin' %}
-            <div class="mrg-vh2">
+            <div class={{class}}>
               <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش حواله" />
             </div>
           {% endif %}
@@ -173,16 +183,19 @@
           </div>
           {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
             <div class="mrg-vh8">
-              <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse-reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+              <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
             </div>
+            {% set class = "mrg-vh2" %}
+          {% else %}
+            {% set class = "mrg-vh12" %}
           {% endif %}
           {% if session['role'] == 'admin' %}
             <div class="mrg-vh2">
-              <a style="margin-left: 3vw;" class="button" href=""><span>تایید درخواست</span></a>
-              <a class="button" href=""><span>رد درخواست</span></a>
+              <a style="margin-left: 3vw;" class="button" href="/inventory-transfer-accept/{{number}}"><span>تایید درخواست</span></a>
+              <a id="refuse-btn" class="button" href="" onclick="refuseBtn()"><span>رد درخواست</span></a>
             </div>
           {% elif session['role'] == 'vendor_admin' %}
-            <div class="mrg-vh2">
+            <div class={{class}}>
               <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش حواله" />
             </div>
           {% endif %}
@@ -304,16 +317,19 @@
         </div>
         {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
           <div class="mrg-vh1">
-            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse-reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
           </div>
+          {% set class = "mrg-vh1" %}
+        {% else %}
+          {% set class = "mrg-vh6" %}
         {% endif %}
         {% if session['role'] == 'admin' %}
           <div class="mrg-vh1">
-            <a style="margin-left: 3vw;" class="button" href=""><span>تایید درخواست</span></a>
-            <a class="button" href=""><span>رد درخواست</span></a>
+            <a style="margin-left: 3vw;" class="button" href="/inventory-transfer-accept/{{number}}"><span>تایید درخواست</span></a>
+            <a id="refuse-btn" class="button" href="" onclick="refuseBtn()"><span>رد درخواست</span></a>
           </div>
         {% elif session['role'] == 'vendor_admin' %}
-          <div class="mrg-vh1">
+          <div class={{class}}>
             <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش حواله" />
           </div>
         {% endif %}
@@ -324,13 +340,13 @@
       <form method="POST" action="">
         <div class="mrg-vh2">
           <label style="display:inline-block;">نام کالا</label>
-          <input style="margin-right: 4vw;" id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" required />
+          <input style="margin-right: 4vw;" id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" disabled required />
         </div>
         <div class="mrg-vh4">
           <label style="display:inline-block;">شناسه کالا</label>
           <input style="margin:0 2.7vw;" id="p_Id" type="text" name="productId" value="{{transfer_details['productId']}}" placeholder="" disabled required size="20" />
           <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
-          <select style="margin:0 4vw;" id="vendor" name="vendor" style="margin-right: 2vw;" required>
+          <select style="margin:0 4vw;" id="vendor" name="vendor" style="margin-right: 2vw;" disabled required>
             <option value="{{transfer_details['vendor']}}" selected>{{transfer_details['vendor']}}</option>
             <option value="روژیاپ">روژیاپ</option>
           </select>
@@ -359,16 +375,19 @@
         </div>
         {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
           <div class="mrg-vh4">
-            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse-reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
           </div>
+          {% set class = "mrg-vh2" %}
+        {% else %}
+          {% set class = "mrg-vh8" %}
         {% endif %}
         {% if session['role'] == 'admin' %}
           <div class="mrg-vh2">
-            <a style="margin-left: 3vw;" class="button" href=""><span>تایید درخواست</span></a>
-            <a class="button" href=""><span>رد درخواست</span></a>
+            <a style="margin-left: 3vw;" class="button" href="/inventory-transfer-accept/{{number}}"><span>تایید درخواست</span></a>
+            <a id="refuse-btn" class="button" href="" onclick="refuseBtn()"><span>رد درخواست</span></a>
           </div>
         {% elif session['role'] == 'vendor_admin' %}
-          <div class="mrg-vh2">
+          <div class={{class}}>
             <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش حواله" />
           </div>
         {% endif %}
@@ -602,6 +621,16 @@
 
   function transferReqDetails(number) {
     window.open("/user-pannel/inventory-transfer-details/"+number, "_self");
+  }
+
+  function refuseBtn() {
+    var txtarea = document.getElementById('descriptionTD').value;
+    if (! txtarea) {
+      document.getElementById('refuse-btn').href = "";
+      alert('لطفا علت رد درخواست را در محل مربوطه بنویسید.')
+    } else {
+      document.getElementById('refuse-btn').href = "/inventory-transfer-refuse/{{number}}?refuse_reason="+txtarea;
+    }
   }
 
   var objCal1 = new AMIB.persianCalendar( 'pcal1' );

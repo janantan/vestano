@@ -1,11 +1,17 @@
 {% if sub_item == 'listT' %}
-  <div class="dropdown-content-inventory" style="margin-top: 3vw;">
+  {% if session['role'] == 'vendor_admin' %}
+  <div class="dropdown-content-inventory mrg-vh6">
+  {% else %}
+  <div class="dropdown-content-inventory mrg-vh4">
+  {% endif %}
     <input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
   </div>
 {% endif %}
 <fieldset class="fieldset transfer-fieldset" onclick="notShow()" style="background: #fafafa;">
   <legend>حواله به انبار:</legend>
-  {% include 'includes/_inventTransferTab.html' %}
+  {% if session['role'] == 'vendor_admin' %}
+    {% include 'includes/_inventTransferTab.html' %}
+  {% endif %}
   {% if sub_item == 'newT' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 66vh;">
       <form method="POST" action="">
@@ -221,6 +227,7 @@
           <label>سایر مشخصات</label>
           <input id="price" type="number" name="price" placeholder="قیمت (ریال)" required />
           <input class="mrg-vw2" id="count" type="number" name="count" placeholder="تعداد موجودی (عدد)" required />
+          <input class="mrg-vw2" id="weight" type="number" name="weight" placeholder="وزن (گرم)" required />
           <input class="mrg-vw2" id="percentDiscount" type="number" name="percentDiscount" placeholder="درصد تحفیف (%)"  />
         </div>
         <div class="mrg-vh1">
@@ -360,7 +367,11 @@
       </div>
     </fieldset>
   {% elif sub_item == 'listT' %}
+    {% if session['role'] == 'vendor_admin' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 65vh;">
+    {% else %}
+    <fieldset class="fieldset mrg-vh2 hgt-74" style="background: rgb(255,255,230);">
+    {% endif %}
       <legend>لیست حواله ها:</legend>
       <table id="inventory-transfer">
         <thead>
@@ -394,7 +405,11 @@
             </th>
           </tr>
         </thead>
+        {% if session['role'] == 'vendor_admin' %}
         <tbody id="myDropdown" style="height: 66vh; font-family: 'B-Roya';" >
+        {% else %}
+        <tbody id="myDropdown" class="hgt-71" style="font-family: 'B-Roya';" >
+        {% endif %}
           {% for rec in transfer_req %}
           {% if (session['role'] == 'vendor_admin') and (not rec['read']) %}
             <tr id="rows" style="font-weight: bold;" class="border-bottom" onclick="transferReqDetails('{{rec['number']}}')">
@@ -440,8 +455,12 @@
                   <a title="زمان ارسال به انبار: {{rec['shipment_date']}}"><span>{{rec['datetime']}}</span>
                 </td>
               {% endif %}
+              {% if rec['req_status']=='بررسی نشده' %}{% set color='orange' %}
+              {% elif rec['req_status']=='ویرایش شده' %}{% set color='blue' %}
+              {% elif rec['req_status']=='تایید شد' %}{% set color='green' %}
+              {% elif rec['req_status']=='رد درخواست' %}{% set color='red' %}{% endif %}
               <td class="vw8">
-                <span>{{rec['req_status']}}</span>
+                <a title="{{rec['refuse_reason']}}"><span class={{color}}>{{rec['req_status']}}</span></a>
               </td>
               <td class="vw8">
                 <a href="" title="حذف حواله"><span style="float: unset; margin: auto;" id="delete"></span></a>
