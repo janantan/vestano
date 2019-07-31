@@ -52,136 +52,138 @@
 	{% set api = "color:yellow;" %}
 {% endif %}
 
-<fieldset class="fieldset-card" style="margin-top: 4vh;">
-	<div id="tab">
-		<table>
-			{% if 'dashboard' in session['access'] %}
-				<tr>
-					<td>
-						<a style={{home}} href="/home">داشبورد</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if 'Ordering' in session['access'] %}
-				<tr>
-					<td>
-						<a style={{ord}} href="/user-pannel/ordering">ثبت سفارش</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if 'caseOrdering' in session['access'] %}
-				<tr>
-					<td>
-						<a style={{case}} href="/user-pannel/case-orders">ثبت سفارش موردی</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if ('processList' or 'caseProcessList') in session['access'] %}
-				<tr>
-					<td>
-						<a style={{temp}} href="/user-pannel/orderList">صف پردازش ({{session['temp_orders']}})</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if 'todayOrders' in session['access'] %}
-				<tr>
-					<td>
-						<a style={{to}} href="/user-pannel/today-orders">سفارشات امروز ({{session['today_orders']}})</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if 'cnlOrders' in session['access'] %}
-				<tr>
-					<td>
-						<a style={{cnl}} href="/user-pannel/canceled-orders">سفارشات لغو شده ({{session['canceled_orders']}})</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if 'rtsOrders' in session['access'] %}
-				<tr>
-					<td>
-						<a style={{rts}} href="/user-pannel/ready-to-ship">سفارشات آماده ارسال ({{session['ready_to_ship']}})</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if 'pndOrders' in session['access'] %}
-				<tr>
-					<td>
-						<a style={{pnd}} href="/user-pannel/pending-orders">سفارشات در انتظار کالا ({{session['pending_orders']}})</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if 'allOrders' in session['access'] %}
-				<tr>
-					<td>
-						<a style={{all}} href="/user-pannel/all-orders">مشاهده همه سفارشات ({{session['all_orders']}})</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if 'inventory' in session['access'] %}
-				<tr>
-					<td>
-						<a style={{inv}} href="/user-pannel/inventory">انبارداری</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if 'financialRep' in session['access'] %}
-				<tr>
-					<td>
-						<a style={{acc}} href="/user-pannel/accounting">حسابداری</a>
-					</td>
-				</tr>
-			{% endif %}
-			{% if 'inventory' in session['access'] %}
-				{% if session['role'] == 'vendor_admin' %}
+<div class="tab-fieldset">
+	<fieldset class="fieldset-card" style="margin-top: 4vh;">
+		<div id="tab">
+			<table id="tab-fieldset">
+				{% if 'dashboard' in session['access'] %}
 					<tr>
 						<td>
-							<a style={{trf}} href="/user-pannel/inventory-transfer/newT">حواله به انبار</a>
-						</td>
-					</tr>
-				{% elif session['role'] == 'admin' %}
-					<tr>
-						<td>
-							<a style={{trf}} href="/user-pannel/inventory-transfer/listT">حواله به انبار</a>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<a style={{mng}} href="/user-pannel/inventory-management/new">مدیریت انبار</a>
-						</td>
-					</tr>
-				{% else %}
-					<tr>
-						<td>
-							<a style={{mng}} href="/user-pannel/inventory-management/new">مدیریت انبار</a>
+							<a style={{home}} href="/home">داشبورد</a>
 						</td>
 					</tr>
 				{% endif %}
-			{% endif %}
-			<tr>
-				<td>
-					<a style={{ticket}} href="/user-pannel/tickets">تیکت ({{session['unread_tickets']}})</a>
-				</td>
-			</tr>
-			{% if (session['role'] == 'admin') or (session['role'] == 'vendor_admin') %}
+				{% if 'Ordering' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{ord}} href="/user-pannel/ordering">ثبت سفارش</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'caseOrdering' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{case}} href="/user-pannel/case-orders">ثبت سفارش موردی</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if ('processList' or 'caseProcessList') in session['access'] %}
+					<tr>
+						<td>
+							<a style={{temp}} href="/user-pannel/orderList">صف پردازش ({{session['temp_orders']}})</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'todayOrders' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{to}} href="/user-pannel/today-orders">سفارشات امروز ({{session['today_orders']}})</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'cnlOrders' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{cnl}} href="/user-pannel/canceled-orders">سفارشات لغو شده ({{session['canceled_orders']}})</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'rtsOrders' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{rts}} href="/user-pannel/ready-to-ship">سفارشات آماده ارسال ({{session['ready_to_ship']}})</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'pndOrders' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{pnd}} href="/user-pannel/pending-orders">سفارشات در انتظار کالا ({{session['pending_orders']}})</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'allOrders' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{all}} href="/user-pannel/all-orders">مشاهده همه سفارشات ({{session['all_orders']}})</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'inventory' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{inv}} href="/user-pannel/inventory">انبارداری</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'financialRep' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{acc}} href="/user-pannel/accounting">حسابداری</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'inventory' in session['access'] %}
+					{% if session['role'] == 'vendor_admin' %}
+						<tr>
+							<td>
+								<a style={{trf}} href="/user-pannel/inventory-transfer/newT">حواله به انبار</a>
+							</td>
+						</tr>
+					{% elif session['role'] == 'admin' %}
+						<tr>
+							<td>
+								<a style={{trf}} href="/user-pannel/inventory-transfer/listT">حواله به انبار</a>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<a style={{mng}} href="/user-pannel/inventory-management/new">مدیریت انبار</a>
+							</td>
+						</tr>
+					{% else %}
+						<tr>
+							<td>
+								<a style={{mng}} href="/user-pannel/inventory-management/new">مدیریت انبار</a>
+							</td>
+						</tr>
+					{% endif %}
+				{% endif %}
 				<tr>
 					<td>
-						<a style={{rgs}} href="/register">ایجاد کاربری</a>
+						<a style={{ticket}} href="/user-pannel/tickets">تیکت ({{session['unread_tickets']}})</a>
 					</td>
 				</tr>
-			{% endif %}
-			{% if (session['role'] == 'admin') or (session['role'] == 'office') %}
+				{% if (session['role'] == 'admin') or (session['role'] == 'vendor_admin') %}
+					<tr>
+						<td>
+							<a style={{rgs}} href="/register">ایجاد کاربری</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if (session['role'] == 'admin') or (session['role'] == 'office') %}
+					<tr>
+						<td>
+							<a style={{sts}} href="/update-status">بروزرسانی وضعیت مرسولات</a>
+						</td>
+					</tr>
+				{% endif %}
 				<tr>
 					<td>
-						<a style={{sts}} href="/update-status">بروزرسانی وضعیت مرسولات</a>
+						<a style={{api}} href="/api-guide">دریافت راهنمای وب سرویس</a>
 					</td>
 				</tr>
-			{% endif %}
-			<tr>
-				<td>
-					<a style={{api}} href="/api-guide">دریافت راهنمای وب سرویس</a>
-				</td>
-			</tr>
-		</table>
-	</div>
-</fieldset>
+			</table>
+		</div>
+	</fieldset>
+</div>

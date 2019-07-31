@@ -172,6 +172,22 @@ a.export {
     text-align: center;
 }
 
+#tab-fieldset a {
+    text-decoration: none;
+}
+
+#tab-fieldset{
+    display: block;
+    height: 83vh;
+    overflow-y: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+#tab-fieldset::-webkit-scrollbar { 
+    display: none;
+}
+
 #inventory-transfer a {
     text-decoration: none;
 }
@@ -1368,6 +1384,10 @@ tr#rows:hover {
 
 .pack-tbl td select {
     margin-right: 2vw;
+}
+
+.tab-fieldset {
+    overflow:auto;
 }
 
 body > footer span {
