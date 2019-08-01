@@ -68,6 +68,9 @@
                     <span>نام محصول</span>
                   </th>
                   <th>
+                    <span class="font14">موجودی</span>
+                  </th>
+                  <th>
                     <span>تعداد</span>
                   </th>
                   <th>
@@ -87,10 +90,10 @@
                   <td>
                     <div id="add-srch-prdct" class="dropdown">
                       <div id="myDropdown-prdct1" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
-                        <input type="text" placeholder="انتخاب کنید" id="myInput-prdct1" autocomplete="nope" onclick="show_prdct('prdct1')" onkeyup="filter_prdct('myInput-prdct1', 'myDropdown-prdct1')" size="30">
+                        <input type="text" placeholder="انتخاب کنید" id="myInput-prdct1" autocomplete="nope" onclick="show_prdct('prdct1')" onkeyup="filter_prdct('myInput-prdct1', 'myDropdown-prdct1')" size="25">
                         <div id="prdct1" class="dropdown-content" style="display: none; max-height: 18vh;">
                           {% for item in inventory %}
-                            <a href="#" onclick="searchPrdct('{{item[1]}}', 'myInput-prdct1', 'product1', 'prdct1', 'price1', 'discount1', 'weight1')">{{item[0]}}</a>
+                            <a href="#" onclick="searchPrdct('{{item[1]}}', 'myInput-prdct1', 'product1', 'prdct1', 'exist_count1', 'price1', 'discount1', 'weight1')">{{item[0]}}</a>
                           {% endfor %}
                         </div>
                       </div>
@@ -103,7 +106,10 @@
                         }
                       {% endfor %}
                     </select>
-                  </td>                  
+                  </td>
+                  <td>
+                    <span style="color: red;" id="exist_count1"></span>
+                  </td>
                   <td>
                     <input id="count1" type="number" name="count_1" value="1" onchange="anyChange()" size="4" required/>
                   </td>
@@ -124,8 +130,9 @@
                 <tfoot style="display: block;" class="tfoot">
                   <tr class="order-0">
                     <td>
-                      <input type="text" name="sum" value="مجموع" size="30" disabled />
-                    </td>                  
+                      <input type="text" name="sum" value="مجموع" size="25" disabled />
+                    </td>
+                    <td style="width: 200vw;"></td>
                     <td>
                       <input id="count-sum" type="number" name="count_sum" size="4" disabled/>
                     </td>
@@ -205,6 +212,8 @@
       clone.id = "row" + ++q;
       i_list.push(clone.id);
       for (ii=0; ii<"{{(inventory|length)+2}}"; ii++) {
+        var ex = "exist_count"+id_name.substring(3, id_name.length);
+        clone.innerHTML = clone.innerHTML.replace(ex, "exist_count"+q);
         var p = "price"+id_name.substring(3, id_name.length);
         clone.innerHTML = clone.innerHTML.replace(p, "price"+q);
         var d = "discount"+id_name.substring(3, id_name.length);
@@ -236,6 +245,7 @@
       var str = "row"+id_name.substring(3, id_name.length);
       clone.innerHTML = clone.innerHTML.replace(str, "row"+q);
       original.parentNode.appendChild(clone);
+      document.getElementById("exist_count"+q).innerHTML = "";
     } else {
       if (i_list.length > 1) {
         original.parentNode.removeChild(original);
@@ -488,17 +498,18 @@
     xhr.send();
   }
 
-  function searchPrdct(code, input_id, select_id, div_id, price_id, discount_id, weight_id) {
+  function searchPrdct(code, input_id, select_id, div_id, exist_id, price_id, discount_id, weight_id) {
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
         document.getElementById(div_id).style.display = 'none';
         var json = JSON.parse(this.responseText);
-        document.getElementById(input_id).value = json.productName
-        document.getElementById(select_id).value = json.productId
+        document.getElementById(input_id).value = json.productName;
+        document.getElementById(select_id).value = json.productId;
         document.getElementById(price_id).value = json.price;
-        document.getElementById(discount_id).value = json.discount
-        document.getElementById(weight_id).value = json.weight
+        document.getElementById(discount_id).value = json.discount;
+        document.getElementById(weight_id).value = json.weight;
+        document.getElementById(exist_id).innerHTML = json.count;
         anyChange();
       }
     }

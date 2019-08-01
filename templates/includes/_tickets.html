@@ -54,37 +54,37 @@
 			{% for rec in tickets %}
 				{% if session['role']=='vendor_admin' %}
 					{% if rec['read'] %}
-					<tr id="rows" class="border-bottom">
+					<tr id="rows" class="border-bottom" onclick="showTickets('{{rec['number']}}')">
 					{% else %}
-					<tr id="rows" class="border-bottom" style="font-weight: bold;">
+					<tr id="rows" class="border-bottom" onclick="showTickets('{{rec['number']}}')" style="font-weight: bold;">
 					{% endif %}
 				{% else %}
 					{% if rec['support_reply'] %}
-					<tr id="rows" class="border-bottom">
+					<tr id="rows" class="border-bottom" onclick="showTickets('{{rec['number']}}')">
 					{% else %}
-					<tr id="rows" class="border-bottom" style="font-weight: bold;">
+					<tr id="rows" class="border-bottom" onclick="showTickets('{{rec['number']}}')" style="font-weight: bold;">
 					{% endif %}
 				{% endif %}
 						<td style="width: 4vw;">
 							<span>{{loop.index}}</span>
 						</td>
 						<td>
-							<a href="/user-pannel/show-ticket/{{rec['number']}}" title=""><span>{{rec['number']}}</span></a>
+							<span>{{rec['number']}}</span>
 						</td>
 						<td>
-							<a href="/user-pannel/show-ticket/{{rec['number']}}" title="{{rec['sender_username']}}"><span>{{rec['sender_name']}}</span></a>
+							<a title="{{rec['sender_username']}}"><span>{{rec['sender_name']}}</span></a>
 						</td>
 						<td class="vw14">
-							<a href="/user-pannel/show-ticket/{{rec['number']}}" title=""><span>{{rec['title']}}</span></a>
+							<span>{{rec['title']}}</span>
 						</td>
 						<td>
-							<a href="/user-pannel/show-ticket/{{rec['number']}}" title=""><span>{{rec['departement']}}</span></a>
+							<span>{{rec['departement']}}</span>
 						</td>
 						<td class="vw20">
-							<a href="/user-pannel/show-ticket/{{rec['number']}}" title="{{('\n'.join(rec['text']))}}"><span>{{rec['text'][0][0:40]}}</span></a>
+							<a title="{{('\n'.join(rec['text']))}}"><span>{{rec['text'][0][0:40]}}</span></a>
 						</td>
 						<td>
-							<a href="/user-pannel/show-ticket/{{rec['number']}}" title=""><span>{{rec['datetime']}}</span></a>
+							<span>{{rec['datetime']}}</span>
 						</td>
 						{% if rec['support_reply'] %}
 							<td class="vw8">
@@ -175,4 +175,9 @@
 			}
 		}
 	}
+
+	function showTickets(number) {
+    //var number = document.getElementById(id_name).innerHTML
+    window.open("/user-pannel/show-ticket/"+number, "_self");
+  }
 </script>
