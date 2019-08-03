@@ -1,0 +1,10 @@
+{% include 'includes/_financialTab.html' %}
+{% if sub_item == 'accounting' %}
+	{% include 'includes/_financialAccounting.html' %}
+{% elif sub_item == 'credit' %}
+	{% include 'includes/_financialVendorCredit.html' %}
+{% elif sub_item == 'paid-list' %}
+	<fieldset class="fieldset" style="height: 76vh;">
+		<legend>مبالغ واریزی:</legend>
+	</fieldset>
+{% endif %}

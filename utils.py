@@ -110,6 +110,19 @@ def readyToShip_orders(cursor):
             statusToString(r['status']), pNameList))
     return rts
 
+def guarantee_orders(cursor):
+    result = cursor.guarantee_orders.find()
+    grnt = []
+    for r in result:
+        pNameList = []
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
+        state_result = cursor.states.find_one({'Code': r['stateCode']})
+        grnt.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            statusToString(r['status']), pNameList))
+    return grnt
+
 def pending_orders(cursor):
     #remove 7 days before orders
     result = cursor.pending_orders.find()
@@ -242,8 +255,129 @@ def removeFromInventory(cursor, orderId):
                     }
                     }
                     )
-        
     
+
+def financial(cursor):
+    result = cursor.orders.find()
+    record = []
+    price = 0
+    PostDeliveryPrice = 0
+    VatTax = 0
+    registerCost = 0
+    wage = 0
+    t_vendor_account = 0
+    t_post_account = 0
+    t_vestano_account = 0
+    for r in result:
+        #filter just three status
+        if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
+            state_result = cursor.states.find_one({'Code': r['stateCode']})
+            for rec in state_result['Cities']:
+                if r['cityCode'] == rec['Code']:
+                    city = rec['Name']
+                    break
+
+            (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+            if pType == 2:
+                vendor_account = config.wage
+                post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            else:
+                vendor_account = 0 - (r['costs']['price'] - config.wage)
+                post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+            t_vendor_account += vendor_account
+            t_post_account += post_account
+            t_vestano_account += vestano_account
+
+            price += r['costs']['price']
+            PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+            VatTax += r['costs']['VatTax']
+            registerCost += r['costs']['registerCost']
+            wage += r['costs']['wage']
+
+            status = statusToString(r['status'])
+
+            protducts_list = []
+            for p in r['products']:
+                protducts_list.append(p['productName']+' - '+str(p['count']) + u' عدد ')
+
+            record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+            r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+            r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'], protducts_list, status))
+
+    totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage,t_vendor_account ,t_post_account ,t_vestano_account)
+    financial = {'record': record, 'totalCosts': totalCosts}
+
+    return financial
+
+def financial_vendor_credit(cursor):
+    result = cursor.orders.find()
+    record = []
+    order_id_list = []
+    credit_count = 0
+    price = 0
+    PostDeliveryPrice = 0
+    VatTax = 0
+    registerCost = 0
+    wage = 0
+    t_vendor_account = 0
+    t_post_account = 0
+    t_vestano_account = 0
+    post_account = 0
+    vestano_account = 0
+    for r in result:
+        #filter just three status
+        if (r['status'] in [11, 71]) and (r['vendorName'] != u'سفارش موردی') :
+            state_result = cursor.states.find_one({'Code': r['stateCode']})
+            for rec in state_result['Cities']:
+                if r['cityCode'] == rec['Code']:
+                    city = rec['Name']
+                    break
+
+            (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+            if (pType == 2) or (pType == 88):
+                vendor_account = 0 - config.wage
+                #post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            else:
+                vendor_account = r['costs']['price'] - config.wage
+                #post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            #vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+            t_vendor_account += vendor_account
+            #t_post_account += post_account
+            #t_vestano_account += vestano_account
+
+            price += r['costs']['price']
+            PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+            VatTax += r['costs']['VatTax']
+            registerCost += r['costs']['registerCost']
+            wage += r['costs']['wage']
+
+            status = statusToString(r['status'])
+
+            protducts_list = []
+            for p in r['products']:
+                protducts_list.append(p['productName']+' - '+str(p['count']) + u' عدد ')
+
+            record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+            r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+            r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'], protducts_list, status))
+
+            credit_count += 1
+            order_id_list.append(int(r['orderId']))
+
+    totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage, t_vendor_account , t_post_account, t_vestano_account)
+    financial = {
+    'record': record,
+    'totalCosts': totalCosts,
+    'credit_count': credit_count,
+    'order_id_list': order_id_list
+    }
+
+    return financial
 
 def accounting(cursor):
     result = cursor.orders.find()
@@ -320,6 +454,8 @@ def details(cursor, orderId, code):
         r = cursor.canceled_orders.find_one({'orderId': orderId})
     elif code == 'pnd':
         r = cursor.pending_orders.find_one({'orderId': orderId})
+    elif code == 'grnt':
+        r = cursor.guarantee_orders.find_one({'orderId': orderId})
     elif code == 'all':
         r = cursor.orders.find_one({'orderId': orderId})
     if not r:
@@ -367,33 +503,6 @@ def details(cursor, orderId, code):
 
     parcelCode = r['parcelCode']
 
-    if 'costs' in r.keys():
-        #deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price, weight, sType, pType)
-        #deliveryPrice = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
-        deliveryPrice = r['costs']['PostDeliveryPrice'] + r['costs']['VatTax']
-    else:
-        if 'temp_delivery_costs' in r.keys():
-            deliveryPrice = r['temp_delivery_costs']
-        else:
-            deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price, weight, sType, pType)
-            deliveryPrice = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
-            if code == 'temp':
-                cursor.temp_orders.update_many(
-                    {'orderId': r['orderId']},
-                    {'$set':{'temp_delivery_costs': deliveryPrice}})
-            elif code == 'today':
-                cursor.today_orders.update_many(
-                    {'orderId': r['orderId']},
-                    {'$set':{'temp_delivery_costs': deliveryPrice}})
-            elif code == 'cnl':
-                cursor.canceled_orders.update_many(
-                    {'orderId': r['orderId']},
-                    {'$set':{'temp_delivery_costs': deliveryPrice}})
-            elif code == 'pnd':
-                cursor.pending_orders.update_many(
-                    {'orderId': r['orderId']},
-                    {'$set':{'temp_delivery_costs': deliveryPrice}})
-
     if r['vendorName'] == u'سفارش موردی':
         case_ord_res = cursor.case_orders.find_one({'orderId': orderId})
         if weight < 10000:
@@ -410,19 +519,55 @@ def details(cursor, orderId, code):
             wage = config.gthan30
         senderName = case_ord_res['senderFirstName'] + ' ' + case_ord_res['senderLastName']
         senderCellNumber = case_ord_res['senderCellNumber']
-        senderPostalCode = case_ord_res['senderPostalCode']
-
-        
+        senderPostalCode = case_ord_res['senderPostalCode']        
     else:
         wage = config.wage
         senderName = ''
         senderCellNumber = ''
         senderPostalCode = ''
+
+    if 'costs' in r.keys():
+        deliveryPrice = r['costs']['PostDeliveryPrice'] + r['costs']['VatTax']
+        temp_wage = r['costs']['wage']
+    else:
+        if 'temp_delivery_costs' in r.keys():
+            deliveryPrice = r['temp_delivery_costs']
+            if 'temp_wage' in r.keys():
+                temp_wage = r['temp_wage']
+            else:
+                temp_wage = wage
+        else:
+            deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price, weight, sType, pType)
+            deliveryPrice = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
+            if 'temp_wage' in r.keys():
+                temp_wage = r['temp_wage']
+            else:
+                temp_wage = wage
+            if code == 'temp':
+                cursor.temp_orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'temp_delivery_costs': deliveryPrice, 'temp_wage': wage}})
+            elif code == 'today':
+                cursor.today_orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'temp_delivery_costs': deliveryPrice, 'temp_wage': wage}})
+            elif code == 'grnt':
+                cursor.guarantee_orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'temp_delivery_costs': deliveryPrice, 'temp_wage': wage}})
+            elif code == 'cnl':
+                cursor.canceled_orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'temp_delivery_costs': deliveryPrice, 'temp_wage': wage}})
+            elif code == 'pnd':
+                cursor.pending_orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'temp_delivery_costs': deliveryPrice, 'temp_wage': wage}})
         
     details = (r['orderId'], r['vendorName'], r['record_time']+' - '+r['record_date'],
         r['registerFirstName']+' '+r['registerLastName'], r['registerCellNumber'], r['registerPostalCode'],
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
-        r['products'],count, price, discount, orderId, status, wage, parcelCode, deliveryPrice,
+        r['products'],count, price, discount, orderId, status, temp_wage, parcelCode, deliveryPrice,
         senderName, senderCellNumber, senderPostalCode, Weight)
 
     return details

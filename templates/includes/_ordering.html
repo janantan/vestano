@@ -189,6 +189,13 @@
             </fieldset>
           </td>
         </tr>
+        <!--{% if (session['role'] == 'vendor_admin') or (session['role'] == 'admin') %}-->
+          <tr>
+            <td>
+              <label style="color: red; font-weight: bold; margin: 2vw 0;"><input type="checkbox" name="grnt" value="true"/>کالای گارانتی</label>
+            </td>
+          </tr>
+        <!--{% endif %}-->
       </tbody>
     </table>
     <div style="margin-right: 15px;">

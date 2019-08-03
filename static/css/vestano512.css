@@ -470,6 +470,10 @@ a.export {
     background: #eee;
 }
 
+.mf-div-0 div {
+    padding: 0.5vh 0 !important;
+}
+
 .div2 {
     height: 40vh;
     display: flex;
@@ -487,16 +491,12 @@ a.export {
     margin-bottom: 7vh;
 }
 
-.mobile-footer-div {
+.footer-div {
     display: none;
 }
 
 .div4 {
     margin-top: 3vh;
-}
-
-.div4 div ul li {
-    padding: 0.5vh 0 !important;
 }
 
 .div5 {
@@ -517,12 +517,12 @@ a.export {
     display: flex;
     flex-direction: column;
     margin: 5vh 1vw !important;
-    width: 75%;
+    width: 100%;
 }
 
 .div5 figure img {
-    width: 50%;
-    height: 50%;
+    width: 100%;
+    height: 100%;
 }
 
 .div6 {
@@ -547,26 +547,27 @@ a.export {
 
 .st-fieldset-0 {
     background: #fafafa;
-    margin: 0 10vw;
+    margin: 0 2vw;
     border-radius: 5px;
     border: 1px #e1e1e1;
     padding: 0;
+    font-size: 14px;
 }
 
 .st-div-1 {
-    font-size: 1.3vw;
+    font-size: 10px;
     background: yellow;
     border-radius: 5px;
-    padding: 1vh 2vw;
+    padding: 1vh 1vw;
 }
 
 .st-div-2 {
-    width: 15%;
+    width: 20%;
     float: right;
 }
 
 .st-div-3 {
-    width: 35%;
+    width: 30%;
     float: right;
 }
 
@@ -580,6 +581,8 @@ a.export {
 
 .st-div-0 ul {
     list-style: none;
+    padding: 2vh 1vw;
+    font-size: 9px;
 }
 
 .footer {
@@ -617,7 +620,7 @@ a.export {
 }
 
 #logo figure {
-    width: 8%;
+    width: 25%;
     margin: 0;
     position: fixed;
     top: 0vh;
@@ -967,10 +970,6 @@ a.export {
     width: 8vw !important;
 }
 
-.vw9 {
-    width: 9vw !important;
-}
-
 .vw6 {
     width: 6vw !important;
 }
@@ -1025,10 +1024,6 @@ a.export {
 
 .mrg-vw2 {
     margin-right: 2vw;
-}
-
-.mrg-8vw {
-    margin-right: 8vw;
 }
 
 .mrg-vw50 {

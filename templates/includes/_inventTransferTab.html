@@ -40,7 +40,7 @@
 	{% if 'searchStuff' in session['access'] %}
 		<a href="/user-pannel/inventory-transfer/searchT" style={{searchT}} class="button" style="margin-right: 2vw;">جستجو در انبار</a>
 	{% endif %}
-	{% if 'searchStuff' in session['access'] %}
-		<a href="/user-pannel/inventory-transfer/listT" style={{listT}} class="button">لیست حواله ها</a>
+	{% if 'requestForStuff' in session['access'] %}
+		<a href="/user-pannel/inventory-transfer/listT" style={{listT}} class="button">لیست حواله ها ({{session['unread_inv_transfers']}})</a>
 	{% endif %}
 </div>

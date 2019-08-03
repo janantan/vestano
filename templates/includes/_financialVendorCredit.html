@@ -1,0 +1,136 @@
+<fieldset class="fieldset" style="height: 76vh;">
+	<legend>بستانکاری فروشگاه:</legend>
+	<div style="margin: 2vh 2vw;">
+		<div style="float: right; width: 28%;">
+			<span class="">مبلغ بستانکاری:</span>
+			{% if vendor_credit['totalCosts'][5] < 0 %}
+				<span class="red bold">{{0 - vendor_credit['totalCosts'][5]}} ریال</span>
+			{% else %}
+				<span class="blue bold">{{vendor_credit['totalCosts'][5]}} ریال</span>
+			{% endif %}
+		</div>
+		<div style="float: right; width: 28%;">
+			<span class="">تعداد سفارشات:</span>
+			<span class="bold" style="color: red;">{{vendor_credit['credit_count']}}</span>
+		</div>
+		<div style="float: right; width: 28%;">
+			<span>آخرین واریزی:</span>
+			<span class="bold"></span>
+		</div>
+		<div style="float: right; width: 16%; margin-bottom: 2vh;">
+			<a class="button" style="margin-top: 0;" href="javascript:window.open('/req-credit/{{vendor_credit['totalCosts'][5]}}/{{vendor_credit['order_id_list']}}', 'Request Credit', 'width=950,height=500,top=100,left=300');"><span>درخواست واریز وجه</span></a>
+		</div><br>
+	</div>
+	<table id="accounting">
+		<thead>
+			<tr style="background: yellow;">
+				<th class="font12"">
+					<input id="financial_select0" type="checkbox" name="financial_select" value="yes" onchange="selectAll()" />
+				</th>
+				<th class="font12"">
+					<span>ردیف</span>
+				</th>
+				<th class="font12" style="width: 8vw;">
+					<span>شناسه سفارش</span>
+				</th>
+				<th class="font12" style="width: 15vw;">
+					<span>کد رهگیری</span>
+				</th>
+				<th class="font12" style="width: 10vw;">
+					<span>مبلغ تمام شده کالا</span>
+				</th>
+				<th class="font12">
+					<span>کارمزد</span>
+				</th>
+				<th class="font12" style="width: 10vw;">
+					<span>بستانکار|بدهکارفروشگاه</span>
+				</th>
+				<th class="font12 vw8">
+					<span>واریز وستانو</span>
+				</th>
+				<th class="font12 vw8">
+					<span>وضعیت</span>
+				</th>
+				<th class="font12 vw9">
+					<span>پرداخت</span>
+				</th>
+			</tr>
+		</thead>
+		<tbody style="height: 60vh;">
+			{% for rec in vendor_credit['record'] %}
+				<tr class="rows">
+					<td>
+						<input id="financial_select{{loop.index}}" type="checkbox" name="financial_select" value="yes"/>
+					</td>
+					<td>
+						<span>{{loop.index}}</span>
+					</td>
+					<td class="" style="width: 8vw;">
+						<span>{{rec[0]}}</span>
+					</td>
+					<td class="" style="width: 15vw;">
+						<a href="javascript:window.open('/orders-details/{{rec[0]}}/vendor_credit', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
+					</td>
+					<td class="" style="width: 10vw;">
+						<span>{{rec[2]}}</span>
+					</td>
+					<td class="">
+						<span >{{rec[6]}}</span>
+					</td>
+					{% if rec[7] < 0 %}
+						<td style="width: 10vw;">
+							<span class="red">{{0-rec[7]}}</span>
+						</td>
+					{% else %}
+						<td style="width: 10vw;">
+							<span class="blue">{{rec[7]}}</span>
+						</td>
+					{% endif %}
+					<td class="vw8">
+						<span class="font12">{{rec[12]}}</span>
+					</td>
+					<td class="vw8">
+						<span class="font12">{{rec[12]}}</span>
+					</td>
+					<td class="vw8">
+						<span class="font12">{{rec[10]}}</span>
+					</td>
+				</tr>
+			{% endfor %}
+			<tr style="background: rgb(255,255,180);">
+				<td colspan="3">
+					<span>مجموع</span>
+				</td>
+				<td>
+					<span>{{vendor_credit['totalCosts'][0]}}</span>
+				</td>
+				<td>
+					<span >{{vendor_credit['totalCosts'][4]}}</span>
+				</td>
+				{% if vendor_credit['totalCosts'][5] < 0 %}
+					<td>
+						<span class="red">{{0 - vendor_credit['totalCosts'][5]}}</span>
+					</td>
+				{% else %}
+					<td>
+						<span class="blue">{{vendor_credit['totalCosts'][5]}}</span>
+					</td>
+				{% endif %}
+			</tr>
+		</tbody>
+	</table>
+</fieldset>
+
+<script type="text/javascript">
+	var select_all = document.getElementById('financial_select0').checked;
+	alert(select_all);
+	for (i=0; i<"{{vendor_credit['order_id_list']|length}}"; i++) {
+		if (select_all) {
+			document.getElementById('financial_select'+(i+1)).checked = true;
+			break;
+		} else {
+
+		}
+
+	}
+</script>

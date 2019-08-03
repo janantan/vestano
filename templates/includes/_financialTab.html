@@ -1,0 +1,22 @@
+{% set accnt = "background:#eee;" %}
+{% set credit = "background:#eee;" %}
+{% set paid = "background:#eee;" %}
+
+{% if "financial/accounting" in request.base_url %}
+	{% set accnt = "background:yellow;" %}
+{% elif "credit" in request.base_url %}
+	{% set credit = "background:yellow;" %}
+{% elif "paid-list" in request.base_url %}
+	{% set paid = "background:yellow;" %}
+{% endif %}
+<div id="tab">
+	{% if 'financialRep' in session['access'] %}
+		<a href="/user-pannel/financial/accounting" style={{accnt}} class="button">حسابداری</a>
+	{% endif %}
+	{% if 'financialRep' in session['access'] %}
+		<a href="/user-pannel/financial/credit" style={{credit}} class="button">بستانکاری فروشگاه</a>
+	{% endif %}
+	{% if 'financialRep' in session['access'] %}
+		<a href="/user-pannel/financial/paid-list" style={{paid}} class="button">مبالغ واریزی</a>
+	{% endif %}
+</div>

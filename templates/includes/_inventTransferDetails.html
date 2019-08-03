@@ -86,10 +86,10 @@
       </form>
     </fieldset>
   {% elif sub_item == 'inc' %}
-    <fieldset class="fieldset mrg-vh2" style="height: 68vh; background: rgb(255,255,230);">
+    <fieldset class="fieldset mrg-vh2" style="height: 70vh; background: rgb(255,255,230);">
       <form method="POST" action="">
         <fieldset id="features" class="fieldset" style="height: 50vh; border: none; background: rgb(255,255,230);">
-          <div>
+          <div style="margin-top: 0;">
             <label>نام کالا</label>
             <input id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" disabled required />
           </div>
@@ -206,11 +206,11 @@
   {% elif sub_item == 'pack' %}
     <fieldset class="fieldset" style="background: rgb(255,255,230); height:72vh;">
       <form method="POST" action="" style="margin-block-end: 0;">
-        <div class="mrg-vh1" style="float: right;">
+        <div style="float: right; margin-top: 0;">
           <label>نام کالا</label>
           <input id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" required />
         </div>
-        <div class="mrg-vh1 mrg-vw23">
+        <div class="mrg-vw23" style="margin-top: 0;">
           <label class="mrg-vw2">شرکت فروشنده</label>
           <select id="vendor" name="vendor" class="mrg-vw2" style="width: 8vw; padding-right: 1vw; margin-top: 1vh;" required>
             <option value="{{transfer_details['vendor']}}">{{transfer_details['vendor']}}</option>
@@ -336,9 +336,9 @@
       </form>
     </fieldset>
   {% elif sub_item == 'release' %}
-    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 72vh;">
+    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 71.5vh;">
       <form method="POST" action="">
-        <div class="mrg-vh2">
+        <div style="margin-top: 0;">
           <label style="display:inline-block;">نام کالا</label>
           <input style="margin-right: 4vw;" id="productName" type="text" name="productName" value="{{transfer_details['productName']}}" placeholder="" size="50" disabled required />
         </div>

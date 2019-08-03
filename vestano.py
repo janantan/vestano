@@ -83,9 +83,10 @@ class SomeSoapService(spyne.Service):
     __out_protocol__ = Soap11()
 
     @spyne.srpc(String, String, Unicode, Unicode, Unicode, String, Integer, Integer, Unicode, String,
-        Array(Products), Integer, Integer, String, String, _returns=String)
+        Array(Products), Integer, Integer, String, String, String, _returns=String)
     def NewOrder(username, password, vendorName, registerFirstName, registerLastName, registerCellNumber,
-        stateCode, cityCode, registerAddress, registerPostalCode, products, serviceType, payType, orderDate, orderTime):
+        stateCode, cityCode, registerAddress, registerPostalCode, products, serviceType, payType, guaranteeProduct,
+        orderDate, orderTime):
         if not username:
             print('Missed Username Field!')
             return 4
@@ -169,6 +170,7 @@ class SomeSoapService(spyne.Service):
                 'products' : p_list,
                 'serviceType' : sType,
                 'payType' : pType,
+                'grntProduct' : guaranteeProduct,
                 'orderDate': orderDate,
                 'orderTime': orderTime,
                 'record_date': jdatetime.datetime.now().strftime('%d / %m / %Y'),
@@ -192,6 +194,8 @@ class SomeSoapService(spyne.Service):
                             )
                     cursor.today_orders.insert_one(input_data)
                     cursor.all_records.insert_one(input_data)
+                    if guaranteeProduct:
+                        cursor.guarantee_orders.insert_one(input_data)
                     return order_id
                 else:
                     print('Error in enterance data!')
@@ -275,9 +279,18 @@ def token_required(f):
             session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
             session['today_orders'] = cursor.today_orders.estimated_document_count()
             session['pending_orders'] = cursor.pending_orders.estimated_document_count()
+            session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
             session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
             session['all_orders'] = cursor.orders.estimated_document_count()
-            #session['unread_tickets'] = cursor.tickets.find({'read': False}).count()
+            if 'username' in session:
+                if session['role'] == 'vendor_admin':
+                    session['unread_tickets'] = cursor.tickets.find({'read': False}).count()
+                    session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False}).count()
+                else:
+                    session['unread_tickets'] = cursor.tickets.find({'sender_reply': True}).count()
+                    not_processed = cursor.inventory_transfer.find({'req_status': u'بررسی نشده'}).count()
+                    edited = cursor.inventory_transfer.find({'req_status': u'ویرایش شده'}).count()
+                    session['unread_inv_transfers'] = not_processed + edited
         except:
             return redirect(url_for('token_logout'))            
 
@@ -292,11 +305,17 @@ def token_required(f):
                 session['jdatetime'] = jdatetime.datetime.today().strftime('%d / %m / %Y')
                 session['temp_orders'] = cursor.temp_orders.estimated_document_count()
                 session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
+                session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
                 session['today_orders'] = cursor.today_orders.estimated_document_count()
                 if session['role'] == 'vendor_admin':
                     session['unread_tickets'] = cursor.tickets.find({'read': False}).count()
+                    session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False}).count()
                 else:
                     session['unread_tickets'] = cursor.tickets.find({'sender_reply': True}).count()
+                    not_processed = cursor.inventory_transfer.find({'req_status': u'بررسی نشده'}).count()
+                    edited = cursor.inventory_transfer.find({'req_status': u'ویرایش شده'}).count()
+                    session['unread_inv_transfers'] = not_processed + edited
+
                 flash(result['name'] + u' عزیز خوش آمدید', 'success-login')
         
         else:
@@ -380,6 +399,7 @@ def temp_orders():
     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
     session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
     session['today_orders'] = cursor.today_orders.estimated_document_count()
+    session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
     session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
     session['all_orders'] = cursor.orders.estimated_document_count()
 
@@ -525,6 +545,10 @@ def confirm_orders(code):
                 cursor.temp_orders.remove({'orderId': code})
                 cursor.today_orders.remove({'orderId': code})
                 cursor.today_orders.insert_one(new_rec)
+                if 'grntProduct' in new_rec.keys():
+                    if new_rec['grntProduct']:
+                        cursor.guarantee_orders.remove({'orderId': code})
+                        cursor.guarantee_orders.insert_one(new_rec)
 
                 #update status in vestano_inventory
                 for i in range(len(new_rec['products'])):
@@ -637,6 +661,20 @@ def today_orders():
         states = utils.states(cursor)
         )
 
+@app.route('/user-pannel/guarantee-orders', methods=['GET'])
+@token_required
+def guarantee_orders():
+    if 'grntOrders' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    return render_template('user_pannel.html',
+        item='grntOrders',
+        inventory = utils.inventory(cursor),
+        guarantee_orders = utils.guarantee_orders(cursor),
+        states = utils.states(cursor)
+        )
+
 @app.route('/user-pannel/pending-orders', methods=['GET'])
 @token_required
 def pending_orders():
@@ -690,6 +728,10 @@ def finish_process(orderId):
         {'orderId': orderId},
         {'$set':{'status': 81}}
         )
+    cursor.guarantee_orders.update_many(
+        {'orderId': orderId},
+        {'$set':{'status': 81}}
+        )
     for i in range(len(new_rec['products'])):
         if new_rec['vendorName'] == u'سفارش موردی':
             vinvent = cursor.case_inventory.find_one({'productId':new_rec['products'][i]['productId']})
@@ -737,6 +779,10 @@ def cancel_orders(orderId):
         {'orderId': orderId},
         {'$set':{'status': 83}}
         )
+    cursor.guarantee_orders.update_many(
+        {'orderId': orderId},
+        {'$set':{'status': 83}}
+        )
     cursor.canceled_orders.insert_one(rec)
     cursor.temp_orders.remove({'orderId': orderId})
     flash(u'سفارش مورد نظر لغو شد!', 'danger')
@@ -771,6 +817,10 @@ def pending_order(orderId):
     rec = cursor.temp_orders.find_one({'orderId': orderId})
     rec['status'] = 82
     cursor.today_orders.update_many(
+        {'orderId': orderId},
+        {'$set':{'status': 82}}
+        )
+    cursor.guarantee_orders.update_many(
         {'orderId': orderId},
         {'$set':{'status': 82}}
         )
@@ -821,6 +871,7 @@ def delete_order(orderId):
                 )
     cursor.canceled_orders.remove({'orderId': orderId})
     cursor.today_orders.remove({'orderId': orderId})
+    cursor.guarantee_orders.remove({'orderId': orderId})
     cursor.deleted_orders.insert_one(rec)
     flash(u'سفارش حذف شد!', 'danger')
     return redirect(request.referrer)
@@ -834,6 +885,7 @@ def return_order(orderId):
 
     rec = cursor.pending_orders.find_one({'orderId': orderId})
     cursor.today_orders.remove({'orderId': orderId})
+    cursor.guarantee_orders.remove({'orderId': orderId})
     rec['status'] = 80
     rec['record_date'] = jdatetime.datetime.now().strftime('%d / %m / %Y')
     rec['record_time'] = jdatetime.datetime.now().strftime('%M : %H')
@@ -987,6 +1039,11 @@ def edit_orders(orderId):
                 )
 
         else:
+            if request.form.getlist('grnt'):
+                grnt = request.form.getlist('grnt')[0]
+            else:
+                grnt = ''
+
             temp_order = {
             'vendorName' : u'روژیاپ',
             'registerFirstName' : request.form.get('first_name'),
@@ -996,6 +1053,7 @@ def edit_orders(orderId):
             'cityCode' : int(request.form.get('cityCode')),
             'registerAddress' : request.form.get('address'),
             'registerPostalCode' : request.form.get('postal_code'),
+            'guaranteeProduct' : grnt,
             'products' : temp_order_products,
             'serviceType' : int(request.form.get('serviceType')),
             'payType' : pTypeCode,
@@ -1009,6 +1067,7 @@ def edit_orders(orderId):
 
         cursor.canceled_orders.remove({'orderId': orderId})
         cursor.today_orders.remove({'orderId': orderId})
+        cursor.guarantee_orders.remove({'orderId': orderId})
         #return redirect(request.referrer)
 
 
@@ -1066,6 +1125,11 @@ def ordering(item):
                         int(request.form.get('payType')))
                     pTypeCode = int(request.form.get('payType'))
 
+                if request.form.getlist('grnt'):
+                    grnt = request.form.getlist('grnt')[0]
+                else:
+                    grnt = ''
+
                 temp_order = {
                 'vendorName' : u'روژیاپ',
                 'registerFirstName' : request.form.get('first_name'),
@@ -1075,6 +1139,7 @@ def ordering(item):
                 'cityCode' : int(request.form.get('cityCode')),
                 'registerAddress' : request.form.get('address'),
                 'registerPostalCode' : request.form.get('postal_code'),
+                'guaranteeProduct' : grnt,
                 'products' : temp_order_products,
                 'serviceType' : int(request.form.get('serviceType')),
                 'payType' : pTypeCode,
@@ -1893,7 +1958,36 @@ def delete_from_inventory(productId):
 
     return redirect(request.referrer)
 
-@app.route('/user-pannel/accounting', methods=['GET', 'POST'])
+@app.route('/user-pannel/financial/<sub_item>', methods=['GET'])
+@token_required
+def financial(sub_item):
+    if 'financialRep' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    return render_template('user_pannel.html',
+        item = "financial",
+        sub_item = sub_item,
+        financial = utils.financial(cursor),
+        vendor_credit = utils.financial_vendor_credit(cursor)
+        )
+
+@app.route('/req-credit/<price>/<orderId_list>', methods=['GET', 'POST'])
+@token_required
+def request_credit(price, orderId_list):
+    if 'financialRep' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    orderId_list = orderId_list[1:-1].split(', ')
+
+    return render_template('includes/_requestCredit.html',
+        price = price,
+        orderId_list = orderId_list
+        #orders = utils.req_credit_orders(cursor)
+        )
+
+@app.route('/user-pannel/accounting', methods=['GET'])
 @token_required
 def accounting():
     return render_template('user_pannel.html',
@@ -2087,10 +2181,12 @@ def logout():
     session.pop('canceled_orders', None)
     session.pop('today_orders', None)
     session.pop('all_orders', None)
+    session.pop('guarantee_orders', None)
     session.pop('role', None)
     session.pop('access', None)
     session.pop('jdatetime', None)
     session.pop('unread_tickets', None)
+    session.pop('unread_inv_transfers', None)
     return redirect(url_for('home'))
 
 @app.route('/token-logout')
@@ -2102,10 +2198,12 @@ def token_logout():
     session.pop('canceled_orders', None)
     session.pop('today_orders', None)
     session.pop('all_orders', None)
+    session.pop('guarantee_orders', None)
     session.pop('role', None)
     session.pop('access', None)
     session.pop('jdatetime', None)
     session.pop('unread_tickets', None)
+    session.pop('unread_inv_transfers', None)
     return redirect(url_for('login'))
 
 @app.route('/ajax', methods=['GET'])

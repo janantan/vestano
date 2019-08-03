@@ -18,6 +18,8 @@
             {% include 'includes/_readyToShip.html' %}
           {% elif item == "todayOrders" %}
             {% include 'includes/_todayOrders.html' %}
+          {% elif item == "grntOrders" %}
+            {% include 'includes/_guaranteeOrders.html' %}
           {% elif item == "cnlOrders" %}
             {% include 'includes/_canceledOrders.html' %}
           {% elif item == "pendingOrders" %}
@@ -36,6 +38,8 @@
             {% include 'includes/_inventTransferDetails.html' %}
           {% elif item == "inventory" %}
             {% include 'includes/_inventory.html' %}
+          {% elif item == "financial" %}
+            {% include 'includes/_financial.html' %}
           {% elif item == "accounting" %}
             {% include 'includes/_accounting.html' %}
           {% elif item == "tickets" %}

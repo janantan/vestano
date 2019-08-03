@@ -26,15 +26,22 @@
 		</div>
 		<div class="div3"></div>
 		<div id="st-div-0" class="st-div-0">
-			<!--{% include 'includes/_shipmentTrack.html' %}-->
+			{% include 'includes/_shipmentTrack.html' %}
 		</div>
 		<div class="div3"></div>
-		{% include 'includes/_footer.html' %}
+		<div class="footer-div">
+			{% include 'includes/_footer.html' %}
+		</div>
+		<div class="mobile-footer-div">
+			{% include 'includes/_mobileFooter.html' %}
+		</div>
 	</div>
 
 	<script type="text/javascript">
 		var show_flag = 0;
 		var x = document.getElementById("flash");
+		var persianNumbers = [/۰/g, /۱/g, /۲/g, /۳/g, /۴/g, /۵/g, /۶/g, /۷/g, /۸/g, /۹/g];
+		var arabicNumbers  = [/٠/g, /١/g, /٢/g, /٣/g, /٤/g, /٥/g, /٦/g, /٧/g, /٨/g, /٩/g];
 
 		function showSubmit() {
 			show_flag = 1;
@@ -48,8 +55,19 @@
 			show_flag = 0;
 		}
 
+		function fixNumbers(str) {
+
+			if (typeof str === 'string') {
+				for (var i=0; i<10; i++) {
+					str = str.replace(persianNumbers[i], i).replace(arabicNumbers[i], i);
+				}
+			}
+			return str;
+		}
+
 		function shipmentTrack() {
 			track_id = document.getElementById('shipment-track').value;
+			track_id = fixNumbers(track_id);
 		    const xhr = new XMLHttpRequest();
 		    xhr.onreadystatechange = function() {
 		      if (this.readyState == 4 && this.status == 200) {

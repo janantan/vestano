@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fa-IR" style="padding: 10px 10px;">
+    <head>
+        <title>سامانه پستی وستانو</title>
+        <!--<meta charset="utf-8" />-->
+        <meta content="text/html;charset=UTF-8" http-equiv="Content-Type" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
+    </head>
+    <body class="card" style="direction: rtl; margin: 0 auto;">
+    	<fieldset class="fieldset font16" style="background-color: #bcd1fe; height: 82vh;">
+    		<div style="margin-bottom: 2vh; font-weight: bold;">
+    			<span>* جزئیات درخواست واریز وجه:</span>
+    		</div>
+    		<form method="POST" action="">
+    			<div class="mrg-vh2" style="float: right; width: 28%;">
+    				<label class="">مبلغ درخواستی (ریال):</label>
+    				<input id="credit_price" type="text" value="{{price}}" name="credit_price" required />
+    			</div>
+    			<div class="mrg-vh2" style="float: right; width: 28%;">
+    				<label class="">شماره حساب (بانک ملی):</label>
+    				<input id="account_number" type="text" name="account_number" required />
+    			</div>
+    			<div class="mrg-vh2" style="float: right; width: 28%;">
+    				<label class="">تعداد سفارشات بستانکار: </label>
+    				<input class="red" id="orders_count" type="text" value="{{orderId_list|length}}" name="orders_count" disabled/>
+    			</div>
+    			<div class="mrg-vh2" style="float: right; width: 16%;">
+    				<a class="button" href=""><span>مشاهده سفارشات</span></a>
+    			</div><br>
+    			<fieldset class="fieldset" style="height:45vh; border: none;">
+    				
+    			</fieldset>
+    			<div class="mrg-vh2">
+    				<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="تایید و درخواست وجه" />
+    				<span class="font14" style="font-family: B-Roya;">(مبلغ درخواستی پس از بررسی حداکثر تا 2 روز کاری دیگر به حساب شما واریز خواهد شد.)</span>
+    			</div>
+    		</form>
+		</fieldset>
+    </body>
+</html>

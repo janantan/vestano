@@ -2,6 +2,7 @@
 {% set temp = "color:#fafafa;" %}
 {% set rts = "color:#fafafa;" %}
 {% set pnd = "color:#fafafa;" %}
+{% set grnt = "color:#fafafa;" %}
 {% set to = "color:#fafafa;" %}
 {% set cnl = "color:#fafafa;" %}
 {% set all = "color:#fafafa;" %}
@@ -11,6 +12,7 @@
 {% set mng = "color:#fafafa;" %}
 {% set trf = "color:#fafafa;" %}
 {% set inv = "color:#fafafa;" %}
+{% set finc = "color:#fafafa;" %}
 {% set acc = "color:#fafafa;" %}
 {% set ticket = "color:#fafafa;" %}
 {% set rgs = "color:#fafafa;" %}
@@ -24,6 +26,8 @@
 	{% set rts = "color:yellow;" %}
 {% elif "pending-orders" in request.base_url %}
 	{% set pnd = "color:yellow;" %}
+{% elif "guarantee-orders" in request.base_url %}
+	{% set grnt = "color:yellow;" %}
 {% elif "today-orders" in request.base_url %}
 	{% set to = "color:yellow;" %}
 {% elif "canceled-orders" in request.base_url %}
@@ -42,6 +46,8 @@
 	{% set trf = "color:yellow;" %}
 {% elif "inventory" in request.base_url %}
 	{% set inv = "color:yellow;" %}
+{% elif "financial" in request.base_url %}
+	{% set finc = "color:yellow;" %}
 {% elif "accounting" in request.base_url %}
 	{% set acc = "color:yellow;" %}
 {% elif "ticket" in request.base_url %}
@@ -91,6 +97,13 @@
 						</td>
 					</tr>
 				{% endif %}
+				{% if 'grntOrders' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{grnt}} href="/user-pannel/guarantee-orders">سفارشات گارانتی ({{session['guarantee_orders']}})</a>
+						</td>
+					</tr>
+				{% endif %}
 				{% if 'cnlOrders' in session['access'] %}
 					<tr>
 						<td>
@@ -129,35 +142,38 @@
 				{% if 'financialRep' in session['access'] %}
 					<tr>
 						<td>
+							<a style={{finc}} href="/user-pannel/financial/accounting">مالی</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'financialRep' in session['access'] %}
+					<tr>
+						<td>
 							<a style={{acc}} href="/user-pannel/accounting">حسابداری</a>
 						</td>
 					</tr>
 				{% endif %}
-				{% if 'inventory' in session['access'] %}
+				{% if 'requestForStuff' in session['access'] %}
 					{% if session['role'] == 'vendor_admin' %}
 						<tr>
 							<td>
-								<a style={{trf}} href="/user-pannel/inventory-transfer/newT">حواله به انبار</a>
+								<a style={{trf}} href="/user-pannel/inventory-transfer/newT">حواله به انبار ({{session['unread_inv_transfers']}})</a>
 							</td>
 						</tr>
 					{% elif session['role'] == 'admin' %}
 						<tr>
 							<td>
-								<a style={{trf}} href="/user-pannel/inventory-transfer/listT">حواله به انبار</a>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<a style={{mng}} href="/user-pannel/inventory-management/new">مدیریت انبار</a>
-							</td>
-						</tr>
-					{% else %}
-						<tr>
-							<td>
-								<a style={{mng}} href="/user-pannel/inventory-management/new">مدیریت انبار</a>
+								<a style={{trf}} href="/user-pannel/inventory-transfer/listT">حواله به انبار ({{session['unread_inv_transfers']}})</a>
 							</td>
 						</tr>
 					{% endif %}
+				{% endif %}
+				{% if 'inventManagement' in session['access'] %}
+						<tr>
+							<td>
+								<a style={{mng}} href="/user-pannel/inventory-management/new">مدیریت انبار</a>
+							</td>
+						</tr>
 				{% endif %}
 				<tr>
 					<td>
