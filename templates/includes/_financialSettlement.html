@@ -8,34 +8,27 @@
         <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
     </head>
     <body class="card" style="direction: rtl; margin: 0 auto;">
-    	<fieldset class="fieldset font16" style="background-color: #bcd1fe; height: 85vh;">
+    	<fieldset class="fieldset font16" style="background-color: #bcd1fe; height: 88vh;">
     		<div style="margin-bottom: 2vh; font-weight: bold;">
     			<span>* جزئیات درخواست واریز وجه:</span>
     		</div>
     		<form method="POST" action="" style="padding: 0 4vw;">
     			<div class="mrg-vh2" style="float: right; width: 25%; margin-right: 4vw;">
     				<label class="">مبلغ درخواستی (ریال):</label>
-    				<input id="temp" type="text" value="{{price}}" name="temp" disabled required />
-    			</div>
-    			<div class="mrg-vh2" style="display: none;">
-    				<label class="">مبلغ درخواستی (ریال):</label>
-    				<input id="credit_price" type="text" value="{{price}}" name="credit_price" />
+    				<input id="temp" type="text" value="{{data['credit_price']}}" name="temp" disabled />
     			</div>
     			<div class="mrg-vh2" style="float: right; width: 25%;">
     				<label class="">شماره حساب (بانک ملی):</label>
-    				<input id="account_number" type="text" name="account_number" required />
+    				<input id="account_number" type="text" value="{{data['account_number']}}" name="account_number" disabled />
     			</div>
     			<div class="mrg-vh2" style="float: right; width: 25%;">
     				<label class="">نام صاحب حساب:</label>
-    				<input id="account_holder" type="text" name="account_holder" required />
+    				<input id="account_holder" type="text" value="{{data['account_holder']}}" name="account_holder" disabled />
     			</div>
     			<div class="mrg-vh2" style="float: right; width: 20%;">
     				<label class="">تعداد سفارشات بستانکار: </label>
-    				<input class="red" id="orders_count" type="text" value="{{orderId_list|length}}" name="orders_count" disabled/>
+    				<input class="red" id="orders_count" type="text" value="{{data['orders_count']}}" name="orders_count" disabled/>
     			</div><br>
-    			<!--<div class="mrg-vh6" style="float: right; width: 16%;">
-    				<a class="button" href="#" onclick="showDetails()"><span>مشاهده سفارشات</span></a>
-    			</div><br>-->
     			<fieldset class="fieldset" style="height:46vh; border: none;">
     				<table id="accounting">
 						<thead>
@@ -124,10 +117,27 @@
 						</tbody>
 					</table>
     			</fieldset>
-    			<div class="mrg-vh4" style="margin-right: 4vw;">
-    				<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="تایید و درخواست وجه" />
-    				<span class="font14" style="font-family: B-Roya;">(مبلغ درخواستی پس از بررسی حداکثر تا 2 روز کاری دیگر به حساب شما واریز خواهد شد.)</span>
-    			</div>
+    			{% if session['role'] != 'vendor_admin' %}
+    				{% if data['req_status'] != 'واریز شد' %}
+		    			<div class="mrg-vh4" style="margin-right: 4vw; float: right;">
+		    				<label class="">شماره پیگیری واریز وجه:</label>
+		    				<input id="ref_number" type="text" name="ref_number" required />
+		    			</div>
+		    			<div style="float: right; margin-right: 4vw; margin-top: 8.5vh;">
+		    				<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت واریز وجه" />
+		    			</div><br>
+	    			{% else %}
+	    				<div class="mrg-vh4" style="margin-right: 4vw;">
+		    				<label class="">شماره پیگیری واریز وجه:</label>
+		    				<input id="ref_number" type="text" name="ref_number" value="{{data['ref_number']}}" disabled />
+		    			</div>
+	    			{% endif %}
+	    		{% else %}
+	    			<div class="mrg-vh4" style="margin-right: 4vw;">
+	    				<label class="">شماره پیگیری واریز وجه:</label>
+	    				<input id="ref_number" type="text" name="ref_number" value="{{data['ref_number']}}" disabled />
+	    			</div>
+	    		{% endif %}
     		</form>
 		</fieldset>
 

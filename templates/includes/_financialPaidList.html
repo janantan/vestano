@@ -1,0 +1,75 @@
+<fieldset class="fieldset" style="background: rgb(255,255,230); height: 76vh;">
+  <legend>لیست مبالغ واریزی:</legend>
+  <table id="accounting">
+    <thead>
+      <tr style="background: yellow;" class="first-row">
+        <th style="width: 4vw;">
+          <span>ردیف</span>
+        </th>
+        <th class="vw10">
+          <span>شماره درخواست</span>
+        </th>
+        <th class="vw8">
+          <span>فروشگاه</span>
+        </th>
+        <th class="vw10">
+          <span>مبلغ واریزی (ریال)</span>
+        </th>
+        <th class="vw10">
+          <span>شماره حساب</span>
+        </th>
+        <th class="vw10">
+          <span>نام صاحب حساب</span>
+        </th>
+        <th class="vw10">
+          <span>زمان ثبت واریز</span>
+        </th>
+        <th class="vw8">
+          <span>شماره پیگیری</span>
+        </th>
+        <th class="vw7">
+          <span>اقدام</span>
+        </th>
+      </tr>
+    </thead>
+    <tbody id="myDropdown" style="height: 72vh; font-family: 'B-Roya';" >
+      {% for rec in paid_list %}
+        <tr id="rows" class="border-bottom" onclick="financialSettlement('{{rec['number']}}')">
+          <td style="width: 4vw;">
+            <span>{{loop.index}}</span>
+          </td>
+          <td class="vw10">
+            <span id="req-number">{{rec['number']}}</span>
+          </td>
+          <td class="vw8">
+            <span>{{rec['vendor']}}</span>
+          </td>
+          <td class="vw10">
+            <span>{{rec['credit_price']}}</span>
+          </td>
+          <td class="vw10">
+            <span>{{rec['account_number']}}</span>
+          </td>
+          <td class="vw10">
+            <span>{{rec['account_holder']}}</span>
+          </td>
+          <td class="vw10">
+            <span>{{rec['paid_datetime']}}</span>
+          </td>
+          <td class="vw8">
+            <span class={{color}}>{{rec['ref_number']}}</span>
+          </td>
+          <td>
+            <a href="" title="حذف"><span style="float: unset; margin: auto;" id="delete"></span></a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</fieldset>
+
+<script type="text/javascript">
+  function financialSettlement(number) {
+    window.open("/financial-settlement/"+number, 'Credit Settlement', 'width=1100,height=600,top=100,left=300');
+  }
+</script>

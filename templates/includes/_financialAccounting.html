@@ -1,160 +1,261 @@
 <fieldset class="fieldset" style="height: 76vh;">
 	<legend>حسابداری:</legend>
-	<table id="accounting">
-		<thead>
-			<tr style="background: yellow;">
-				<th class="font12"">
-					<span>ردیف</span>
-				</th>
-				<th class="font12">
-					<span>شناسه سفارش</span>
-				</th>
-				<th class="font12" style="width: 11vw;">
-					<span>کد رهگیری</span>
-				</th>
-				<th class="font12" style="width: 7vw;">
-					<span>مبلغ تمام شده کالا</span>
-				</th>
-				<th class="font12">
-					<span>هزینه ارسال</span>
-				</th>
-				<th class="font12">
-					<span>ارزش افزوده</span>
-				</th>
-				<th class="font12">
-					<span>حق ثبت</span>
-				</th>
-				<th class="font12">
-					<span>کارمزد</span>
-				</th>
-				<th class="font12">
-					<span>بستانکار|بدهکار<br/>فروشگاه</span>
-				</th>
-				<th class="font12">
-					<span>بستانکار|بدهکار<br/>پست</span>
-				</th>
-				<th class="font12">
-					<span>بستانکار|بدهکار<br/>وستانو</span>
-				</th>
-				<th class="font12">
-					<span>وضعیت</span>
-				</th>
-				<th class="font12">
-					<span>پرداخت</span>
-				</th>
-			</tr>
-		</thead>
-		<tbody style="height: 70vh;">
-			{% for rec in financial['record'] %}
-				<tr class="rows">
-					<td>
-						<span>{{loop.index}}</span>
-					</td>
-					<td class="">
-						<span>{{rec[0]}}</span>
-					</td>
-					<td class="">
-						<a href="javascript:window.open('/orders-details/{{rec[0]}}/financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
-					</td>
-					<td class="">
-						<span>{{rec[2]}}</span>
-					</td>
-					<td class="">
-						<span>{{rec[3]}}</span>
-					</td>
-					<td class="">
-						<span >{{rec[4]}}</span>
-					</td>
-					<td class="">
-						<span >{{rec[5]}}</span>
-					</td>
-					<td class="">
-						<span >{{rec[6]}}</span>
-					</td>
-					{% if rec[7] < 0 %}
-						<td>
-							<span class="red">{{0-rec[7]}}</span>
-						</td>
-					{% else %}
-						<td>
-							<span class="blue">{{rec[7]}}</span>
-						</td>
-					{% endif %}
-					{% if rec[8] < 0 %}
-						<td>
-							<span class="red">{{0-rec[8]}}</span>
-						</td>
-					{% else %}
-						<td>
-							<span class="blue">{{rec[8]}}</span>
-						</td>
-					{% endif %}
-					{% if rec[9] < 0 %}
-						<td>
-							<span class="red">{{0-rec[9]}}</span>
-						</td>
-					{% else %}
-						<td>
-							<span class="blue">{{rec[9]}}</span>
-						</td>
-					{% endif %}
-					<td class="">
-						<span class="font12">{{rec[12]}}</span>
-					</td>
-					<td class="">
-						<span class="font12">{{rec[10]}}</span>
-					</td>
+	{% if session['role'] == 'vendor_admin' %}
+		<table id="accounting">
+			<thead>
+				<tr style="background: yellow;">
+					<th class="font12"">
+						<span>ردیف</span>
+					</th>
+					<th class="font12" style="width: 10vw;">
+						<span>شناسه سفارش</span>
+					</th>
+					<th class="font12" style="width: 15vw;">
+						<span>کد رهگیری</span>
+					</th>
+					<th class="font12" style="width: 10vw;">
+						<span>مبلغ تمام شده کالا</span>
+					</th>
+					<th class="font12">
+						<span>کارمزد</span>
+					</th>
+					<th class="font12" style="width: 10vw;">
+						<span>بستانکار|بدهکارفروشگاه</span>
+					</th>
+					<th class="font12 vw8">
+						<span>وضعیت درخواست وجه</span>
+					</th>
+					<th class="font12 vw8">
+						<span>وضعیت</span>
+					</th>
+					<th class="font12 vw9">
+						<span>پرداخت</span>
+					</th>
 				</tr>
-			{% endfor %}
-			<tr style="background: rgb(255,255,180);">
-				<td colspan="3">
-					<span>مجموع</span>
-				</td>
-				<td>
-					<span>{{financial['totalCosts'][0]}}</span>
-				</td>
-				<td>
-					<span>{{financial['totalCosts'][1]}}</span>
-				</td>
-				<td>
-					<span>{{financial['totalCosts'][2]}}</span>
-				</td>
-				<td>
-					<span>{{financial['totalCosts'][3]}}</span>
-				</td>
-				<td>
-					<span >{{financial['totalCosts'][4]}}</span>
-				</td>
-				{% if financial['totalCosts'][5] < 0 %}
-					<td>
-						<span class="red">{{0 - financial['totalCosts'][5]}}</span>
+			</thead>
+			<tbody style="height: 65vh;">
+				{% for rec in v_financial['record'] %}
+					<tr class="rows">
+						<td>
+							<span>{{loop.index}}</span>
+						</td>
+						<td class="" style="width: 10vw;">
+							<span>{{rec[0]}}</span>
+						</td>
+						<td class="" style="width: 15vw;">
+							<a href="javascript:window.open('/orders-details/{{rec[0]}}/v_financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
+						</td>
+						<td class="" style="width: 10vw;">
+							<span>{{rec[2]}}</span>
+						</td>
+						<td class="">
+							<span >{{rec[6]}}</span>
+						</td>
+						{% if rec[7] < 0 %}
+							<td style="width: 10vw;">
+								<span class="red">{{0-rec[7]}}</span>
+							</td>
+						{% else %}
+							<td style="width: 10vw;">
+								<span class="blue">{{rec[7]}}</span>
+							</td>
+						{% endif %}
+						<td class="vw8">
+							<a title="شماره پیگیری: {{rec[14]}}"><span class="font12">{{rec[13]}}</span></a>
+						</td>
+						<td class="vw8">
+							<span class="font12">{{rec[12]}}</span>
+						</td>
+						<td class="vw8">
+							<span class="font12">{{rec[10]}}</span>
+						</td>
+					</tr>
+				{% endfor %}
+				<tr style="background: rgb(255,255,180);">
+					<td colspan="3">
+						<span>مجموع</span>
 					</td>
-				{% else %}
 					<td>
-						<span class="blue">{{financial['totalCosts'][5]}}</span>
+						<span>{{v_financial['totalCosts'][0]}}</span>
 					</td>
-				{% endif %}
-				{% if financial['totalCosts'][6] < 0 %}
 					<td>
-						<span class="red">{{0 - financial['totalCosts'][6]}}</span>
+						<span >{{v_financial['totalCosts'][4]}}</span>
 					</td>
-				{% else %}
+					{% if v_financial['totalCosts'][5] < 0 %}
+						<td>
+							<span class="red">{{0 - v_financial['totalCosts'][5]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span class="blue">{{v_financial['totalCosts'][5]}}</span>
+						</td>
+					{% endif %}
+				</tr>
+			</tbody>
+		</table>
+	{% else %}
+		<table id="accounting">
+			<thead>
+				<tr style="background: yellow;">
+					<th class="font12"">
+						<span>ردیف</span>
+					</th>
+					<th class="font12">
+						<span>شناسه سفارش</span>
+					</th>
+					<th class="vw11 font12">
+						<span>کد رهگیری</span>
+					</th>
+					<th class="vw7 font12">
+						<span>مبلغ تمام شده کالا</span>
+					</th>
+					<th class="font12">
+						<span>هزینه ارسال</span>
+					</th>
+					<th class="font12">
+						<span>ارزش افزوده</span>
+					</th>
+					<th class="font12">
+						<span>حق ثبت</span>
+					</th>
+					<th class="font12">
+						<span>کارمزد</span>
+					</th>
+					<th class="font12">
+						<span>بستانکار|بدهکار<br/>فروشگاه</span>
+					</th>
+					<th class="font12">
+						<span>بستانکار|بدهکار<br/>پست</span>
+					</th>
+					<th class="font12">
+						<span>بستانکار|بدهکار<br/>وستانو</span>
+					</th>
+					<th class="font12">
+						<span>وضعیت<br/>درخواست وجه</span>
+					</th>
+					<th class="font12" style="width: 6vw;">
+						<span>وضعیت</span>
+					</th>
+					<th class="vw7 font12">
+						<span>پرداخت</span>
+					</th>
+				</tr>
+			</thead>
+			<tbody style="height: 65vh;">
+				{% for rec in financial['record'] %}
+					<tr class="rows">
+						<td>
+							<span>{{loop.index}}</span>
+						</td>
+						<td class="">
+							<span>{{rec[0]}}</span>
+						</td>
+						<td class="">
+							<a href="javascript:window.open('/orders-details/{{rec[0]}}/financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
+						</td>
+						<td class="">
+							<span>{{rec[2]}}</span>
+						</td>
+						<td class="">
+							<span>{{rec[3]}}</span>
+						</td>
+						<td class="">
+							<span >{{rec[4]}}</span>
+						</td>
+						<td class="">
+							<span >{{rec[5]}}</span>
+						</td>
+						<td class="">
+							<span >{{rec[6]}}</span>
+						</td>
+						{% if rec[7] < 0 %}
+							<td>
+								<span class="red">{{0-rec[7]}}</span>
+							</td>
+						{% else %}
+							<td>
+								<span class="blue">{{rec[7]}}</span>
+							</td>
+						{% endif %}
+						{% if rec[8] < 0 %}
+							<td>
+								<span class="red">{{0-rec[8]}}</span>
+							</td>
+						{% else %}
+							<td>
+								<span class="blue">{{rec[8]}}</span>
+							</td>
+						{% endif %}
+						{% if rec[9] < 0 %}
+							<td>
+								<span class="red">{{0-rec[9]}}</span>
+							</td>
+						{% else %}
+							<td>
+								<span class="blue">{{rec[9]}}</span>
+							</td>
+						{% endif %}
+						<td class="">
+							<span class="font12">{{rec[13]}}</span>
+						</td>
+						<td class="">
+							<span class="font12">{{rec[12]}}</span>
+						</td>
+						<td class="">
+							<span class="font12">{{rec[10]}}</span>
+						</td>
+					</tr>
+				{% endfor %}
+				<tr style="background: rgb(255,255,180);">
+					<td colspan="3">
+						<span>مجموع</span>
+					</td>
 					<td>
-						<span class="blue">{{financial['totalCosts'][6]}}</span>
+						<span>{{financial['totalCosts'][0]}}</span>
 					</td>
-				{% endif %}
-				{% if financial['totalCosts'][7] < 0 %}
 					<td>
-						<span class="red">{{0 - financial['totalCosts'][7]}}</span>
+						<span>{{financial['totalCosts'][1]}}</span>
 					</td>
-				{% else %}
 					<td>
-						<span class="blue">{{financial['totalCosts'][7]}}</span>
+						<span>{{financial['totalCosts'][2]}}</span>
 					</td>
-				{% endif %}
-			</tr>
-		</tbody>
-	</table>
+					<td>
+						<span>{{financial['totalCosts'][3]}}</span>
+					</td>
+					<td>
+						<span >{{financial['totalCosts'][4]}}</span>
+					</td>
+					{% if financial['totalCosts'][5] < 0 %}
+						<td>
+							<span class="red">{{0 - financial['totalCosts'][5]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span class="blue">{{financial['totalCosts'][5]}}</span>
+						</td>
+					{% endif %}
+					{% if financial['totalCosts'][6] < 0 %}
+						<td>
+							<span class="red">{{0 - financial['totalCosts'][6]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span class="blue">{{financial['totalCosts'][6]}}</span>
+						</td>
+					{% endif %}
+					{% if financial['totalCosts'][7] < 0 %}
+						<td>
+							<span class="red">{{0 - financial['totalCosts'][7]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span class="blue">{{financial['totalCosts'][7]}}</span>
+						</td>
+					{% endif %}
+				</tr>
+			</tbody>
+		</table>
+	{% endif %}
 </fieldset>
 
 <script type="text/javascript">

@@ -955,6 +955,10 @@ a.export {
     width: 14vw !important;
 }
 
+.vw11 {
+    width: 11vw !important;
+}
+
 .vw13 {
     width: 13vw !important;
 }
@@ -971,8 +975,20 @@ a.export {
     width: 9vw !important;
 }
 
+.vw7 {
+    width: 7vw !important;
+}
+
 .vw6 {
-    width: 6vw !important;
+    width: 4vw !important;
+}
+
+.vw5 {
+    width: 5vw !important;
+}
+
+.vw4 {
+    width: 4vw !important;
 }
 
 .vw12 {

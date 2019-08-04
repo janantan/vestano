@@ -25,12 +25,9 @@
 		<thead>
 			<tr style="background: yellow;">
 				<th class="font12"">
-					<input id="financial_select0" type="checkbox" name="financial_select" value="yes" onchange="selectAll()" />
-				</th>
-				<th class="font12"">
 					<span>ردیف</span>
 				</th>
-				<th class="font12" style="width: 8vw;">
+				<th class="font12" style="width: 10vw;">
 					<span>شناسه سفارش</span>
 				</th>
 				<th class="font12" style="width: 15vw;">
@@ -60,12 +57,9 @@
 			{% for rec in vendor_credit['record'] %}
 				<tr class="rows">
 					<td>
-						<input id="financial_select{{loop.index}}" type="checkbox" name="financial_select" value="yes"/>
-					</td>
-					<td>
 						<span>{{loop.index}}</span>
 					</td>
-					<td class="" style="width: 8vw;">
+					<td class="" style="width: 10vw;">
 						<span>{{rec[0]}}</span>
 					</td>
 					<td class="" style="width: 15vw;">
@@ -87,7 +81,7 @@
 						</td>
 					{% endif %}
 					<td class="vw8">
-						<span class="font12">{{rec[12]}}</span>
+						<span class="font12">{{rec[13]}}</span>
 					</td>
 					<td class="vw8">
 						<span class="font12">{{rec[12]}}</span>
@@ -120,17 +114,3 @@
 		</tbody>
 	</table>
 </fieldset>
-
-<script type="text/javascript">
-	var select_all = document.getElementById('financial_select0').checked;
-	alert(select_all);
-	for (i=0; i<"{{vendor_credit['order_id_list']|length}}"; i++) {
-		if (select_all) {
-			document.getElementById('financial_select'+(i+1)).checked = true;
-			break;
-		} else {
-
-		}
-
-	}
-</script>

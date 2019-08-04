@@ -1,0 +1,90 @@
+<fieldset class="fieldset" style="background: rgb(255,255,230); height: 76vh;">
+  <legend>لیست درخواستها:</legend>
+  <table id="accounting">
+    <thead>
+      <tr style="background: yellow;" class="first-row">
+        <th style="width: 4vw;">
+          <span>ردیف</span>
+        </th>
+        <th class="vw10">
+          <span>شماره درخواست</span>
+        </th>
+        <th class="vw8">
+          <span>فروشگاه</span>
+        </th>
+        <th class="vw10 font14">
+          <span>مبلغ درخواستی (ریال)</span>
+        </th>
+        <th class="vw10">
+          <span>شماره حساب</span>
+        </th>
+        <th>
+          <span>تعداد سفارشات</span>
+        </th>
+        <th class="vw10 font14">
+          <span>زمان ثبت درخواست</span>
+        </th>
+        <th class="vw10 font14">
+          <span>شماره پیگیری واریز</span>
+        </th>
+        <th>
+          <span>وضعیت </span>
+        </th>
+        <th class="vw7">
+          <span>اقدام</span>
+        </th>
+      </tr>
+    </thead>
+    <tbody id="myDropdown" style="height: 72vh; font-family: 'B-Roya';" >
+      {% for rec in requests_list %}
+      {% if (session['role'] == 'vendor_admin') and (not rec['read']) %}
+        <tr id="rows" class="border-bottom bold" onclick="financialSettlement('{{rec['number']}}')">
+      {% elif (session['role'] != 'vendor_admin') and (rec['req_status']=='در دست بررسی' ) %}
+        <tr id="rows" class="border-bottom bold" onclick="financialSettlement('{{rec['number']}}')">
+      {% else %}
+        <tr id="rows" class="border-bottom" onclick="financialSettlement('{{rec['number']}}')">
+      {% endif %}
+          <td style="width: 3.5vw;">
+            <span>{{loop.index}}</span>
+          </td>
+          <td class="vw10">
+            <span id="req-number">{{rec['number']}}</span>
+          </td>
+          <td class="vw8">
+            <span>{{rec['vendor']}}</span>
+          </td>
+          <td class="vw10">
+            <span>{{rec['credit_price']}}</span>
+          </td>
+          <td class="vw10">
+            <a title="نام صاحب حساب: {{rec['account_holder']}}"><span>{{rec['account_number']}}</span></a>
+          </td>
+          <td>
+            <span>{{rec['orderId_list']|length}}</span>
+          </td>
+          <td class="vw10">
+            <span>{{rec['datetime']}}</span>
+          </td>
+          <td class="vw10">
+            <span>{{rec['ref_number']}}</span>
+          </td>
+          {% if rec['req_status']=='در دست بررسی' %}{% set color='blue' %}
+          {% elif rec['req_status']=='واریز شد' %}{% set color='green' %}
+          {% elif rec['req_status']=='رد درخواست' %}{% set color='red' %}{% endif %}
+          <td>
+            <span class={{color}}>{{rec['req_status']}}</span>
+          </td>
+          <td>
+            <a href="" title="حذف حواله"><span style="float: unset; margin: auto;" id="delete"></span></a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</fieldset>
+
+<script type="text/javascript">
+  function financialSettlement(number) {
+    window.open("/financial-settlement/"+number, 'Credit Settlement', 'width=1100,height=600,top=100,left=300');
+  }
+</script>

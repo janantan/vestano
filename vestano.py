@@ -1969,7 +1969,10 @@ def financial(sub_item):
         item = "financial",
         sub_item = sub_item,
         financial = utils.financial(cursor),
-        vendor_credit = utils.financial_vendor_credit(cursor)
+        v_financial = utils.v_financial(cursor),
+        vendor_credit = utils.financial_vendor_credit(cursor),
+        requests_list = utils.credit_requests_list(cursor),
+        paid_list = utils.paid_list(cursor)
         )
 
 @app.route('/req-credit/<price>/<orderId_list>', methods=['GET', 'POST'])
@@ -1981,10 +1984,68 @@ def request_credit(price, orderId_list):
 
     orderId_list = orderId_list[1:-1].split(', ')
 
+    if request.method == 'POST':
+        record = {'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
+        record['credit_price'] = request.form.get('credit_price')
+        record['account_number'] = request.form.get('account_number')
+        record['account_holder'] = request.form.get('account_holder')
+        record['number'] = 'VES-F-' + str(random2.randint(10000000, 99999999))
+        #record['vendor'] = session['vendor']
+        record['vendor'] = 'روژیاپ'
+        record['read'] = False
+        record['orderId_list'] = orderId_list
+        record['username'] = session['username']
+        record['ref_number'] = '-'
+        record['req_status'] = u'در دست بررسی'
+
+        cursor.credit_requests.insert_one(record)
+        for orderId in orderId_list:
+            cursor.orders.update_many(
+                {"orderId": orderId},
+                {'$set': {'credit_req_status': record['req_status']}})
+        flash(u'درخواست واریز وجه با موفقیت ثبت شد. شماره ارجاع: '+record['number'], 'success')
+
     return render_template('includes/_requestCredit.html',
         price = price,
-        orderId_list = orderId_list
-        #orders = utils.req_credit_orders(cursor)
+        orderId_list = orderId_list,
+        orders = utils.req_credit_orders(cursor, orderId_list)
+        )
+
+@app.route('/financial-settlement/<number>', methods=['GET', 'POST'])
+@token_required
+def financial_settlement(number):
+    result = cursor.credit_requests.find_one({'number':number})
+    data = {
+    'credit_price': result['credit_price'],
+    'orders_count': len(result['orderId_list']),
+    'account_number': result['account_number'],
+    'account_holder': result['account_holder'],
+    'ref_number': result['ref_number'],
+    'req_status': result['req_status'],
+    }
+    if session['role'] != 'vendor_admin':
+        if request.method == 'POST':
+            cursor.credit_requests.update_many(
+                {"number": number},
+                {'$set': {'req_status': u'واریز شد',
+                'ref_number': request.form.get('ref_number'),
+                'paid_datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+                'read': False}})
+
+            for orderId in result['orderId_list']:
+                cursor.orders.update_many(
+                    {"orderId": orderId},
+                    {'$set': {'credit_req_status': u'واریز شد',
+                    'settlement_ref_number': request.form.get('ref_number')}})
+            flash(u'واریز وجه ثبت شد.', 'success')
+    else:
+        cursor.credit_requests.update_many(
+            {"number": number},
+            {'$set': {'read': True}})
+
+    return render_template('includes/_financialSettlement.html',
+        data = data,
+        orders = utils.req_credit_orders(cursor, result['orderId_list'])
         )
 
 @app.route('/user-pannel/accounting', methods=['GET'])

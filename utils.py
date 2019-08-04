@@ -255,7 +255,6 @@ def removeFromInventory(cursor, orderId):
                     }
                     }
                     )
-    
 
 def financial(cursor):
     result = cursor.orders.find()
@@ -279,6 +278,23 @@ def financial(cursor):
 
             (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
 
+            if (r['status'] == 11) and (pType != 2):
+                if 'for_accounting_delivery_costs' not in r.keys():
+                    weight = 0
+                    for p in r['products']:
+                        weight += p['weight'] * p['count']
+                    deliveryPriceResult = GetDeliveryPrice(r['cityCode'], r['costs']['price'], weight, sType, 2)
+                    for_accounting_delivery_costs = {
+                    'PostDeliveryPrice': deliveryPriceResult['DeliveryPrice'],
+                    'VatTax': deliveryPriceResult['VatTax']
+                    }
+                    cursor.orders.update_many(
+                        {'orderId': r['orderId']},
+                        {'$set':{'for_accounting_delivery_costs': for_accounting_delivery_costs}})
+
+                r['costs']['PostDeliveryPrice'] = r['for_accounting_delivery_costs']['DeliveryPrice']
+                r['costs']['VatTax'] = r['for_accounting_delivery_costs']['VatTax']
+
             if pType == 2:
                 vendor_account = config.wage
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
@@ -299,18 +315,85 @@ def financial(cursor):
 
             status = statusToString(r['status'])
 
+            if 'credit_req_status' not in r.keys():
+                r['credit_req_status'] = '-'
+            if 'settlement_ref_number' not in r.keys():
+                r['settlement_ref_number'] = ''
+
             protducts_list = []
             for p in r['products']:
                 protducts_list.append(p['productName']+' - '+str(p['count']) + u' عدد ')
 
             record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
             r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
-            r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'], protducts_list, status))
+            r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'],
+            protducts_list, status, r['credit_req_status'], r['settlement_ref_number']))
 
     totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage,t_vendor_account ,t_post_account ,t_vestano_account)
     financial = {'record': record, 'totalCosts': totalCosts}
 
     return financial
+
+def v_financial(cursor):
+    result = cursor.orders.find()
+    record = []
+    price = 0
+    PostDeliveryPrice = 0
+    VatTax = 0
+    registerCost = 0
+    wage = 0
+    t_vendor_account = 0
+    t_post_account = 0
+    t_vestano_account = 0
+    for r in result:
+        #filter just three status
+        if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
+            state_result = cursor.states.find_one({'Code': r['stateCode']})
+            for rec in state_result['Cities']:
+                if r['cityCode'] == rec['Code']:
+                    city = rec['Name']
+                    break
+
+            (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+            if pType == 2:
+                vendor_account = 0 - config.wage
+                post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            else:
+                vendor_account = r['costs']['price'] - config.wage
+                post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+            t_vendor_account += vendor_account
+            t_post_account += post_account
+            t_vestano_account += vestano_account
+
+            price += r['costs']['price']
+            PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+            VatTax += r['costs']['VatTax']
+            registerCost += r['costs']['registerCost']
+            wage += r['costs']['wage']
+
+            status = statusToString(r['status'])
+
+            if 'credit_req_status' not in r.keys():
+                r['credit_req_status'] = '-'
+            if 'settlement_ref_number' not in r.keys():
+                r['settlement_ref_number'] = ''
+
+            protducts_list = []
+            for p in r['products']:
+                protducts_list.append(p['productName']+' - '+str(p['count']) + u' عدد ')
+
+            record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+            r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+            r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'],
+            protducts_list, status, r['credit_req_status'], r['settlement_ref_number']))
+
+    totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage,t_vendor_account ,t_post_account ,t_vestano_account)
+    v_financial = {'record': record, 'totalCosts': totalCosts}
+
+    return v_financial
 
 def financial_vendor_credit(cursor):
     result = cursor.orders.find()
@@ -328,13 +411,14 @@ def financial_vendor_credit(cursor):
     post_account = 0
     vestano_account = 0
     for r in result:
+
+        if 'credit_req_status' in r.keys():
+            if (r['credit_req_status'] == u'در دست بررسی') or (r['credit_req_status'] == u'واریز شد'):
+                continue
+        else:
+            r['credit_req_status'] = '-'
         #filter just three status
         if (r['status'] in [11, 71]) and (r['vendorName'] != u'سفارش موردی') :
-            state_result = cursor.states.find_one({'Code': r['stateCode']})
-            for rec in state_result['Cities']:
-                if r['cityCode'] == rec['Code']:
-                    city = rec['Name']
-                    break
 
             (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
 
@@ -364,7 +448,8 @@ def financial_vendor_credit(cursor):
 
             record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
             r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
-            r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'], protducts_list, status))
+            r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'],
+            protducts_list, status, r['credit_req_status']))
 
             credit_count += 1
             order_id_list.append(int(r['orderId']))
@@ -378,6 +463,58 @@ def financial_vendor_credit(cursor):
     }
 
     return financial
+
+def req_credit_orders(cursor, orderId_list):
+    record = []
+    price = 0
+    PostDeliveryPrice = 0
+    VatTax = 0
+    registerCost = 0
+    wage = 0
+    t_vendor_account = 0
+    post_account = 0
+    vestano_account = 0
+    for Id in orderId_list:
+        r = cursor.orders.find_one({'orderId':Id})
+        (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+        if (pType == 2) or (pType == 88):
+            vendor_account = 0 - config.wage
+        else:
+            vendor_account = r['costs']['price'] - config.wage
+
+        t_vendor_account += vendor_account
+
+        price += r['costs']['price']
+        PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+        VatTax += r['costs']['VatTax']
+        registerCost += r['costs']['registerCost']
+        wage += r['costs']['wage']
+
+        status = statusToString(r['status'])
+
+        protducts_list = []
+        for p in r['products']:
+            protducts_list.append(p['productName']+' - '+str(p['count']) + u' عدد ')
+
+        record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+        r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+        r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'], protducts_list, status))
+
+    totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage, t_vendor_account)
+    financial = {
+    'record': record,
+    'totalCosts': totalCosts
+    }
+    return financial
+
+def credit_requests_list(cursor):
+    result = cursor.credit_requests.find()
+    return result
+
+def paid_list(cursor):
+    result = cursor.credit_requests.find({'req_status': u'واریز شد'})
+    return result
 
 def accounting(cursor):
     result = cursor.orders.find()
@@ -447,6 +584,12 @@ def details(cursor, orderId, code):
     elif code == 'rts':
         r = cursor.ready_to_ship.find_one({'orderId': orderId})
     elif code == 'accounting':
+        r = cursor.orders.find_one({'orderId': orderId})
+    elif code == 'financial':
+        r = cursor.orders.find_one({'orderId': orderId})
+    elif code == 'vendor_credit':
+        r = cursor.orders.find_one({'orderId': orderId})
+    elif code == 'req_credit':
         r = cursor.orders.find_one({'orderId': orderId})
     elif code == 'today':
         r = cursor.today_orders.find_one({'orderId': orderId})
