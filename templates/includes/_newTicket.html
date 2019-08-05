@@ -16,15 +16,28 @@
       <label>عنوان یا موضوع تیکت<span> *</span></label>
       <input id="ticket-title" type="text" name="ticket-title" placeholder="عنوان یا موضوع" required />
     </div>
-    <div>
+    {% if session['role']!='vendor_admin' %}
+      {% if 'adminTicket' in session['access'] %}{% set value='مدیریت' %}{% endif %}
+      {% if 'ordersTicket' in session['access'] %}{% set value='سفارشات' %}{% endif %}
+      {% if 'inventoryTicket' in session['access'] %}{% set value='انبارداری' %}{% endif %}
+      {% if 'financialTicket' in session['access'] %}{% set value='حسابداری' %}{% endif %}
+      {% if 'techTicket' in session['access'] %}{% set value='فنی' %}{% endif %}
+      <div>
+        <label>واحد ثبت کننده تیکت<span> *</span></label>
+        <select id="ticket-sender-departement" name="ticket-sender-departement" required>
+          <option value={{value}} selected>{{value}}</option>
+        </select>
+      </div>
+    {% endif %}
+    <div style="float: right;">
       <label>نام و نام خانوادگی<span> *</span></label>
       <input id="ticket-sender-name" type="text" name="ticket-sender-name" placeholder="" required />
     </div>
-    <div>
+    <div style="float: right; margin-right: 4vw;">
       <label>شماره تماس<span> *</span></label>
       <input id="ticket-sender-phone" type="text" name="ticket-sender-phone" placeholder="" required />
-    </div>
-    <div>
+    </div><br>
+    <div style="clear:both;">
       <label>متن تیکت<span> *</span></label>
       <textarea id="ticket-text" name="ticket-text" placeholder="" required></textarea>
     </div>
@@ -32,9 +45,16 @@
       <label>فایل پیوست</label>
       <input type="file" name="ticket-attachment" />
     </div>
-    <div style="margin-top: 3vh; margin-right: 22vw;">
-      <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال تیکت" />
-      <a style="margin-right: 1vw;" class="button" title="بازگشت به صفحه قبل" href="/user-pannel/tickets"><span class="new-ticket-span">بازگشت</span></a>
-    </div>
+    {% if session['role']!='vendor_admin' %}
+      <div style="margin-top: 0vh; margin-right: 22vw;">
+        <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال تیکت" />
+        <a style="margin-right: 1vw;" class="button" title="بازگشت به صفحه قبل" href="/user-pannel/tickets"><span class="new-ticket-span">بازگشت</span></a>
+      </div>
+    {% else %}
+      <div style="margin-top: 3vh; margin-right: 22vw;">
+        <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال تیکت" />
+        <a style="margin-right: 1vw;" class="button" title="بازگشت به صفحه قبل" href="{{request.referrer}}"><span class="new-ticket-span">بازگشت</span></a>
+      </div>
+    {% endif %}
   </fieldset>
 </form>

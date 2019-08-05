@@ -270,16 +270,12 @@ def financial(cursor):
     for r in result:
         #filter just three status
         if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
-            state_result = cursor.states.find_one({'Code': r['stateCode']})
-            for rec in state_result['Cities']:
-                if r['cityCode'] == rec['Code']:
-                    city = rec['Name']
-                    break
 
             (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
 
+            #recalulate post delivery costs for returned orders
             if (r['status'] == 11) and (pType != 2):
-                if 'for_accounting_delivery_costs' not in r.keys():
+                if 'for_accounting_recalculated_delivery_costs' not in r.keys():
                     weight = 0
                     for p in r['products']:
                         weight += p['weight'] * p['count']
@@ -290,12 +286,14 @@ def financial(cursor):
                     }
                     cursor.orders.update_many(
                         {'orderId': r['orderId']},
-                        {'$set':{'for_accounting_delivery_costs': for_accounting_delivery_costs}})
+                        {'$set':{'for_accounting_recalculated_delivery_costs': for_accounting_delivery_costs}})
+                    r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
+                    r['costs']['VatTax'] = deliveryPriceResult['VatTax']
+                else:
+                    r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
+                    r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-                r['costs']['PostDeliveryPrice'] = r['for_accounting_delivery_costs']['DeliveryPrice']
-                r['costs']['VatTax'] = r['for_accounting_delivery_costs']['VatTax']
-
-            if pType == 2:
+            if (pType == 2) or (pType == 88):
                 vendor_account = config.wage
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
@@ -348,15 +346,30 @@ def v_financial(cursor):
     for r in result:
         #filter just three status
         if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
-            state_result = cursor.states.find_one({'Code': r['stateCode']})
-            for rec in state_result['Cities']:
-                if r['cityCode'] == rec['Code']:
-                    city = rec['Name']
-                    break
 
             (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
 
-            if pType == 2:
+            #recalulate post delivery costs for returned orders
+            if (r['status'] == 11) and (pType != 2):
+                if 'for_accounting_recalculated_delivery_costs' not in r.keys():
+                    weight = 0
+                    for p in r['products']:
+                        weight += p['weight'] * p['count']
+                    deliveryPriceResult = GetDeliveryPrice(r['cityCode'], r['costs']['price'], weight, sType, 2)
+                    for_accounting_delivery_costs = {
+                    'PostDeliveryPrice': deliveryPriceResult['DeliveryPrice'],
+                    'VatTax': deliveryPriceResult['VatTax']
+                    }
+                    cursor.orders.update_many(
+                        {'orderId': r['orderId']},
+                        {'$set':{'for_accounting_recalculated_delivery_costs': for_accounting_delivery_costs}})
+                    r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
+                    r['costs']['VatTax'] = deliveryPriceResult['VatTax']
+                else:
+                    r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
+                    r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
+
+            if (pType == 2) or (pType == 88):
                 vendor_account = 0 - config.wage
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
@@ -422,6 +435,26 @@ def financial_vendor_credit(cursor):
 
             (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
 
+            #recalulate post delivery costs for returned orders
+            if (r['status'] == 11) and (pType != 2):
+                if 'for_accounting_recalculated_delivery_costs' not in r.keys():
+                    weight = 0
+                    for p in r['products']:
+                        weight += p['weight'] * p['count']
+                    deliveryPriceResult = GetDeliveryPrice(r['cityCode'], r['costs']['price'], weight, sType, 2)
+                    for_accounting_delivery_costs = {
+                    'PostDeliveryPrice': deliveryPriceResult['DeliveryPrice'],
+                    'VatTax': deliveryPriceResult['VatTax']
+                    }
+                    cursor.orders.update_many(
+                        {'orderId': r['orderId']},
+                        {'$set':{'for_accounting_recalculated_delivery_costs': for_accounting_delivery_costs}})
+                    r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
+                    r['costs']['VatTax'] = deliveryPriceResult['VatTax']
+                else:
+                    r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
+                    r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
+
             if (pType == 2) or (pType == 88):
                 vendor_account = 0 - config.wage
                 #post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
@@ -477,6 +510,26 @@ def req_credit_orders(cursor, orderId_list):
     for Id in orderId_list:
         r = cursor.orders.find_one({'orderId':Id})
         (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+        #recalulate post delivery costs for returned orders
+        if (r['status'] == 11) and (pType != 2):
+            if 'for_accounting_recalculated_delivery_costs' not in r.keys():
+                weight = 0
+                for p in r['products']:
+                    weight += p['weight'] * p['count']
+                deliveryPriceResult = GetDeliveryPrice(r['cityCode'], r['costs']['price'], weight, sType, 2)
+                for_accounting_delivery_costs = {
+                'PostDeliveryPrice': deliveryPriceResult['DeliveryPrice'],
+                'VatTax': deliveryPriceResult['VatTax']
+                }
+                cursor.orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'for_accounting_recalculated_delivery_costs': for_accounting_delivery_costs}})
+                r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
+                r['costs']['VatTax'] = deliveryPriceResult['VatTax']
+            else:
+                r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
+                r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
         if (pType == 2) or (pType == 88):
             vendor_account = 0 - config.wage
@@ -898,11 +951,50 @@ def tickets_departements(departement):
         dep = u'فنی' 
     return dep
 
-def tickets(cursor, role, session_username):
+def tickets_access_departements(departement):
+    if departement == u'مدیریت':
+        access = 'adminTicket' 
+    elif departement == u'سفارشات':
+        access = 'ordersTicket' 
+    elif departement == u'انبارداری':
+        access = 'inventoryTicket' 
+    elif departement == u'حسابداری':
+        access = 'financialTicket' 
+    elif departement == u'فنی':
+        access = 'techTicket'
+    return access
+
+def tickets(cursor, role, session_username, access):
     if role == 'vendor_admin':
         result = cursor.tickets.find({'sender_username': session_username})
     else:
-        result = cursor.tickets.find()
+        if 'adminTicket' in access:
+            result = cursor.tickets.find()
+        elif 'ordersTicket' in access:
+            result = cursor.tickets.find({'departement': u'orders'})
+        elif 'inventoryTicket' in access:
+            result = cursor.tickets.find({'departement': u'inventory'})
+        elif 'financialTicket' in access:
+            result = cursor.tickets.find({'departement': u'accounting'})
+        elif 'techTicket' in access:
+            result = cursor.tickets.find({'departement': u'technical'})
+    tickets = []
+    for rec in result:
+        rec['departement'] = tickets_departements(rec['departement'])
+        tickets.append(rec)
+    return tickets
+
+def sent_tickets(cursor, role, session_username, access):
+    if 'adminTicket' in access:
+        result = cursor.tickets.find({'sender_departement': u'مدیریت'})
+    elif 'ordersTicket' in access:
+        result = cursor.tickets.find({'sender_departement': 'سفارشات'})
+    elif 'inventoryTicket' in access:
+        result = cursor.tickets.find({'sender_departement': 'انبارداری'})
+    elif 'financialTicket' in access:
+        result = cursor.tickets.find({'sender_departement': 'حسابداری'})
+    elif 'techTicket' in access:
+        result = cursor.tickets.find({'sender_departement': 'فنی'})
     tickets = []
     for rec in result:
         rec['departement'] = tickets_departements(rec['departement'])

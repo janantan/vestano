@@ -74,9 +74,15 @@
           <td>
             <span class={{color}}>{{rec['req_status']}}</span>
           </td>
-          <td>
-            <a href="" title="حذف حواله"><span style="float: unset; margin: auto;" id="delete"></span></a>
-          </td>
+          {% if (session['role'] == 'vendor_admin') and (rec['req_status']=='در دست بررسی') %}
+            <td id="no-action" onclick="tdOnclick()">
+              <a href="/delete-credit-request/{{rec['number']}}" title="حذف درخواست"><span style="float: unset; margin: auto;" id="delete"></span></a>
+            </td>
+          {% else %}
+            <td id="no-action" onclick="tdOnclick()">
+              <a href="/delete-credit-request/{{rec['number']}}" title="مجاز به حذف این درخواست نیستید!"><span style="float: unset; margin: auto;" id="delete"></span></a>
+            </td>
+          {% endif %}
         </tr>
       {% endfor %}
     </tbody>
@@ -86,5 +92,9 @@
 <script type="text/javascript">
   function financialSettlement(number) {
     window.open("/financial-settlement/"+number, 'Credit Settlement', 'width=1100,height=600,top=100,left=300');
+  }
+
+  function tdOnclick() {
+    event.cancelBubble=true;
   }
 </script>

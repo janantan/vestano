@@ -8,6 +8,7 @@
         <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
     </head>
     <body class="card" style="direction: rtl; margin: 0 auto;">
+    	{% include 'includes/_messages.html' %}
     	<fieldset class="fieldset font16" style="background-color: #bcd1fe; height: 88vh;">
     		<div style="margin-bottom: 2vh; font-weight: bold;">
     			<span>* جزئیات درخواست واریز وجه:</span>
@@ -124,7 +125,7 @@
 		    				<input id="ref_number" type="text" name="ref_number" required />
 		    			</div>
 		    			<div style="float: right; margin-right: 4vw; margin-top: 8.5vh;">
-		    				<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت واریز وجه" />
+		    				<input style="font-size: 17px; font-family: BNazanin;" type="submit" onclick="closeWindow()" value="ثبت واریز وجه" />
 		    			</div><br>
 	    			{% else %}
 	    				<div class="mrg-vh4" style="margin-right: 4vw;">
@@ -146,6 +147,13 @@
 			function showDetails() {
 				flag = 1;
 				document.getElementById("accounting").style.display = 'block';
+			}
+
+			function closeWindow() {
+				window.setTimeout(function(){
+					window.opener.location.reload();
+					close();
+				}, 4000);
 			}
 		</script>
     </body>

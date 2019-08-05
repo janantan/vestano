@@ -126,7 +126,7 @@
 									<td>
 										<label><input id="access19" type="checkbox" name="access" value="inventory">انبارداری</label>
 									</td>
-									<td>
+									<!--<td>
 										<label><input id="access20" type="checkbox" name="access" value="stuffPrice">مبلغ تمام شده کالا</label>
 									</td>
 									<td>
@@ -149,27 +149,55 @@
 									</td>
 									<td>
 										<label><input id="access27" type="checkbox" name="access" value="status-payType">وضعیت و روش پرداخت</label>
+									</td>-->
+									<td>
+										<label><input id="access20" type="checkbox" name="access" value="financialRep">گزارشات و تسویه مالی</label>
 									</td>
 									<td>
-										<label><input id="access28" type="checkbox" name="access" value="financialRep">گزارشات و تسویه مالی</label>
+										<label><input id="access21" type="checkbox" name="access" value="accounting">حسابداری</label>
 									</td>
 									<td>
-										<label><input id="access29" type="checkbox" name="access" value="searchPage">مشاهده گزارشات (صفحه جستجو)</label>
+										<label><input id="access22" type="checkbox" name="access" value="vendorCredit">بستانکاری فروشگاه</label>
 									</td>
 									<td>
-										<label><input id="access30" type="checkbox" name="access" value="ticket">تیکت</label>
+										<label><input id="access23" type="checkbox" name="access" value="creditList">لیست درخواست ها</label>
 									</td>
 									<td>
-										<label><input id="access31" type="checkbox" name="access" value="incCredit">افزایش اعتبار </label>
+										<label><input id="access24" type="checkbox" name="access" value="paidList">مبالغ واریزی</label>
 									</td>
 									<td>
-										<label><input id="access32" type="checkbox" name="access" value="requestForStuff">درخواست حواله و خروج از انبار</label>
+										<label><input id="access25" type="checkbox" name="access" value="searchPage">مشاهده گزارشات (صفحه جستجو)</label>
 									</td>
 									<td>
-										<label><input id="access33" type="checkbox" name="access" value="dashboard">داشبورد</label>
+										<label><input id="access26" type="checkbox" name="access" value="vendorTicket">تیکت فروشگاه</label>
 									</td>
 									<td>
-										<label><input id="access34" type="checkbox" name="access" value="inventManagement">مدیریت انبار</label>
+										<label><input id="access27" type="checkbox" name="access" value="adminTicket">تیکت مدیریت</label>
+									</td>
+									<td>
+										<label><input id="access28" type="checkbox" name="access" value="ordersTicket">تیکت سفارشات</label>
+									</td>
+									<td>
+										<label><input id="access29" type="checkbox" name="access" value="inventoryTicket">تیکت انبارداری</label>
+									</td>
+									<td>
+										<label><input id="access30" type="checkbox" name="access" value="financialTicket">تیکت حسابداری</label>
+									</td>
+									<td>
+										<label><input id="access31" type="checkbox" name="access" value="techTicket">تیکت فنی</label>
+									</td>
+
+									<td>
+										<label><input id="access32" type="checkbox" name="access" value="incCredit">افزایش اعتبار </label>
+									</td>
+									<td>
+										<label><input id="access33" type="checkbox" name="access" value="requestForStuff">درخواست حواله و خروج از انبار</label>
+									</td>
+									<td>
+										<label><input id="access34" type="checkbox" name="access" value="dashboard">داشبورد</label>
+									</td>
+									<td>
+										<label><input id="access35" type="checkbox" name="access" value="inventManagement">مدیریت انبار</label>
 									</td>
 								</tr>
 								<tr>
@@ -192,13 +220,13 @@
 			if (check == true) {
 				document.getElementById('role').disabled = true;
 				document.getElementById('role').value = "";
-				for (i = 1; i < 35; i++) {
+				for (i = 1; i < 36; i++) {
 					document.getElementById('access'+i).disabled = true;
 					document.getElementById('access'+i).checked = false;
 				}
 			} else {
 				document.getElementById('role').disabled = false;
-				for (i = 1; i < 35; i++) {
+				for (i = 1; i < 36; i++) {
 					document.getElementById('access'+i).disabled = false;
 				}
 			}
@@ -208,36 +236,36 @@
 		function defaultAccess() {
 			var role = document.getElementById('role').value;
 			if (role == 'admin') {
-				for (i = 1; i < 35; i++) {
+				for (i = 1; i < 36; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
 			} else if (role == 'office') {
-				for (i = 1; i < 35; i++) {
+				for (i = 1; i < 36; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
-				document.getElementById('access31').checked = false;
-				document.getElementById('access32').checked = false;
-				document.getElementById('access33').checked = false;
+				for (i = 26; i <= 34; i++) {
+					document.getElementById('access'+i).checked = false;
+				}
 			} else if (role == 'vendor_admin') {
-				for (i = 1; i < 35; i++) {
+				for (i = 1; i < 36; i++) {
 					document.getElementById('access'+i).checked = false;
 				}
 				document.getElementById('access2').checked = true;
 				for (i = 5; i <= 10; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
-				for (i = 13; i <= 19; i++) {
+				for (i = 13; i <= 26; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
-				for (i = 28; i <= 33; i++) {
+				for (i = 32; i <= 34; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
 			} else if (role == 'support') {
-				for (i = 1; i < 35; i++) {
+				for (i = 1; i < 36; i++) {
 					document.getElementById('access'+i).checked = false;
 				}
-				document.getElementById('access29').checked = true;
-				document.getElementById('access30').checked = true;
+				document.getElementById('access25').checked = true;
+				document.getElementById('access31').checked = true;
 			}
 		}
 	</script>

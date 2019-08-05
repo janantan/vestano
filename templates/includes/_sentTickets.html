@@ -2,21 +2,12 @@
 	<input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
 </div>
 <div style="position: absolute; top: 9vh;">
-	{% if session['role']!='vendor_admin' %}
-		<a title="تیکت های دریافتی" href="/user-pannel/tickets"><span id="s-inbox"></span></a>
-		<a title="تیکت های ارسالی" href="/user-pannel/tickets/sent"><span id="outbox"></span></a>
-	{% else %}
-		<a title="تیکت های دریافتی"><span id="inbox"></span></a>
-		<a title="تیکت های ارسالی" href="/user-pannel/tickets"><span id="s-outbox"></span></a>
-	{% endif %}
+	<a title="تیکت های دریافتی" href="/user-pannel/tickets"><span id="inbox"></span></a>
+	<a title="تیکت های ارسالی" href="/user-pannel/tickets/sent"><span id="s-outbox"></span></a>
 	<a title="ایجاد تیکت جدید" href="/user-pannel/new-ticket"><span id="new"></span></a>
 </div>
 <fieldset class="fieldset" style="margin-top: 7vh; height: 76vh; background: #fafafa;">
-	{% if session['role'] == 'vendor_admin' %}
-		<legend>تیکت های ارسالی:</legend>
-	{% else %}
-		<legend>تیکت های دریافتی:</legend>
-	{% endif %}
+	<legend>تیکت های ارسالی:</legend>
 	<table id="inventory">
 		<thead>
 			<tr style="background: yellow;" class="first-row">
@@ -52,59 +43,45 @@
 		</thead>
 		<tbody id="myDropdown" style="height: 72vh; font-family: 'B-Roya';">
 			{% for rec in tickets %}
-				{% if session['role']=='vendor_admin' %}
-					{% if rec['read'] %}
-					<tr id="rows" class="border-bottom" onclick="showTickets('{{rec['number']}}')">
-					{% else %}
-					<tr id="rows" class="border-bottom" onclick="showTickets('{{rec['number']}}')" style="font-weight: bold;">
-					{% endif %}
+				{% if rec['read'] %}
+				<tr id="rows" class="border-bottom" onclick="showTickets('{{rec['number']}}')">
 				{% else %}
-					{% if rec['support_reply'] %}
-					<tr id="rows" class="border-bottom" onclick="showTickets('{{rec['number']}}')">
-					{% else %}
-					<tr id="rows" class="border-bottom" onclick="showTickets('{{rec['number']}}')" style="font-weight: bold;">
-					{% endif %}
+				<tr id="rows" class="border-bottom" onclick="showTickets('{{rec['number']}}')" style="font-weight: bold;">
 				{% endif %}
-						<td style="width: 4vw;">
-							<span>{{loop.index}}</span>
-						</td>
-						<td>
-							<span>{{rec['number']}}</span>
-						</td>
-						{% if rec['sender_departement'] %}
-						<td>
-							<a title="{{rec['sender_username']}}"><span>واحد {{rec['sender_departement']}}</span></a>
-						</td>
-						{% else %}
-						<td>
-							<a title="{{rec['sender_username']}}"><span>{{rec['sender_name']}}</span></a>
-						</td>
-						{% endif %}
-						<td class="vw14">
-							<span>{{rec['title']}}</span>
-						</td>
-						<td>
-							<span>{{rec['departement']}}</span>
-						</td>
-						<td class="vw20">
-							<a title="{{('\n'.join(rec['text']))}}"><span>{{rec['text'][0][0:40]}}</span></a>
-						</td>
-						<td>
-							<span>{{rec['datetime']}}</span>
-						</td>
-						{% if rec['support_reply'] %}
-							<td class="vw8">
-								<span>پاسخ داده شده</span>
-							</td>
-						{% else %}
-							<td class="vw8">
-								<span>بررسی نشده</span>
-							</td>
-						{% endif %}
+					<td style="width: 4vw;">
+						<span>{{loop.index}}</span>
+					</td>
+					<td>
+						<span>{{rec['number']}}</span>
+					</td>
+					<td>
+						<a title="{{rec['sender_username']}}"><span>{{rec['sender_departement']}}</span></a>
+					</td>
+					<td class="vw14">
+						<span>{{rec['title']}}</span>
+					</td>
+					<td>
+						<span>{{rec['departement']}}</span>
+					</td>
+					<td class="vw20">
+						<a title="{{('\n'.join(rec['text']))}}"><span>{{rec['text'][0][0:40]}}</span></a>
+					</td>
+					<td>
+						<span>{{rec['datetime']}}</span>
+					</td>
+					{% if rec['support_reply'] %}
 						<td class="vw8">
-							<a href="" title="حذف تیکت"><span style="margin: 0 1vw 0 3vw;" id="delete"></span></a>
+							<span>پاسخ داده شده</span>
 						</td>
-					</tr>
+					{% else %}
+						<td class="vw8">
+							<span>بررسی نشده</span>
+						</td>
+					{% endif %}
+					<td class="vw8">
+						<a href="" title="حذف تیکت"><span style="margin: 0 1vw 0 3vw;" id="delete"></span></a>
+					</td>
+				</tr>
 			{% endfor %}
 		</tbody>
 	</table>

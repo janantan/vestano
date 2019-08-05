@@ -2,7 +2,7 @@
 	<div style="position: absolute; top: 9vh;">
 		{% if session['role']!='vendor_admin' %}
 			<a title="تیکت های دریافتی" href="/user-pannel/tickets"><span id="inbox"></span></a>
-			<a title="تیکت های ارسالی" href=""><span id="outbox"></span></a>
+			<a title="تیکت های ارسالی" href="/user-pannel/tickets/sent"><span id="outbox"></span></a>
 		{% else %}
 			<a title="تیکت های دریافتی"><span id="inbox"></span></a>
 			<a title="تیکت های ارسالی" href="/user-pannel/tickets"><span id="outbox"></span></a>
@@ -10,7 +10,7 @@
 		<a title="ایجاد تیکت جدید" href="/user-pannel/new-ticket"><span id="new"></span></a>
 	</div>
 	<div style="position: absolute; top: 9vh; left: 5vw;">
-		<a title="بازگشت به صفحه قبل" href="/user-pannel/tickets"><span id="back"></span></a>
+		<a title="بازگشت به صفحه قبل" href="{{request.referrer}}"><span id="back"></span></a>
 		{% if session['role']!='vendor_admin' %}
 			<a href="" title="پاسخ به تیکت"><span id="reply2"></span></a>
 			<a href="" title="ارجاع تیکت"><span id="forward"></span></a>
@@ -34,7 +34,11 @@
 									<span>فرستنده:</span>
 								</div>
 								<div class="show-ticket-div-2">
-									<a style="color: rgba(21,76,122);" title="شماره تماس: {{ticket_details['sender_phone']}}"><span>{{ticket_details['sender_name']}} </span></a><span style="color: rgb(162,180,194);">({{ticket_details['sender_username']}})</span>
+									{% if ticket_details['sender_departement'] %}
+										<a style="color: rgba(21,76,122);" title="نام فرستنده: {{ticket_details['sender_name']}}"><span>واحد {{ticket_details['sender_departement']}} </span></a><span style="color: rgb(162,180,194);">({{ticket_details['sender_username']}})</span>
+									{% else %}
+										<a style="color: rgba(21,76,122);" title="شماره تماس: {{ticket_details['sender_phone']}}"><span>{{ticket_details['sender_name']}} </span></a><span style="color: rgb(162,180,194);">({{ticket_details['sender_username']}})</span>
+									{% endif %}
 								</div>
 								<div class="show-ticket-div-1">
 									<span>گیرنده:</span>
@@ -110,18 +114,37 @@
 					</td>
 				</tr>
 			{% endfor %}
-			<tr>
-				<td>
-					<form method="POST" action="">
-						<div>
-							<textarea id="ticket-reply" name="ticket-reply" placeholder="لطفا پاسخ خود را بنویسید"></textarea>
-						</div>
-						<div>
-							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال پاسخ" />
-						</div>
-					</form>
-				</td>
-			</tr>
+			{% if (session['role']=='vendor_admin') or ('/tickets/sent' in request.referrer) %}
+				{% if ticket_details['support_reply'] == True %}
+				<tr>
+					<td>
+						<form method="POST" action="">
+							<div>
+								<textarea id="ticket-reply" name="ticket-reply" placeholder="لطفا پاسخ خود را بنویسید"></textarea>
+							</div>
+							<div>
+								<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال پاسخ" />
+							</div>
+						</form>
+					</td>
+				</tr>
+				{% endif %}
+			{% else %}
+				{% if ticket_details['sender_reply'] == True %}
+				<tr>
+					<td>
+						<form method="POST" action="">
+							<div>
+								<textarea id="ticket-reply" name="ticket-reply" placeholder="لطفا پاسخ خود را بنویسید"></textarea>
+							</div>
+							<div>
+								<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال پاسخ" />
+							</div>
+						</form>
+					</td>
+				</tr>
+				{% endif %}
+			{% endif %}
 		</tbody>
 	</table>
 </fieldset>

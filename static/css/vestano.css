@@ -1369,6 +1369,24 @@ tr#rows:hover {
     margin: 1vh 1vw;
 }
 
+#s-inbox {
+    background:url(/static/img/icon/b-inbox.png) center top; 
+    width:26px;
+    height:26px;
+    display: block;
+    float: right;
+    margin: 1.5vh 1vw 0 1vw;
+}
+
+#s-outbox {
+    background:url(/static/img/icon/b-outbox.png) center top; 
+    width:26px;
+    height:26px;
+    display: block;
+    float: right;
+    margin: 1vh 1vw;
+}
+
 #new {
     background:url(/static/img/icon/new.png) center top; 
     width:26px;

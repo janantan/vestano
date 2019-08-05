@@ -8,6 +8,7 @@
         <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
     </head>
     <body class="card" style="direction: rtl; margin: 0 auto;">
+    	{% include 'includes/_messages.html' %}
     	<fieldset class="fieldset font16" style="background-color: #bcd1fe; height: 85vh;">
     		<div style="margin-bottom: 2vh; font-weight: bold;">
     			<span>* جزئیات درخواست واریز وجه:</span>
@@ -23,11 +24,11 @@
     			</div>
     			<div class="mrg-vh2" style="float: right; width: 25%;">
     				<label class="">شماره حساب (بانک ملی):</label>
-    				<input id="account_number" type="text" name="account_number" required />
+    				<input id="account_number" type="text" name="account_number" value="{{recent_data['account_number']}}" required />
     			</div>
     			<div class="mrg-vh2" style="float: right; width: 25%;">
     				<label class="">نام صاحب حساب:</label>
-    				<input id="account_holder" type="text" name="account_holder" required />
+    				<input id="account_holder" type="text" name="account_holder" value="{{recent_data['account_holder']}}" required />
     			</div>
     			<div class="mrg-vh2" style="float: right; width: 20%;">
     				<label class="">تعداد سفارشات بستانکار: </label>
@@ -125,7 +126,7 @@
 					</table>
     			</fieldset>
     			<div class="mrg-vh4" style="margin-right: 4vw;">
-    				<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="تایید و درخواست وجه" />
+    				<input style="font-size: 17px; font-family: BNazanin;" type="submit" onclick="closeWindow()" value="تایید و درخواست وجه" />
     				<span class="font14" style="font-family: B-Roya;">(مبلغ درخواستی پس از بررسی حداکثر تا 2 روز کاری دیگر به حساب شما واریز خواهد شد.)</span>
     			</div>
     		</form>
@@ -136,6 +137,14 @@
 			function showDetails() {
 				flag = 1;
 				document.getElementById("accounting").style.display = 'block';
+			}
+
+			function closeWindow() {
+				//alert('clicked')
+				window.setTimeout(function(){
+					window.opener.location.reload();
+					close();
+				}, 2000);
 			}
 		</script>
     </body>
