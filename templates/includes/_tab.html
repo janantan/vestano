@@ -147,11 +147,11 @@
 					</tr>
 				{% endif %}
 				{% if 'financialRep' in session['access'] %}
-					<tr>
+					<!--<tr>
 						<td>
 							<a style={{acc}} href="/user-pannel/accounting">حسابداری</a>
 						</td>
-					</tr>
+					</tr>-->
 				{% endif %}
 				{% if 'requestForStuff' in session['access'] %}
 					{% if session['role'] == 'vendor_admin' %}

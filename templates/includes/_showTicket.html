@@ -13,15 +13,17 @@
 		<a title="بازگشت به صفحه قبل" href="{{request.referrer}}"><span id="back"></span></a>
 		{% if session['role']!='vendor_admin' %}
 			<a href="" title="پاسخ به تیکت"><span id="reply2"></span></a>
-			<a href="" title="ارجاع تیکت"><span id="forward"></span></a>
+			<a href="#" onclick="forwardTicket()" title="ارجاع تیکت"><span id="forward"></span><span id="s-forward" style="display: none;"></span></a>
+			<!--<a href="/user-pannel/tickets/forward/{{ticket_num}}" title="ارجاع تیکت"><span id="forward"></span></a>-->
 		{% else %}
 			<a title="پاسخ به تیکت"><span id="reply2"></span></a>
 			<a title="ارجاع تیکت"><span id="forward"></span></a>
 		{% endif %}
-	</div>	
+	</div>
 </div>
 <fieldset class="fieldset show-ticket-fieldset" style="height: 77vh; margin-top: 5vh;">
-	<legend>تیکت شماره {{ticket_num[6:]}} :</legend>
+	<legend id="legend">تیکت شماره {{ticket_num[6:]}} :</legend>
+	<legend id="forward-legend" style="display: none;">ارجاع تیکت شماره {{ticket_num[6:]}} :</legend>
 	<table id="inventory">
 		<thead></thead>
 		<tbody>
@@ -63,7 +65,8 @@
 								</div>
 								{% if ticket_details['attch_path'] %}
 									<div class="show-ticket-div-2">
-										<a style="color: blue;" href="http://localhost:5000/{{ticket_details['attch_path'][28:]}}"><span>دانلود</span></a>
+										<a style="color: blue;" href="/ticket-attachment/{{ticket_details['attch_path']}}"><span>دانلود</span></a>
+										<!--<a style="color: blue;" href="http://localhost:5000/{{ticket_details['attch_path'][28:]}}"><span>دانلود</span></a>-->
 									</div>
 								{% else %}
 									<div class="show-ticket-div-2">
@@ -84,8 +87,34 @@
 					</div>
 				</td>
 			</tr>
-			{% for i in range(ticket_details['reply']['sender']|length) %}
+			{% if 'forward' in ticket_details %}
 				<tr>
+					<td>
+						<fieldset class="fieldset" style="background: rgb(255,255,230); padding: 1vh 2vw;">
+							<div>
+								<span style="font-weight: bold; font-style: italic;">
+									این تیکت از واحد {{ticket_details['forward']['forward_from'][-1]}} به واحد {{ticket_details['forward']['forward_to'][-1]}} ارجاع شده است.
+								</span>
+							</div>
+							{% if session['role'] != 'vendor_admin' %}
+								<div>
+									<span>
+										توضیحات: 
+									</span>
+									{% for line in ticket_details['forward']['text'][-1] %}
+										<p>
+											{{line}}
+										</p>
+									{% endfor %}
+								</div>
+							{% endif %}
+						</fieldset>
+					</td>
+				</tr>
+			{% endif %}
+
+			{% for i in range(ticket_details['reply']['sender']|length) %}
+				<tr id="ticket-replys{{i}}">
 					<td>
 						<div>
 							<span>{{ticket_details['reply']['sender'][i]['name']}}</span>
@@ -93,7 +122,7 @@
 							<span style="float: left;">{{ticket_details['reply']['datetime'][i]}}</span>
 						</div>
 						<div  style="margin-top: 0;">
-							{% if ticket_details['reply']['sender'][i]['name'] == 'پشتیبانی' %}
+							{% if (ticket_details['reply']['sender'][i]['name'] == 'پشتیبانی') or (ticket_details['reply']['sender'][i]['name'] != 'واحد '+ ticket_details['sender_departement']) %}
 								<fieldset style="border: none; background: rgb(214, 254, 208); padding: 1vh 2vw;">
 									{% for line in ticket_details['reply']['text'][i] %}
 										<p>
@@ -119,11 +148,35 @@
 				<tr>
 					<td>
 						<form method="POST" action="">
-							<div>
+							<div id="ticket-text">
 								<textarea id="ticket-reply" name="ticket-reply" placeholder="لطفا پاسخ خود را بنویسید"></textarea>
 							</div>
-							<div>
-								<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال پاسخ" />
+							<div id="forward-from" style="font-weight: bold; display: none;">
+								<label>واحد ارجاع  دهنده تیکت:</label>
+								<select id="ticket-sender-departement" name="ticket-sender-departement" required>
+									<option value="{{ticket_details['departement']}}" selected>{{ticket_details['departement']}}</option>
+								</select>
+							</div>
+							<div id="forward-to" style="font-weight: bold; display: none;">
+								<label>واحد ارجاع تیکت را انتخاب کنید:</label>
+								<select id="ticket-departement" name="ticket-departement" required>
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="management">مدیریت</option>
+									<option value="orders">سفارشات</option>
+									<option value="inventory">انبارداری</option>
+									<option value="accounting">حسابداری</option>
+									<option value="technical">فنی</option>
+								</select>
+							</div>
+							</div>
+							<div id="forward-text" style="display: none;">
+								<textarea id="forward-note" name="forward-note" placeholder="لطفا توضیحات لازم را اینجا بنویسید."></textarea>
+							</div>
+							<div id="ticket-text-submit">
+								<input style="font-size: 17px; font-family: BNazanin;" type="submit" name="button_1" value="ارسال پاسخ" />
+							</div>
+							<div id="ticket-forward-submit" style="display: none;">
+								<input style="font-size: 17px; font-family: BNazanin;" type="submit" name="button_2" value="ارجاع تیکت" />
 							</div>
 						</form>
 					</td>
@@ -134,11 +187,34 @@
 				<tr>
 					<td>
 						<form method="POST" action="">
-							<div>
+							<div id="ticket-text">
 								<textarea id="ticket-reply" name="ticket-reply" placeholder="لطفا پاسخ خود را بنویسید"></textarea>
 							</div>
-							<div>
-								<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال پاسخ" />
+							<div id="forward-from" style="font-weight: bold; display: none;">
+								<label>واحد ارجاع  دهنده تیکت:</label>
+								<select id="ticket-sender-departement" name="ticket-sender-departement" required>
+									<option value="{{ticket_details['departement']}}" selected>{{ticket_details['departement']}}</option>
+								</select>
+							</div>
+							<div id="forward-to" style="font-weight: bold; display: none;">
+								<label>واحد ارجاع تیکت را انتخاب کنید:</label>
+								<select id="ticket-departement" name="ticket-departement" required>
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="management">مدیریت</option>
+									<option value="orders">سفارشات</option>
+									<option value="inventory">انبارداری</option>
+									<option value="accounting">حسابداری</option>
+									<option value="technical">فنی</option>
+								</select>
+							</div>
+							<div id="forward-text" style="display: none;">
+								<textarea id="forward-note" name="forward-note" placeholder="لطفا توضیحات لازم را اینجا بنویسید."></textarea>
+							</div>
+							<div id="ticket-text-submit">
+								<input style="font-size: 17px; font-family: BNazanin;" type="submit" name="button_1" value="ارسال پاسخ" />
+							</div>
+							<div id="ticket-forward-submit" style="display: none;">
+								<input style="font-size: 17px; font-family: BNazanin;" type="submit" name="button_2" value="ارجاع تیکت" />
 							</div>
 						</form>
 					</td>
@@ -148,3 +224,21 @@
 		</tbody>
 	</table>
 </fieldset>
+
+<script type="text/javascript">
+	function forwardTicket() {
+		document.getElementById('ticket-text').style.display = 'none';
+		document.getElementById('ticket-text-submit').style.display = 'none';
+		document.getElementById('forward').style.display = 'none';
+		document.getElementById('legend').style.display = 'none';
+		document.getElementById('forward-legend').style.display = 'block';
+		document.getElementById('s-forward').style.display = 'block';
+		document.getElementById('forward-text').style.display = 'block';
+		document.getElementById('ticket-forward-submit').style.display = 'block';
+		document.getElementById('forward-from').style.display = 'block';
+		document.getElementById('forward-to').style.display = 'block';
+		for (i = 0; i < "{{ticket_details['reply']['sender']|length}}"; i++) {
+			document.getElementById('ticket-replys'+i).style.display = 'none';
+		}
+	}
+</script>

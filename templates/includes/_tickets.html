@@ -87,7 +87,7 @@
 							<span>{{rec['departement']}}</span>
 						</td>
 						<td class="vw20">
-							<a title="{{('\n'.join(rec['text']))}}"><span>{{rec['text'][0][0:40]}}</span></a>
+							<a title="{{('\n'.join(rec['text']))}}"><span>{{rec['text'][0][0:30]}}</span></a>
 						</td>
 						<td>
 							<span>{{rec['datetime']}}</span>
@@ -102,7 +102,7 @@
 							</td>
 						{% endif %}
 						<td class="vw8">
-							<a href="" title="حذف تیکت"><span style="margin: 0 1vw 0 3vw;" id="delete"></span></a>
+							<a href="" title="حذف تیکت (فعلا فعال نیست)"><span style="margin: 0 1vw 0 3vw;" id="delete"></span></a>
 						</td>
 					</tr>
 			{% endfor %}

@@ -1,6 +1,6 @@
 <form method="POST" action="" enctype="multipart/form-data">
   <fieldset class="new-ticket-fieldset">
-    <legend>ثبت تیکت جدید:</legend>
+    <legend>ارجاع تیکت شماره: {{ticket_num}}</legend>
     <div>
       <label>لطفا واحد مربوطه ارجاع تیکت را انتخاب کنید<span> *</span></label>
       <select id="ticket-departement" name="ticket-departement" required>
@@ -14,35 +14,38 @@
     </div>
     <div>
       <label>عنوان یا موضوع تیکت<span> *</span></label>
-      <input id="ticket-title" type="text" name="ticket-title" placeholder="عنوان یا موضوع" required />
+      <input id="ticket-title" type="text" name="ticket-title" value="{{ticket_details['title']}}" placeholder="عنوان یا موضوع" required />
     </div>
-    {% if session['role']!='vendor_admin' %}
-      {% if 'adminTicket' in session['access'] %}{% set value='مدیریت' %}
-      {% elif 'ordersTicket' in session['access'] %}{% set value='سفارشات' %}
-      {% elif 'inventoryTicket' in session['access'] %}{% set value='انبارداری' %}
-      {% elif 'financialTicket' in session['access'] %}{% set value='حسابداری' %}
-      {% elif 'techTicket' in session['access'] %}{% set value='فنی' %}{% endif %}
-      <div>
-        <label>واحد ثبت کننده تیکت<span> *</span></label>
-        <select id="ticket-sender-departement" name="ticket-sender-departement" required>
-          <option value={{value}} selected>{{value}}</option>
-        </select>
-      </div>
-    {% endif %}
+    <div>
+      <label>واحد ارجاع  دهنده تیکت<span> *</span></label>
+      <select id="ticket-sender-departement" name="ticket-sender-departement" required>
+        <option value="{{ticket_details['departement']}}" selected>{{ticket_details['departement']}}</option>
+      </select>
+    </div>
     <div style="float: right;">
-      <label>نام و نام خانوادگی<span> *</span></label>
-      <input id="ticket-sender-name" type="text" name="ticket-sender-name" placeholder="" required />
+      <label>نام و نام خانوادگی ثبت کننده تیکت:<span> *</span></label>
+      <input id="ticket-sender-name" type="text" name="ticket-sender-name" value="{{ticket_details['sender_name']}}" placeholder="" required />
     </div>
     <div style="float: right; margin-right: 4vw;">
       <label>شماره تماس<span> *</span></label>
-      <input id="ticket-sender-phone" type="text" name="ticket-sender-phone" placeholder="" required />
+      <input id="ticket-sender-phone" type="text" name="ticket-sender-phone" value="{{ticket_details['sender_phone']}}" placeholder="" required />
     </div><br>
     <div style="clear:both;">
       <label>متن تیکت<span> *</span></label>
-      <textarea id="ticket-text" name="ticket-text" placeholder="" required></textarea>
+      <textarea id="ticket-text" name="ticket-text" placeholder="" required>
+        {% for line in ticket_details['text'] %}
+            {{line}}
+        {% endfor %}
+      </textarea>
     </div>
     <div>
       <label>فایل پیوست</label>
+      {% if ticket_details['attch_path'] %}
+        <div class="show-ticket-div-2">
+          <a style="color: blue;" href="/ticket-attachment/{{ticket_details['attch_path']}}"><span>دانلود</span></a>
+          <!--<a style="color: blue;" href="http://localhost:5000/{{ticket_details['attch_path'][28:]}}"><span>دانلود</span></a>-->
+        </div>
+      {% endif %}
       <input type="file" name="ticket-attachment" />
     </div>
     {% if session['role']!='vendor_admin' %}

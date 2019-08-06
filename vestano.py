@@ -2194,51 +2194,87 @@ def show_ticket(ticket_num):
                 {'$set': {'read': True}})
 
     if request.method == 'POST':
-        if not request.form.get('ticket-reply'):
-            flash(u'فیلد پاسخ خالی است!', 'danger')
+        print('POST')
+        #print(request.form.get('ticket-sender-departement'))
+        if request.form.get('ticket-sender-departement'):
+            dep = utils.tickets_departements(request.form.get('ticket-departement'))
+            forward = {'forward_from':[], 'forward_to':[], 'text':[], 'datetime':[], 'description':[]}
+            forward['forward_from'].append(request.form.get('ticket-sender-departement'))
+            forward['forward_to'].append(dep)
+            forward['text'].append(request.form.get('forward-note').split("\n"))
+            forward['datetime'].append(jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'))
+            description = u'تیکت ارسالی از واحد '+request.form.get('ticket-sender-departement')+u' به واحد '+dep+u' ارجاع شده است.'
+            forward['description'].append(description)
+            cursor.tickets.update_many(
+                {"number": ticket_num},
+                {'$set': {
+                'forward': forward,
+                'read': False,
+                'departement' : request.form.get('ticket-departement')
+                }})
+            flash(u'تیکت به واحد '+dep+u' ارجاع شد.', 'success')
             return redirect(request.referrer)
 
-        if (session['role'] == 'vendor_admin') or (result['sender_departement']):
-            if (session['role'] == 'vendor_admin'):
-                user_result = cursor.users.find_one({'username':session['username']})
-                result['reply']['sender'].append({'name': user_result['name'], 'username': session['username']})
-                support_reply = False
-                sender_reply = True
-                read = True
-            else:
-                if (access in session['access']) and ('adminTicket' not in session['access']):
+        else:
+            print('hear')
+            if not request.form.get('ticket-reply'):
+                flash(u'فیلد پاسخ خالی است!', 'danger')
+                return redirect(request.referrer)
+
+            if (session['role'] == 'vendor_admin') or (result['sender_departement']):
+                if (session['role'] == 'vendor_admin'):
                     user_result = cursor.users.find_one({'username':session['username']})
-                    result['reply']['sender'].append({'name': u'واحد '+result['sender_departement'],
-                        'username': session['username']})
+                    result['reply']['sender'].append({'name': user_result['name'], 'username': session['username']})
                     support_reply = False
                     sender_reply = True
                     read = True
                 else:
-                    result['reply']['sender'].append({'name': u'واحد '+departement, 'username': session['username']})
-                    support_reply = True
-                    sender_reply = False
-                    read = False
-        else:
-            result['reply']['sender'].append({'name': u'پشتیبانی', 'username': session['username']})
-            support_reply = True
-            sender_reply = False
-            read = False
+                    if (access in session['access']) and ('adminTicket' not in session['access']):
+                        user_result = cursor.users.find_one({'username':session['username']})
+                        result['reply']['sender'].append({'name': u'واحد '+result['sender_departement'],
+                            'username': session['username']})
+                        support_reply = False
+                        sender_reply = True
+                        read = True
+                    else:
+                        result['reply']['sender'].append({'name': u'واحد '+departement, 'username': session['username']})
+                        support_reply = True
+                        sender_reply = False
+                        read = False
+            else:
+                result['reply']['sender'].append({'name': u'پشتیبانی', 'username': session['username']})
+                support_reply = True
+                sender_reply = False
+                read = False
 
-        result['reply']['text'].append(request.form.get('ticket-reply').split("\n"))
-        result['reply']['datetime'].append(jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'))
-        cursor.tickets.update_many(
-        {"number": ticket_num},
-        {'$set': {
-        'reply': result['reply'],
-        'read': read,
-        'support_reply': support_reply,
-        'sender_reply': sender_reply
-        }})
-        flash(u'پاسخ تیکت با موفقیت ارسال شد.', 'success')
-        return redirect(request.referrer)
+            result['reply']['text'].append(request.form.get('ticket-reply').split("\n"))
+            result['reply']['datetime'].append(jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'))
+            cursor.tickets.update_many(
+                {"number": ticket_num},
+                {'$set': {
+                'reply': result['reply'],
+                'read': read,
+                'support_reply': support_reply,
+                'sender_reply': sender_reply
+                }})
+            flash(u'پاسخ تیکت با موفقیت ارسال شد.', 'success')
+            return redirect(request.referrer)
 
     return render_template('user_pannel.html',
         item = "showTicket",
+        ticket_num = ticket_num,
+        ticket_details = utils.ticket_details(cursor, ticket_num)
+        )
+
+@app.route('/user-pannel/tickets/forward/<ticket_num>', methods=['GET', 'POST'])
+@token_required
+def forward_tickets(ticket_num):
+    if session['role'] == 'vendor_admin':
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    return render_template('user_pannel.html',
+        item = "forwardTickets",
         ticket_num = ticket_num,
         ticket_details = utils.ticket_details(cursor, ticket_num)
         )
@@ -2567,6 +2603,12 @@ def export_excel():
 @app.route('/api-guide', methods=['GET'])
 def api_guide():
     filename = '/root/vestano/static/pdf/apiGuide/api_guide.pdf'
+    
+    return send_file(filename, as_attachment=True)
+
+@app.route('/ticket-attachment/<filename>', methods=['GET'])
+def ticket_attachment(filename):
+    #filename = '/root/vestano/static/pdf/apiGuide/api_guide.pdf'
     
     return send_file(filename, as_attachment=True)
 

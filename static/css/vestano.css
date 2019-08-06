@@ -1414,6 +1414,15 @@ tr#rows:hover {
     margin: 4vh 1vw;
 }
 
+#s-forward {
+    background:url(/static/img/icon/b-forward.png) center top; 
+    width:20px;
+    height:20px;
+    display: block;
+    float: left;
+    margin: 4vh 1vw;
+}
+
 #reply2 {
     background:url(/static/img/icon/reply2.png) center top; 
     width:20px;
