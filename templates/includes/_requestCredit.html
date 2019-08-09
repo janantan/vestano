@@ -24,11 +24,11 @@
     			</div>
     			<div class="mrg-vh2" style="float: right; width: 25%;">
     				<label class="">شماره حساب (بانک ملی):</label>
-    				<input id="account_number" type="text" name="account_number" value="{{recent_data['account_number']}}" required />
+    				<input id="account_number" type="text" name="account_number" value="{{session['account_number']}}" required disabled />
     			</div>
     			<div class="mrg-vh2" style="float: right; width: 25%;">
     				<label class="">نام صاحب حساب:</label>
-    				<input id="account_holder" type="text" name="account_holder" value="{{recent_data['account_holder']}}" required />
+    				<input id="account_holder" type="text" name="account_holder" value="{{session['account_holder']}}" required disabled />
     			</div>
     			<div class="mrg-vh2" style="float: right; width: 20%;">
     				<label class="">تعداد سفارشات بستانکار: </label>

@@ -261,7 +261,7 @@ def token_required(f):
         token = None
 
         if 'loged_in' not in session:
-            flash('Please Sign in First!', 'danger')
+            flash(u'لطفا ابتدا وارد شوید!', 'danger')
             return redirect(url_for('logout'))
 
         if 'access-token' in request.headers['Cookie']:
@@ -274,19 +274,27 @@ def token_required(f):
 
         try:
             data = jwt.decode(token, app.secret_key)
-            utils.today_orders(cursor)
-            session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-            session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
-            session['today_orders'] = cursor.today_orders.estimated_document_count()
-            session['pending_orders'] = cursor.pending_orders.estimated_document_count()
-            session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
-            session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
-            session['all_orders'] = cursor.orders.estimated_document_count()
             if 'username' in session:
                 if session['role'] == 'vendor_admin':
-                    session['unread_tickets'] = cursor.tickets.find({'read': False}).count()
+                    #utils.today_orders(cursor)
+                    session['temp_orders'] = cursor.temp_orders.find({'vendorName': session['vendor_name']}).count()
+                    session['canceled_orders'] = cursor.canceled_orders.find({'vendorName': session['vendor_name']}).count()
+                    session['today_orders'] = cursor.today_orders.find({'vendorName': session['vendor_name']}).count()
+                    session['pending_orders'] = cursor.pending_orders.find({'vendorName': session['vendor_name']}).count()
+                    session['guarantee_orders'] = cursor.guarantee_orders.find({'vendorName': session['vendor_name']}).count()
+                    session['ready_to_ship'] = cursor.ready_to_ship.find({'vendorName': session['vendor_name']}).count()
+                    session['all_orders'] = cursor.orders.find({'vendorName': session['vendor_name']}).count()
+                    session['unread_tickets'] = cursor.tickets.find({'read': False, 'sender_departement':None}).count()
                     session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False}).count()
                 else:
+                    #utils.today_orders(cursor)
+                    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+                    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
+                    session['today_orders'] = cursor.today_orders.estimated_document_count()
+                    session['pending_orders'] = cursor.pending_orders.estimated_document_count()
+                    session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
+                    session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
+                    session['all_orders'] = cursor.orders.estimated_document_count()
                     if 'adminTicket' in session['access']:
                         session['unread_tickets'] = cursor.tickets.find({'sender_reply': True}).count()
                     elif 'ordersTicket' in session['access']:
@@ -309,31 +317,40 @@ def token_required(f):
                 username = result['username']
                 session['username'] = username
                 session['message'] = result['name']
+                session['vendor_name'] = result['vendor_name']
                 session['role'] = result['role']
                 session['access'] = result['access']
+                session['account_number'] = result['account_number']
+                session['account_holder'] = result['account_holder']
                 session['jdatetime'] = jdatetime.datetime.today().strftime('%d / %m / %Y')
-                session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-                session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
-                session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
-                session['today_orders'] = cursor.today_orders.estimated_document_count()
                 if session['role'] == 'vendor_admin':
-                    session['unread_tickets'] = cursor.tickets.find({'read': False}).count()
+                    session['temp_orders'] = cursor.temp_orders.find({'vendorName': session['vendor_name']}).count()
+                    session['canceled_orders'] = cursor.canceled_orders.find({'vendorName': session['vendor_name']}).count()
+                    session['today_orders'] = cursor.today_orders.find({'vendorName': session['vendor_name']}).count()
+                    session['pending_orders'] = cursor.pending_orders.find({'vendorName': session['vendor_name']}).count()
+                    session['guarantee_orders'] = cursor.guarantee_orders.find({'vendorName': session['vendor_name']}).count()
+                    session['ready_to_ship'] = cursor.ready_to_ship.find({'vendorName': session['vendor_name']}).count()
+                    session['all_orders'] = cursor.orders.find({'vendorName': session['vendor_name']}).count()
+                    session['unread_tickets'] = cursor.tickets.find({'read': False, 'sender_departement':None}).count()
                     session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False}).count()
                 else:
-                    if session['role'] == 'vendor_admin':
-                        session['unread_tickets'] = cursor.tickets.find({'read': False}).count()
-                        session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False}).count()
-                    else:
-                        if 'adminTicket' in session['access']:
-                            session['unread_tickets'] = cursor.tickets.find({'sender_reply': True}).count()
-                        elif 'ordersTicket' in session['access']:
-                            session['unread_tickets'] = cursor.tickets.find({'departement': 'orders', 'sender_reply': True}).count()
-                        elif 'inventoryTicket' in session['access']:
-                            session['unread_tickets'] = cursor.tickets.find({'departement': 'inventory', 'sender_reply': True}).count()
-                        elif 'financialTicket' in session['access']:
-                            session['unread_tickets'] = cursor.tickets.find({'departement': 'accounting', 'sender_reply': True}).count()
-                        elif 'techTicket' in session['access']:
-                            session['unread_tickets'] = cursor.tickets.find({'departement': 'technical', 'sender_reply': True}).count()
+                    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
+                    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
+                    session['today_orders'] = cursor.today_orders.estimated_document_count()
+                    session['pending_orders'] = cursor.pending_orders.estimated_document_count()
+                    session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
+                    session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
+                    session['all_orders'] = cursor.orders.estimated_document_count()
+                    if 'adminTicket' in session['access']:
+                        session['unread_tickets'] = cursor.tickets.find({'sender_reply': True}).count()
+                    elif 'ordersTicket' in session['access']:
+                        session['unread_tickets'] = cursor.tickets.find({'departement': 'orders', 'sender_reply': True}).count()
+                    elif 'inventoryTicket' in session['access']:
+                        session['unread_tickets'] = cursor.tickets.find({'departement': 'inventory', 'sender_reply': True}).count()
+                    elif 'financialTicket' in session['access']:
+                        session['unread_tickets'] = cursor.tickets.find({'departement': 'accounting', 'sender_reply': True}).count()
+                    elif 'techTicket' in session['access']:
+                        session['unread_tickets'] = cursor.tickets.find({'departement': 'technical', 'sender_reply': True}).count()
                     not_processed = cursor.inventory_transfer.find({'req_status': u'بررسی نشده'}).count()
                     edited = cursor.inventory_transfer.find({'req_status': u'ویرایش شده'}).count()
                     session['unread_inv_transfers'] = not_processed + edited
@@ -363,7 +380,6 @@ def login():
         return response
 
     token = None
-    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -397,6 +413,8 @@ def login():
                     return redirect(url_for('temp_orders'))
                 elif (session['role'] == 'vendor_admin'):
                     return redirect(url_for('today_orders'))
+                elif (session['role'] == 'support'):
+                    return redirect(url_for('tickets'))
             #else:
                 #flash(u'معتبر نیست!', 'danger')
             else:
@@ -417,13 +435,6 @@ def temp_orders():
     if ('processList' or 'caseProcessList') not in session['access']:
         flash(u'شما مجوز لازم برای ورود به این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
-
-    session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-    session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
-    session['today_orders'] = cursor.today_orders.estimated_document_count()
-    session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
-    session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
-    session['all_orders'] = cursor.orders.estimated_document_count()
 
     return render_template('user_pannel.html',
         item='orderList',
@@ -555,7 +566,7 @@ def confirm_orders(code):
                 'PostDeliveryPrice': soap_result['PostDeliveryPrice'],
                 'VatTax': soap_result['VatTax'],
                 'registerCost': config.registerCost,
-                'wage': config.wage
+                'wage': utils.calculate_wage(new_rec['vendorName'], weight)
                 }
 
                 new_rec['costs'] = costs
@@ -599,18 +610,7 @@ def confirm_orders(code):
                             city = c['Name']
                             break
 
-                    if weight < 10000:
-                        vestano_wage = config.to10
-                    elif 10000 <= weight < 15000:
-                        vestano_wage = config.to15
-                    elif 15000 <= weight < 20000:
-                        vestano_wage = config.to20
-                    elif 20000 <= weight < 25000:
-                        vestano_wage = config.to25
-                    elif 25000 <= weight < 30000:
-                        vestano_wage = config.to30
-                    elif weight >= 30000:
-                        vestano_wage = config.gthan30
+                    vestano_wage = utils.calculate_wage(new_rec['vendorName'], weight)
 
                     pdfkit.from_string(render_template('includes/_caseOrderPdf.html',
                         datetime = jdatetime.datetime.now().strftime('%H:%M %Y/%m/%d'),
@@ -807,6 +807,7 @@ def cancel_orders(orderId):
         )
     cursor.canceled_orders.insert_one(rec)
     cursor.temp_orders.remove({'orderId': orderId})
+    cursor.guarantee_orders.remove({'orderId': orderId})
     flash(u'سفارش مورد نظر لغو شد!', 'danger')
     for i in range(len(rec['products'])):
         if rec['vendorName'] == u'سفارش موردی':
@@ -871,6 +872,10 @@ def pending_order(orderId):
 @app.route('/delete-order/<orderId>', methods=['GET'])
 @token_required
 def delete_order(orderId):
+    if session['role'] != 'admin':
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     if ('processList' or 'caseProcessList') not in session['access']:
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
@@ -1289,6 +1294,42 @@ def case_orders():
 @app.route('/user-pannel/inventory-management/<sub_item>', methods=['GET', 'POST'])
 @token_required
 def inventory_management(sub_item):
+    if 'inventManagement' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'case') and ('caseNewStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'cEdit') and ('caseEditStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'new') and ('newStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'inc') and ('incStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'edit') and ('editStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'pack') and ('newPack' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'release') and ('releaseStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'search') and ('searchStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     productId_result = ""
     if request.method == 'POST':
         if sub_item == 'case':
@@ -1496,6 +1537,35 @@ def inventory_management(sub_item):
 @app.route('/user-pannel/inventory-transfer/<sub_item>', methods=['GET', 'POST'])
 @token_required
 def inventory_transfer(sub_item):
+    if 'requestForStuff' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'newT') and ('newStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'incT') and ('incStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'editT') and ('editStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'packT') and ('newPack' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'releaseT') and ('releaseStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if (sub_item == 'searchT') and ('searchStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+
     if request.method == 'POST':
         if sub_item == 'newT':
             record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
@@ -1630,6 +1700,10 @@ def inventory_transfer(sub_item):
 @app.route('/user-pannel/inventory-transfer-details/<number>', methods=['GET', 'POST'])
 @token_required
 def inventory_transfer_details(number):
+    if 'requestForStuff' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     if session['role'] == 'vendor_admin':
         cursor.inventory_transfer.update_many(
             {'number': number},
@@ -1764,6 +1838,10 @@ def inventory_transfer_details(number):
 @app.route('/inventory-transfer-accept/<number>', methods=['GET', 'POST'])
 @token_required
 def inventory_transfer_accept(number):
+    if (session['role'] != 'admin') or ('requestForStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     result = cursor.inventory_transfer.find_one({'number':number})
     if result['req_status'] == u'تایید شد':
             flash(u'درخواست قبلا تایید شده است!', 'success')
@@ -1931,11 +2009,15 @@ def inventory_transfer_accept(number):
 @app.route('/inventory-transfer-refuse/<number>', methods=['GET', 'POST'])
 @token_required
 def inventory_transfer_refuse(number):
+    if (session['role'] != 'admin') or ('requestForStuff' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     result = cursor.inventory_transfer.find_one({'number':number})
     if result['req_status'] == u'تایید شد':
         flash(u'خطا! این درخواست قبلا تایید شده است!', 'danger')
         return redirect(request.referrer)
-    if result['read']:
+    if result['req_status'] == u'رد درخواست':
         flash(u'رد درخواست قبلا به اطلاع فروشگاه رسیده است!', 'danger')
         return redirect(request.referrer)
     cursor.inventory_transfer.update_many(
@@ -1968,6 +2050,10 @@ def inventory():
 @app.route('/delete-stuff/<productId>', methods=['GET'])
 @token_required
 def delete_from_inventory(productId):
+    if 'inventManagement' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     result = cursor.vestano_inventory.find_one({'productId': productId})
     if result:
         cursor.vestano_inventory.remove({'productId': productId})
@@ -1984,6 +2070,18 @@ def delete_from_inventory(productId):
 @token_required
 def financial(sub_item):
     if 'financialRep' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='accounting') and ('accounting' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='credit') and ('vendorCredit' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='requests-list') and ('creditList' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='paid-list') and ('paidList' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -2006,7 +2104,7 @@ def financial(sub_item):
 @app.route('/req-credit/<price>/<orderId_list>', methods=['GET', 'POST'])
 @token_required
 def request_credit(price, orderId_list):
-    if 'financialRep' not in session['access']:
+    if ('financialRep' and 'vendorCredit') not in session['access']:
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -2020,11 +2118,10 @@ def request_credit(price, orderId_list):
     if request.method == 'POST':
         record = {'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
         record['credit_price'] = request.form.get('credit_price')
-        record['account_number'] = request.form.get('account_number')
-        record['account_holder'] = request.form.get('account_holder')
+        record['account_number'] = session['account_number']
+        record['account_holder'] = session['account_holder']
         record['number'] = 'VES-F-' + str(random2.randint(10000000, 99999999))
-        #record['vendor'] = session['vendor']
-        record['vendor'] = 'روژیاپ'
+        record['vendor'] = session['vendor_name']
         record['read'] = False
         record['orderId_list'] = orderId_list
         record['username'] = session['username']
@@ -2048,6 +2145,10 @@ def request_credit(price, orderId_list):
 @app.route('/financial-settlement/<number>', methods=['GET', 'POST'])
 @token_required
 def financial_settlement(number):
+    if ('financialRep' and 'paidList') not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
     result = cursor.credit_requests.find_one({'number':number})
     data = {
     'credit_price': result['credit_price'],
@@ -2085,7 +2186,7 @@ def financial_settlement(number):
 @app.route('/delete-credit-request/<number>', methods=['GET'])
 @token_required
 def delete_credit_request(number):
-    if session['role'] != 'vendor_admin':
+    if (session['role'] != 'vendor_admin') or ('creditList' not in session['access']):
         flash(u'مجاز به حذف این درخواست نیستید!', 'error')
         return redirect(request.referrer)
         
@@ -2104,17 +2205,26 @@ def delete_credit_request(number):
     flash(u'درخواست با موفقیت حذف شد!', 'success')
     return redirect(request.referrer)
 
-@app.route('/user-pannel/accounting', methods=['GET'])
-@token_required
-def accounting():
-    return render_template('user_pannel.html',
-        item="accounting",
-        accounting = utils.accounting(cursor)
-        )
+#@app.route('/user-pannel/accounting', methods=['GET'])
+#@token_required
+#def accounting():
+    #if 'financialRep' not in session['access']:
+        #flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        #return redirect(request.referrer)
+
+    #return render_template('user_pannel.html',
+        #item="accounting",
+        #accounting = utils.accounting(cursor)
+        #)
 
 @app.route('/user-pannel/tickets', methods=['GET'])
 @token_required
 def tickets():
+    if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
+        pass
+    else:
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
 
     return render_template('user_pannel.html',
         item = "tickets",
@@ -2124,6 +2234,12 @@ def tickets():
 @app.route('/user-pannel/tickets/sent', methods=['GET'])
 @token_required
 def sent_tickets():
+    if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
+        pass
+    else:
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
+
     if session['role'] == 'vendor_admin':
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
@@ -2136,6 +2252,16 @@ def sent_tickets():
 @app.route('/user-pannel/new-ticket', methods=['GET', 'POST'])
 @token_required
 def new_ticket():
+    if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
+        pass
+    else:
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
+
+    if session['role'] == 'vendor_admin':
+        vendor_name = session['vendor_name']
+    else:
+        vendor_name = ''
     if request.method == 'POST':
         record = {'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
         record['departement'] = request.form.get('ticket-departement')
@@ -2147,8 +2273,9 @@ def new_ticket():
         record['number'] = 'VES-T-' + str(random2.randint(10000000, 99999999))
         record['ref_ticket'] = ''
         record['sender_username'] = session['username']
-        record['vendor'] = ''
+        record['vendor'] = vendor_name
         record['reply'] = {'sender':[], 'text':[], 'datetime':[]}
+        record['forward'] = {'forward_from':[], 'forward_to':[], 'text':[], 'datetime':[], 'description':[]}
         record['read'] = False
         record['support_reply'] = False
         record['sender_reply'] = True
@@ -2180,6 +2307,12 @@ def new_ticket():
 @app.route('/user-pannel/show-ticket/<ticket_num>', methods=['GET', 'POST'])
 @token_required
 def show_ticket(ticket_num):
+    if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
+        pass
+    else:
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
+
     result = cursor.tickets.find_one({'number':ticket_num})
     departement = utils.tickets_departements(result['departement'])
     if session['role'] == 'vendor_admin':
@@ -2188,7 +2321,7 @@ def show_ticket(ticket_num):
             {'$set': {'read': True}})
     if result['sender_departement']:
         access = utils.tickets_access_departements(result['sender_departement'])
-        if (access in session['access']) and ('adminTicket' not in session['access']):
+        if (access in session['access']) and (('adminTicket' not in session['access']) or (session['role']=='admin')):
             cursor.tickets.update_many(
                 {"number": ticket_num},
                 {'$set': {'read': True}})
@@ -2196,19 +2329,18 @@ def show_ticket(ticket_num):
     if request.method == 'POST':
         print('POST')
         #print(request.form.get('ticket-sender-departement'))
-        if request.form.get('ticket-sender-departement'):
+        if request.form.get('ticket-departement'):
             dep = utils.tickets_departements(request.form.get('ticket-departement'))
-            forward = {'forward_from':[], 'forward_to':[], 'text':[], 'datetime':[], 'description':[]}
-            forward['forward_from'].append(request.form.get('ticket-sender-departement'))
-            forward['forward_to'].append(dep)
-            forward['text'].append(request.form.get('forward-note').split("\n"))
-            forward['datetime'].append(jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'))
+            result['forward']['forward_from'].append(request.form.get('ticket-sender-departement'))
+            result['forward']['forward_to'].append(dep)
+            result['forward']['text'].append(request.form.get('forward-note').split("\n"))
+            result['forward']['datetime'].append(jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'))
             description = u'تیکت ارسالی از واحد '+request.form.get('ticket-sender-departement')+u' به واحد '+dep+u' ارجاع شده است.'
-            forward['description'].append(description)
+            result['forward']['description'].append(description)
             cursor.tickets.update_many(
                 {"number": ticket_num},
                 {'$set': {
-                'forward': forward,
+                'forward': result['forward'],
                 'read': False,
                 'departement' : request.form.get('ticket-departement')
                 }})
@@ -2269,6 +2401,12 @@ def show_ticket(ticket_num):
 @app.route('/user-pannel/tickets/forward/<ticket_num>', methods=['GET', 'POST'])
 @token_required
 def forward_tickets(ticket_num):
+    if ('adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
+        pass
+    else:
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
+
     if session['role'] == 'vendor_admin':
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
@@ -2291,6 +2429,9 @@ def register():
         if request.method == 'POST':
             users = {'created_date': datetime.datetime.now()}
             users['name'] = request.form.get('name')
+            users['vendor_name'] = request.form.get('vendor-name')
+            users['account_number'] = request.form.get('account-number')
+            users['account_holder'] = request.form.get('account-holder')
             users['email'] = request.form.get('email')
             users['phone'] = request.form.get('phone')
             users['username'] = request.form.get('username')
@@ -2312,7 +2453,11 @@ def register():
                     else:
                         flash(u'کلمه عبور مطابقت ندارد', 'error')
             else:
-                users['role'] = request.form.get('role')
+                if session['role'] == 'vendor_admin':
+                    users['role'] = session['role']
+                    users['vendor_name'] = session['vendor_name']
+                else:
+                    users['role'] = request.form.get('role')
                 users['access'] = request.form.getlist('access')
                 result = cursor.users.find_one({"username": users['username']})
                 if result:
@@ -2359,11 +2504,22 @@ def change_password():
             flash('Current Password Not Matched!', 'danger')
     return render_template('includes/_changePassword.html')
 
+@app.route('/footer-contents/<sub_item>')
+def footer_contents(sub_item):
+
+    return render_template('footer-contents.html',
+        sub_item = sub_item
+        )
+
 @app.route('/logout')
 def logout():
     # remove the username from the session if it's there
     session.pop('username', None)
+    session.pop('loged_in', None)
     session.pop('message', None)
+    session.pop('vendor_name', None)
+    session.pop('account_number', None)
+    session.pop('account_holder', None)
     session.pop('temp_orders', None)
     session.pop('canceled_orders', None)
     session.pop('today_orders', None)
@@ -2380,7 +2536,11 @@ def logout():
 def token_logout():
     # remove the username from the session if it's there
     session.pop('username', None)
+    session.pop('loged_in', None)
     session.pop('message', None)
+    session.pop('vendor_name', None)
+    session.pop('account_number', None)
+    session.pop('account_holder', None)
     session.pop('temp_orders', None)
     session.pop('canceled_orders', None)
     session.pop('today_orders', None)
@@ -2578,6 +2738,10 @@ def enterance_details(productId):
 @app.route('/update-status', methods=['GET'])
 @token_required
 def update_status():
+    if session['role'] == 'vendor_admin':
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
+
     update = utils.GetStatus(cursor)
     if update:
         flash(u"تغییرات بروزرسانی شد.", 'success')
@@ -2608,6 +2772,11 @@ def api_guide():
 
 @app.route('/ticket-attachment/<filename>', methods=['GET'])
 def ticket_attachment(filename):
+    if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
+        pass
+    else:
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
     #filename = '/root/vestano/static/pdf/apiGuide/api_guide.pdf'
     
     return send_file(filename, as_attachment=True)

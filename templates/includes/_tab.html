@@ -112,11 +112,11 @@
 					</tr>
 				{% endif %}
 				{% if 'rtsOrders' in session['access'] %}
-					<tr>
+					<!--<tr>
 						<td>
 							<a style={{rts}} href="/user-pannel/ready-to-ship">سفارشات آماده ارسال ({{session['ready_to_ship']}})</a>
 						</td>
-					</tr>
+					</tr>-->
 				{% endif %}
 				{% if 'pndOrders' in session['access'] %}
 					<tr>
@@ -175,12 +175,14 @@
 							</td>
 						</tr>
 				{% endif %}
-				<tr>
-					<td>
-						<a style={{ticket}} href="/user-pannel/tickets">تیکت ({{session['unread_tickets']}})</a>
-					</td>
-				</tr>
-				{% if (session['role'] == 'admin') or (session['role'] == 'vendor_admin') %}
+				{% if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access'] %}
+					<tr>
+						<td>
+							<a style={{ticket}} href="/user-pannel/tickets">تیکت ({{session['unread_tickets']}})</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']) %}
 					<tr>
 						<td>
 							<a style={{rgs}} href="/register">ایجاد کاربری</a>

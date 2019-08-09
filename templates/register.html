@@ -14,13 +14,33 @@
 							<table id="registering">
 								<tr>
 				                    <td>					
-										<label class="right" for="name">نام کاربر یا فروشگاه</label>
-										<input id="name" type="text" name="name" />
-									</td>
-									<td>
-										<label><input id="api_user" type="checkbox" name="api_user" value="api" onchange="apiUser('api_user')">کاربر وب سرویس</label>
+										<label class="right" for="name">نام کاربر</label>
+										<input id="name" type="text" name="name" required />
 									</td>
 								</tr>
+								{% if session['role'] != 'vendor_admin' %}
+									<tr>
+					                    <td>					
+											<label class="right" for="vendor-name">نام فروشگاه</label>
+											<input id="vendor-name" type="text" name="vendor-name" onkeyup="enableAccontData()" oncontextmenu="enableAccontData()" />
+										</td>
+										<td>
+											<label><input id="api_user" type="checkbox" name="api_user" value="api" onchange="apiUser('api_user')">کاربر وب سرویس</label>
+										</td>
+									</tr>
+									<tr id="account-number-tr" style="display: none;">
+					                    <td>					
+											<label class="right" for="account-number">شماره حساب فروشگاه (بانک ملی)</label>
+											<input id="account-number" type="text" name="account-number" />
+										</td>
+									</tr>
+									<tr id="account-holder-tr" style="display: none;">
+					                    <td>					
+											<label class="right" for="account-holder">نام صاحب حساب</label>
+											<input id="account-holder" type="text" name="account-holder" />
+										</td>
+									</tr>
+								{% endif %}
 								<tr>			                    
 				                    <td>
 										<label class="right" for="email">پست الکترونیکی</label>
@@ -51,155 +71,234 @@
 										<input id="password" type="password" name="confirm" required />
 									</td>
 								</tr>
-								<tr>
-									<td>
-										<label class="right" for="role">سطح کاربری</label>
-										<select id="role" name="role" onchange="defaultAccess()">
-											<option value="">(انتخاب کنید)</option>
-											<option value="admin">مدیر</option>
-											<option value="office">دفتر</option>
-											<option value="vendor_admin">مدیر فروشگاه</option>
-											<option value="support">پشتیبانی</option>
-										</select>
-									</td>
-								</tr>
+								{% if session['role'] != 'vendor_admin' %}
+									<tr>
+										<td>
+											<label class="right" for="role">سطح کاربری</label>
+											<select id="role" name="role" onchange="defaultAccess()">
+												<option value="">(انتخاب کنید)</option>
+												<option value="admin">مدیر</option>
+												<option value="office">دفتر</option>
+												<option value="vendor_admin">مدیر فروشگاه</option>
+												<option value="support">پشتیبانی</option>
+											</select>
+										</td>
+									</tr>
+								{% endif %}
 								<tr>
 									<td>
 										<label style="margin-bottom: 2vh;" class="right" for="access">سطوح دسترسی</label>
 									</td>
 								</tr>
-								<tr class="access">
-									<td>
-										<label><input id="access1" type="checkbox" name="access" value="caseOrdering">ثبت سفارش موردی</label>
-									</td>
-									<td>
-										<label><input id="access2" type="checkbox" name="access" value="Ordering">ثبت سفارش</label>
-									</td>
-									<td>
-										<label><input id="access3" type="checkbox" name="access" value="processList">صف پردازش (موردی)</label>
-									</td>
-									<td>
-										<label><input id="access4" type="checkbox" name="access" value="caseProcessList">صف پردازش (فروشگاه)</label>
-									</td>
-									<td>
-										<label><input id="access5" type="checkbox" name="access" value="todayOrders">سفارشات امروز</label>
-									</td>
-									<td>
-										<label><input id="access6" type="checkbox" name="access" value="cnlOrders">سفارشات لغو شده</label>
-									</td>
-									<td>
-										<label><input id="access7" type="checkbox" name="access" value="rtsOrders">سفارشات آماده ارسال</label>
-									</td>
-									<td>
-										<label><input id="access8" type="checkbox" name="access" value="pndOrders">سفارشات در انتظار کالا</label>
-									</td>
-									<td>
-										<label><input id="access9" type="checkbox" name="access" value="grntOrders">سفارشات گارانتی</label>
-									</td>
-									<td>
-										<label><input id="access10" type="checkbox" name="access" value="allOrders">مشاهده همه سفارشات</label>
-									</td>
-									<td>
-										<label><input id="access11" type="checkbox" name="access" value="caseNewStuff">افزودن کالای موردی</label>
-									</td>
-									<td>
-										<label><input id="access12" type="checkbox" name="access" value="caseEditStuff">ویرایش کالای موردی</label>
-									</td>
-									<td>
-										<label><input id="access13" type="checkbox" name="access" value="newStuff">افزودن کالای جدید</label>
-									</td>
-									<td>
-										<label><input id="access14" type="checkbox" name="access" value="incStuff">افزودن کالای موجود</label>
-									</td>
-									<td>
-										<label><input id="access15" type="checkbox" name="access" value="editStuff">ویرایش کالا</label>
-									</td>
-									<td>
-										<label><input id="access16" type="checkbox" name="access" value="newPack">ایجاد بسته</label>
-									</td>
-									<td>
-										<label><input id="access17" type="checkbox" name="access" value="releaseStuff">خروج از انبار</label>
-									</td>
-									<td>
-										<label><input id="access18" type="checkbox" name="access" value="searchStuff">جستجو در انبار</label>
-									</td>
-									<td>
-										<label><input id="access19" type="checkbox" name="access" value="inventory">انبارداری</label>
-									</td>
-									<!--<td>
-										<label><input id="access20" type="checkbox" name="access" value="stuffPrice">مبلغ تمام شده کالا</label>
-									</td>
-									<td>
-										<label><input id="access21" type="checkbox" name="access" value="deliveryPrice">هزینه ارسال</label>
-									</td>
-									<td>
-										<label><input id="access22" type="checkbox" name="access" value="vatTax">ارزش افزوده و حق ثبت</label>
-									</td>
-									<td>
-										<label><input id="access23" type="checkbox" name="access" value="wage">کارمزد</label>
-									</td>
-									<td>
-										<label><input id="access24" type="checkbox" name="access" value="vendorAcc">بدهکار / بستانکار فروشگاه</label>
-									</td>
-									<td>
-										<label><input id="access25" type="checkbox" name="access" value="postAcc">بدهکار / بستانکار پست</label>
-									</td>
-									<td>
-										<label><input id="access26" type="checkbox" name="access" value="vestanoAcc">بدهکار / بستانکار وستانو</label>
-									</td>
-									<td>
-										<label><input id="access27" type="checkbox" name="access" value="status-payType">وضعیت و روش پرداخت</label>
-									</td>-->
-									<td>
-										<label><input id="access20" type="checkbox" name="access" value="financialRep">گزارشات و تسویه مالی</label>
-									</td>
-									<td>
-										<label><input id="access21" type="checkbox" name="access" value="accounting">حسابداری</label>
-									</td>
-									<td>
-										<label><input id="access22" type="checkbox" name="access" value="vendorCredit">بستانکاری فروشگاه</label>
-									</td>
-									<td>
-										<label><input id="access23" type="checkbox" name="access" value="creditList">لیست درخواست ها</label>
-									</td>
-									<td>
-										<label><input id="access24" type="checkbox" name="access" value="paidList">مبالغ واریزی</label>
-									</td>
-									<td>
-										<label><input id="access25" type="checkbox" name="access" value="searchPage">مشاهده گزارشات (صفحه جستجو)</label>
-									</td>
-									<td>
-										<label><input id="access26" type="checkbox" name="access" value="vendorTicket">تیکت فروشگاه</label>
-									</td>
-									<td>
-										<label><input id="access27" type="checkbox" name="access" value="adminTicket">تیکت مدیریت</label>
-									</td>
-									<td>
-										<label><input id="access28" type="checkbox" name="access" value="ordersTicket">تیکت سفارشات</label>
-									</td>
-									<td>
-										<label><input id="access29" type="checkbox" name="access" value="inventoryTicket">تیکت انبارداری</label>
-									</td>
-									<td>
-										<label><input id="access30" type="checkbox" name="access" value="financialTicket">تیکت حسابداری</label>
-									</td>
-									<td>
-										<label><input id="access31" type="checkbox" name="access" value="techTicket">تیکت فنی</label>
-									</td>
+								{% if session['role'] == 'vendor_admin' %}
+									<tr class="access">
+										<td>
+											<label><input id="access2" type="checkbox" name="access" value="Ordering">ثبت سفارش</label>
+										</td>
+										<td>
+											<label><input id="access5" type="checkbox" name="access" value="todayOrders">سفارشات امروز</label>
+										</td>
+										<td>
+											<label><input id="access6" type="checkbox" name="access" value="cnlOrders">سفارشات لغو شده</label>
+										</td>
+										<td>
+											<label><input id="access8" type="checkbox" name="access" value="pndOrders">سفارشات در انتظار کالا</label>
+										</td>
+										<td>
+											<label><input id="access9" type="checkbox" name="access" value="grntOrders">سفارشات گارانتی</label>
+										</td>
+										<td>
+											<label><input id="access10" type="checkbox" name="access" value="allOrders">مشاهده همه سفارشات</label>
+										</td>
+										<td>
+											<label><input id="access13" type="checkbox" name="access" value="newStuff">افزودن کالای جدید</label>
+										</td>
+										<td>
+											<label><input id="access14" type="checkbox" name="access" value="incStuff">افزودن کالای موجود</label>
+										</td>
+										<td>
+											<label><input id="access15" type="checkbox" name="access" value="editStuff">ویرایش کالا</label>
+										</td>
+										<td>
+											<label><input id="access16" type="checkbox" name="access" value="newPack">ایجاد بسته</label>
+										</td>
+										<td>
+											<label><input id="access17" type="checkbox" name="access" value="releaseStuff">خروج از انبار</label>
+										</td>
+										<td>
+											<label><input id="access18" type="checkbox" name="access" value="searchStuff">جستجو در انبار</label>
+										</td>
+										<td>
+											<label><input id="access19" type="checkbox" name="access" value="inventory">انبارداری</label>
+										</td>
+										<td>
+											<label><input id="access20" type="checkbox" name="access" value="financialRep">گزارشات و تسویه مالی</label>
+										</td>
+										<td>
+											<label><input id="access21" type="checkbox" name="access" value="accounting">حسابداری</label>
+										</td>
+										<td>
+											<label><input id="access22" type="checkbox" name="access" value="vendorCredit">بستانکاری فروشگاه</label>
+										</td>
+										<td>
+											<label><input id="access23" type="checkbox" name="access" value="creditList">لیست درخواست های واریز وجه</label>
+										</td>
+										<td>
+											<label><input id="access24" type="checkbox" name="access" value="paidList">مبالغ واریزی</label>
+										</td>
+										<td>
+											<label><input id="access25" type="checkbox" name="access" value="searchPage">مشاهده گزارشات (صفحه جستجو)</label>
+										</td>
+										<td>
+											<label><input id="access26" type="checkbox" name="access" value="vendorTicket">تیکت فروشگاه</label>
+										</td>
+										<td>
+											<label><input id="access32" type="checkbox" name="access" value="incCredit">افزایش اعتبار </label>
+										</td>
+										<td>
+											<label><input id="access33" type="checkbox" name="access" value="requestForStuff">درخواست حواله و خروج از انبار</label>
+										</td>
+										<td>
+											<label><input id="access34" type="checkbox" name="access" value="dashboard">داشبورد</label>
+										</td>
+									</tr>
+								{% else %}
+									<tr class="access">
+										<td>
+											<label><input id="access1" type="checkbox" name="access" value="caseOrdering">ثبت سفارش موردی</label>
+										</td>
+										<td>
+											<label><input id="access2" type="checkbox" name="access" value="Ordering">ثبت سفارش</label>
+										</td>
+										<td>
+											<label><input id="access3" type="checkbox" name="access" value="caseProcessList">صف پردازش (موردی)</label>
+										</td>
+										<td>
+											<label><input id="access4" type="checkbox" name="access" value="processList">صف پردازش (فروشگاه)</label>
+										</td>
+										<td>
+											<label><input id="access5" type="checkbox" name="access" value="todayOrders">سفارشات امروز</label>
+										</td>
+										<td>
+											<label><input id="access6" type="checkbox" name="access" value="cnlOrders">سفارشات لغو شده</label>
+										</td>
+										<td>
+											<label><input id="access7" type="checkbox" name="access" value="rtsOrders">سفارشات آماده ارسال</label>
+										</td>
+										<td>
+											<label><input id="access8" type="checkbox" name="access" value="pndOrders">سفارشات در انتظار کالا</label>
+										</td>
+										<td>
+											<label><input id="access9" type="checkbox" name="access" value="grntOrders">سفارشات گارانتی</label>
+										</td>
+										<td>
+											<label><input id="access10" type="checkbox" name="access" value="allOrders">مشاهده همه سفارشات</label>
+										</td>
+										<td>
+											<label><input id="access11" type="checkbox" name="access" value="caseNewStuff">افزودن کالای موردی</label>
+										</td>
+										<td>
+											<label><input id="access12" type="checkbox" name="access" value="caseEditStuff">ویرایش کالای موردی</label>
+										</td>
+										<td>
+											<label><input id="access13" type="checkbox" name="access" value="newStuff">افزودن کالای جدید</label>
+										</td>
+										<td>
+											<label><input id="access14" type="checkbox" name="access" value="incStuff">افزودن کالای موجود</label>
+										</td>
+										<td>
+											<label><input id="access15" type="checkbox" name="access" value="editStuff">ویرایش کالا</label>
+										</td>
+										<td>
+											<label><input id="access16" type="checkbox" name="access" value="newPack">ایجاد بسته</label>
+										</td>
+										<td>
+											<label><input id="access17" type="checkbox" name="access" value="releaseStuff">خروج از انبار</label>
+										</td>
+										<td>
+											<label><input id="access18" type="checkbox" name="access" value="searchStuff">جستجو در انبار</label>
+										</td>
+										<td>
+											<label><input id="access19" type="checkbox" name="access" value="inventory">انبارداری</label>
+										</td>
+										<!--<td>
+											<label><input id="access20" type="checkbox" name="access" value="stuffPrice">مبلغ تمام شده کالا</label>
+										</td>
+										<td>
+											<label><input id="access21" type="checkbox" name="access" value="deliveryPrice">هزینه ارسال</label>
+										</td>
+										<td>
+											<label><input id="access22" type="checkbox" name="access" value="vatTax">ارزش افزوده و حق ثبت</label>
+										</td>
+										<td>
+											<label><input id="access23" type="checkbox" name="access" value="wage">کارمزد</label>
+										</td>
+										<td>
+											<label><input id="access24" type="checkbox" name="access" value="vendorAcc">بدهکار / بستانکار فروشگاه</label>
+										</td>
+										<td>
+											<label><input id="access25" type="checkbox" name="access" value="postAcc">بدهکار / بستانکار پست</label>
+										</td>
+										<td>
+											<label><input id="access26" type="checkbox" name="access" value="vestanoAcc">بدهکار / بستانکار وستانو</label>
+										</td>
+										<td>
+											<label><input id="access27" type="checkbox" name="access" value="status-payType">وضعیت و روش پرداخت</label>
+										</td>-->
+										<td>
+											<label><input id="access20" type="checkbox" name="access" value="financialRep">گزارشات و تسویه مالی</label>
+										</td>
+										<td>
+											<label><input id="access21" type="checkbox" name="access" value="accounting">حسابداری</label>
+										</td>
+										<td>
+											<label><input id="access22" type="checkbox" name="access" value="vendorCredit">بستانکاری فروشگاه</label>
+										</td>
+										<td>
+											<label><input id="access23" type="checkbox" name="access" value="creditList">لیست درخواست های واریز وجه</label>
+										</td>
+										<td>
+											<label><input id="access24" type="checkbox" name="access" value="paidList">مبالغ واریزی</label>
+										</td>
+										<td>
+											<label><input id="access25" type="checkbox" name="access" value="searchPage">مشاهده گزارشات (صفحه جستجو)</label>
+										</td>
+										<td>
+											<label><input id="access26" type="checkbox" name="access" value="vendorTicket">تیکت فروشگاه</label>
+										</td>
+										<td>
+											<label><input id="access27" type="checkbox" name="access" value="adminTicket">تیکت مدیریت</label>
+										</td>
+										<td>
+											<label><input id="access28" type="checkbox" name="access" value="ordersTicket">تیکت سفارشات</label>
+										</td>
+										<td>
+											<label><input id="access29" type="checkbox" name="access" value="inventoryTicket">تیکت انبارداری</label>
+										</td>
+										<td>
+											<label><input id="access30" type="checkbox" name="access" value="financialTicket">تیکت حسابداری</label>
+										</td>
+										<td>
+											<label><input id="access31" type="checkbox" name="access" value="techTicket">تیکت فنی</label>
+										</td>
 
-									<td>
-										<label><input id="access32" type="checkbox" name="access" value="incCredit">افزایش اعتبار </label>
-									</td>
-									<td>
-										<label><input id="access33" type="checkbox" name="access" value="requestForStuff">درخواست حواله و خروج از انبار</label>
-									</td>
-									<td>
-										<label><input id="access34" type="checkbox" name="access" value="dashboard">داشبورد</label>
-									</td>
-									<td>
-										<label><input id="access35" type="checkbox" name="access" value="inventManagement">مدیریت انبار</label>
-									</td>
-								</tr>
+										<td>
+											<label><input id="access32" type="checkbox" name="access" value="incCredit">افزایش اعتبار </label>
+										</td>
+										<td>
+											<label><input id="access33" type="checkbox" name="access" value="requestForStuff">درخواست حواله و خروج از انبار</label>
+										</td>
+										<td>
+											<label><input id="access34" type="checkbox" name="access" value="dashboard">داشبورد</label>
+										</td>
+										<td>
+											<label><input id="access35" type="checkbox" name="access" value="defineUser">ایجاد کاربری</label>
+										</td>
+										<td>
+											<label><input id="access36" type="checkbox" name="access" value="inventManagement">مدیریت انبار</label>
+										</td>
+									</tr>
+								{% endif %}
 								<tr>
 									<td style="padding-top: 1vh; text-align: right;">
 										<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ایجاد کاربری" />
@@ -219,14 +318,20 @@
 			var check = document.getElementById(id_name).checked;
 			if (check == true) {
 				document.getElementById('role').disabled = true;
+				document.getElementById('account-number').disabled = true;
+				document.getElementById('account-holder').disabled = true;
 				document.getElementById('role').value = "";
-				for (i = 1; i < 36; i++) {
+				document.getElementById('account-number').value = "";
+				document.getElementById('account-holder').value = "";
+				for (i = 1; i < 37; i++) {
 					document.getElementById('access'+i).disabled = true;
 					document.getElementById('access'+i).checked = false;
 				}
 			} else {
 				document.getElementById('role').disabled = false;
-				for (i = 1; i < 36; i++) {
+				document.getElementById('account-number').disabled = false;
+				document.getElementById('account-holder').disabled = false;
+				for (i = 1; i < 37; i++) {
 					document.getElementById('access'+i).disabled = false;
 				}
 			}
@@ -236,37 +341,46 @@
 		function defaultAccess() {
 			var role = document.getElementById('role').value;
 			if (role == 'admin') {
-				for (i = 1; i < 36; i++) {
+				for (i = 1; i < 37; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
 			} else if (role == 'office') {
-				for (i = 1; i < 36; i++) {
+				for (i = 1; i < 37; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
-				for (i = 26; i <= 34; i++) {
+				for (i = 26; i <= 35; i++) {
 					document.getElementById('access'+i).checked = false;
 				}
+				document.getElementById('access22').checked = false;
 			} else if (role == 'vendor_admin') {
-				for (i = 1; i < 36; i++) {
+				for (i = 1; i < 37; i++) {
 					document.getElementById('access'+i).checked = false;
 				}
 				document.getElementById('access2').checked = true;
 				for (i = 5; i <= 10; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
+				document.getElementById('access7').checked = false;
 				for (i = 13; i <= 26; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
-				for (i = 32; i <= 34; i++) {
+				for (i = 32; i <= 35; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
 			} else if (role == 'support') {
-				for (i = 1; i < 36; i++) {
+				for (i = 1; i < 37; i++) {
 					document.getElementById('access'+i).checked = false;
 				}
 				document.getElementById('access25').checked = true;
 				document.getElementById('access31').checked = true;
 			}
+		}
+
+		function enableAccontData() {
+			document.getElementById('account-number-tr').style.display = 'block';
+			document.getElementById('account-number').required = true;
+			document.getElementById('account-holder-tr').style.display = 'block';
+			document.getElementById('account-holder').required = true;
 		}
 	</script>
 {% endblock %}

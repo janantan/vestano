@@ -12,7 +12,7 @@
 	<div style="position: absolute; top: 9vh; left: 5vw;">
 		<a title="بازگشت به صفحه قبل" href="{{request.referrer}}"><span id="back"></span></a>
 		{% if session['role']!='vendor_admin' %}
-			<a href="" title="پاسخ به تیکت"><span id="reply2"></span></a>
+			<a title="پاسخ به تیکت"><span id="reply2"></span></a>
 			<a href="#" onclick="forwardTicket()" title="ارجاع تیکت"><span id="forward"></span><span id="s-forward" style="display: none;"></span></a>
 			<!--<a href="/user-pannel/tickets/forward/{{ticket_num}}" title="ارجاع تیکت"><span id="forward"></span></a>-->
 		{% else %}
@@ -37,9 +37,9 @@
 								</div>
 								<div class="show-ticket-div-2">
 									{% if ticket_details['sender_departement'] %}
-										<a style="color: rgba(21,76,122);" title="نام فرستنده: {{ticket_details['sender_name']}}"><span>واحد {{ticket_details['sender_departement']}} </span></a><span style="color: rgb(162,180,194);">({{ticket_details['sender_username']}})</span>
+										<a style="color: rgba(21,76,122);" title="نام فرستنده: {{ticket_details['sender_name']}}"><span>واحد {{ticket_details['sender_departement']}} </span></a><span></span><span style="color: rgb(162,180,194);">({{ticket_details['sender_username']}})</span>
 									{% else %}
-										<a style="color: rgba(21,76,122);" title="شماره تماس: {{ticket_details['sender_phone']}}"><span>{{ticket_details['sender_name']}} </span></a><span style="color: rgb(162,180,194);">({{ticket_details['sender_username']}})</span>
+										<a style="color: rgba(21,76,122);" title="شماره تماس: {{ticket_details['sender_phone']}}"><span>{{ticket_details['sender_name']}} </span></a><span style="color: rgb(162,180,194);">(فروشگاه {{ticket_details['vendor']}})</span>
 									{% endif %}
 								</div>
 								<div class="show-ticket-div-1">
@@ -87,27 +87,29 @@
 					</div>
 				</td>
 			</tr>
-			{% if 'forward' in ticket_details %}
+			{% if ticket_details['forward']['forward_from']|length %}
 				<tr>
 					<td>
 						<fieldset class="fieldset" style="background: rgb(255,255,230); padding: 1vh 2vw;">
-							<div>
-								<span style="font-weight: bold; font-style: italic;">
-									این تیکت از واحد {{ticket_details['forward']['forward_from'][-1]}} به واحد {{ticket_details['forward']['forward_to'][-1]}} ارجاع شده است.
-								</span>
-							</div>
-							{% if session['role'] != 'vendor_admin' %}
+							{% for i in range(ticket_details['forward']['forward_from']|length) %}
 								<div>
-									<span>
-										توضیحات: 
+									<span style="font-weight: bold; font-style: italic;">
+										<span style="color: red;">ارجاع {{i+1}}:</span> این تیکت از واحد {{ticket_details['forward']['forward_from'][i]}} به واحد {{ticket_details['forward']['forward_to'][i]}} ارجاع شده است.
 									</span>
-									{% for line in ticket_details['forward']['text'][-1] %}
-										<p>
-											{{line}}
-										</p>
-									{% endfor %}
 								</div>
-							{% endif %}
+								{% if session['role'] != 'vendor_admin' %}
+									<div>
+										<span>
+											توضیحات: 
+										</span>
+										{% for line in ticket_details['forward']['text'][i] %}
+											<p>
+												{{line}}
+											</p>
+										{% endfor %}
+									</div>{% if i!=(ticket_details['forward']['forward_from']|length-1) %}<hr>{% endif %}
+								{% endif %}
+							{% endfor %}
 						</fieldset>
 					</td>
 				</tr>
@@ -122,7 +124,7 @@
 							<span style="float: left;">{{ticket_details['reply']['datetime'][i]}}</span>
 						</div>
 						<div  style="margin-top: 0;">
-							{% if (ticket_details['reply']['sender'][i]['name'] == 'پشتیبانی') or (ticket_details['reply']['sender'][i]['name'] != 'واحد '+ ticket_details['sender_departement']) %}
+							{% if (ticket_details['reply']['sender'][i]['name'] == 'پشتیبانی') or (ticket_details['sender_departement'] and ticket_details['reply']['sender'][i]['name'] != 'واحد '+ ticket_details['sender_departement']) %}
 								<fieldset style="border: none; background: rgb(214, 254, 208); padding: 1vh 2vw;">
 									{% for line in ticket_details['reply']['text'][i] %}
 										<p>
@@ -153,13 +155,13 @@
 							</div>
 							<div id="forward-from" style="font-weight: bold; display: none;">
 								<label>واحد ارجاع  دهنده تیکت:</label>
-								<select id="ticket-sender-departement" name="ticket-sender-departement" required>
+								<select id="ticket-sender-departement" name="ticket-sender-departement">
 									<option value="{{ticket_details['departement']}}" selected>{{ticket_details['departement']}}</option>
 								</select>
 							</div>
 							<div id="forward-to" style="font-weight: bold; display: none;">
 								<label>واحد ارجاع تیکت را انتخاب کنید:</label>
-								<select id="ticket-departement" name="ticket-departement" required>
+								<select id="ticket-departement" name="ticket-departement">
 									<option value="" disabled selected>(انتخاب کنید)</option>
 									<option value="management">مدیریت</option>
 									<option value="orders">سفارشات</option>
@@ -192,13 +194,13 @@
 							</div>
 							<div id="forward-from" style="font-weight: bold; display: none;">
 								<label>واحد ارجاع  دهنده تیکت:</label>
-								<select id="ticket-sender-departement" name="ticket-sender-departement" required>
+								<select id="ticket-sender-departement" name="ticket-sender-departement">
 									<option value="{{ticket_details['departement']}}" selected>{{ticket_details['departement']}}</option>
 								</select>
 							</div>
 							<div id="forward-to" style="font-weight: bold; display: none;">
 								<label>واحد ارجاع تیکت را انتخاب کنید:</label>
-								<select id="ticket-departement" name="ticket-departement" required>
+								<select id="ticket-departement" name="ticket-departement">
 									<option value="" disabled selected>(انتخاب کنید)</option>
 									<option value="management">مدیریت</option>
 									<option value="orders">سفارشات</option>
@@ -227,18 +229,24 @@
 
 <script type="text/javascript">
 	function forwardTicket() {
-		document.getElementById('ticket-text').style.display = 'none';
-		document.getElementById('ticket-text-submit').style.display = 'none';
-		document.getElementById('forward').style.display = 'none';
-		document.getElementById('legend').style.display = 'none';
-		document.getElementById('forward-legend').style.display = 'block';
-		document.getElementById('s-forward').style.display = 'block';
-		document.getElementById('forward-text').style.display = 'block';
-		document.getElementById('ticket-forward-submit').style.display = 'block';
-		document.getElementById('forward-from').style.display = 'block';
-		document.getElementById('forward-to').style.display = 'block';
-		for (i = 0; i < "{{ticket_details['reply']['sender']|length}}"; i++) {
-			document.getElementById('ticket-replys'+i).style.display = 'none';
+		if ("{{ticket_details['support_reply']}}" == 'true') {
+			alert('به این تیکت قبلا پاسخ داده شده است!')
+		} else {
+			document.getElementById('ticket-text').style.display = 'none';
+			document.getElementById('ticket-text-submit').style.display = 'none';
+			document.getElementById('forward').style.display = 'none';
+			document.getElementById('legend').style.display = 'none';
+			document.getElementById('forward-legend').style.display = 'block';
+			document.getElementById('s-forward').style.display = 'block';
+			document.getElementById('forward-text').style.display = 'block';
+			document.getElementById('ticket-forward-submit').style.display = 'block';
+			document.getElementById('forward-from').style.display = 'block';
+			document.getElementById('forward-to').style.display = 'block';
+			document.getElementById('ticket-sender-departement').required = true;
+			document.getElementById('ticket-departement').required = true;
+			for (i = 0; i < "{{ticket_details['reply']['sender']|length}}"; i++) {
+				document.getElementById('ticket-replys'+i).style.display = 'none';
+			}
 		}
 	}
 </script>

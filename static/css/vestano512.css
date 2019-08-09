@@ -504,6 +504,10 @@ a.export {
     width: 25%;
 }
 
+.mf-div-0 a {
+    text-decoration: none;
+}
+
 .div5 h3 {
     margin-right: 3vw;
     font-family: 'B-Roya';
@@ -1058,6 +1062,26 @@ a.export {
     font-size: 16px;
 }
 
+.footer-content-font {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.footer-content-div {
+    margin: 0;
+    min-height: 50vh;
+    padding: 20px 20px;
+    text-align: justify;
+    font-size: 14px;
+}
+
+.footer-content-fieldset {
+    min-height: 50vh;
+    background: white !important;
+    border: none;
+    padding: 20px 20px;
+}
+
 .blue {
     color: blue;
 }
@@ -1402,6 +1426,19 @@ tr#rows:hover {
 
 .tab-fieldset {
     overflow:auto;
+}
+
+.mobile-login-div {
+    position: relative;
+    top: 65vh;
+}
+
+.login-div {
+    display: none;
+}
+
+.mobile-instagram {
+    display: none;
 }
 
 body > footer span {

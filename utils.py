@@ -20,8 +20,8 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
-VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+#VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
 
@@ -54,7 +54,10 @@ def exel(src):
     return worksheet
 
 def temp_orders(cursor):
-    result = cursor.temp_orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.temp_orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.temp_orders.find()
     temp = []
     for r in result:
         pNameList = []
@@ -67,13 +70,19 @@ def temp_orders(cursor):
     return temp
 
 def today_orders(cursor):
-    result = cursor.today_orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.today_orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.today_orders.find()
     today = []
     for r in result:
         if r['datetime'] != jdatetime.datetime.today().strftime('%Y/%m/%d'):
             cursor.today_orders.remove({'orderId': r['orderId']})
 
-    result = cursor.today_orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.today_orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.today_orders.find()
     for r in result:
         pNameList = []
         for i in range(len(r['products'])):
@@ -85,7 +94,10 @@ def today_orders(cursor):
     return today
 
 def canceled_orders(cursor):
-    result = cursor.canceled_orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.canceled_orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.canceled_orders.find()
     cnl = []
     for r in result:
         pNameList = []
@@ -98,7 +110,10 @@ def canceled_orders(cursor):
     return cnl
 
 def readyToShip_orders(cursor):
-    result = cursor.ready_to_ship.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.ready_to_ship.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.ready_to_ship.find()
     rts = []
     for r in result:
         pNameList = []
@@ -111,7 +126,10 @@ def readyToShip_orders(cursor):
     return rts
 
 def guarantee_orders(cursor):
-    result = cursor.guarantee_orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.guarantee_orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.guarantee_orders.find()
     grnt = []
     for r in result:
         pNameList = []
@@ -125,7 +143,10 @@ def guarantee_orders(cursor):
 
 def pending_orders(cursor):
     #remove 7 days before orders
-    result = cursor.pending_orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.pending_orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.pending_orders.find()
     d = jdatetime.datetime.today() - jdatetime.timedelta(days=7)
     seven_days_before = d.strftime('%Y/%m/%d')
     for r in result:
@@ -140,7 +161,10 @@ def pending_orders(cursor):
             cursor.pending_orders.remove({'orderId': r['orderId']})
             cursor.deleted_orders.insert_one(r)
 
-    result = cursor.pending_orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.pending_orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.pending_orders.find()
     pnd = []
     for r in result:
         pNameList = []
@@ -153,7 +177,10 @@ def pending_orders(cursor):
     return pnd
 
 def all_orders(cursor):
-    result = cursor.orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.orders.find()
     all_list = []
     for r in result:
         pNameList = []
@@ -166,7 +193,10 @@ def all_orders(cursor):
     return all_list
 
 def inventory(cursor):
-    result = cursor.vestano_inventory.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.vestano_inventory.find({'vendor': session['vendor_name']})
+    else:
+        result = cursor.vestano_inventory.find()
     inventory = []
     for r in result:
         st = r['status']
@@ -257,7 +287,10 @@ def removeFromInventory(cursor, orderId):
                     )
 
 def financial(cursor):
-    result = cursor.orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.orders.find()
     record = []
     price = 0
     PostDeliveryPrice = 0
@@ -333,7 +366,10 @@ def financial(cursor):
     return financial
 
 def v_financial(cursor):
-    result = cursor.orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.orders.find()
     record = []
     price = 0
     PostDeliveryPrice = 0
@@ -409,7 +445,10 @@ def v_financial(cursor):
     return v_financial
 
 def financial_vendor_credit(cursor):
-    result = cursor.orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.orders.find()
     record = []
     order_id_list = []
     credit_count = 0
@@ -570,7 +609,10 @@ def paid_list(cursor):
     return result
 
 def accounting(cursor):
-    result = cursor.orders.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.orders.find()
     record = []
     price = 0
     PostDeliveryPrice = 0
@@ -639,6 +681,8 @@ def details(cursor, orderId, code):
     elif code == 'accounting':
         r = cursor.orders.find_one({'orderId': orderId})
     elif code == 'financial':
+        r = cursor.orders.find_one({'orderId': orderId})
+    elif code == 'v_financial':
         r = cursor.orders.find_one({'orderId': orderId})
     elif code == 'vendor_credit':
         r = cursor.orders.find_one({'orderId': orderId})
@@ -773,11 +817,20 @@ def inventory_details(cursor, status, productId):
     r_list = []
     product_result = []
     if int(status) == 80:
-        product_result = cursor.temp_orders.find()
+        if session['role'] == 'vendor_admin':
+            product_result = cursor.temp_orders.find({'vendorName': session['vendor_name']})
+        else:
+            product_result = cursor.temp_orders.find()
     elif int(status) == 82:
-        product_result = cursor.pending_orders.find()
+        if session['role'] == 'vendor_admin':
+            product_result = cursor.pending_orders.find({'vendorName': session['vendor_name']})
+        else:
+            product_result = cursor.pending_orders.find()
     elif int(status) in [2, 81, 7, 71, 11]:
-        product_result = cursor.orders.find()
+        if session['role'] == 'vendor_admin':
+            product_result = cursor.orders.find({'vendorName': session['vendor_name']})
+        else:
+            product_result = cursor.orders.find()
     else:
         other = 1
     for rec in product_result:
@@ -804,7 +857,10 @@ def inventory_details(cursor, status, productId):
                     r_list.append(r_dict)
 
     if other:
-        product_result = cursor.orders.find()
+        if session['role'] == 'vendor_admin':
+            product_result = cursor.orders.find({'vendorName': session['vendor_name']})
+        else:
+            product_result = cursor.orders.find()
         for rec in product_result:
             if rec['status'] not in [2, 81, 7, 71, 11, 80, 82]:
                 for i in range(len(rec['products'])):
@@ -1139,6 +1195,13 @@ def GetStatus(cursor):
                 }
                 }
                 )
+            cursor.guarantee_orders.update_many(
+                {'parcelCode': rec['parcelCode']},
+                {'$set':{
+                'status': status
+                }
+                }
+                )
             change_flag = 1
             for i in range(len(orders_records['products'])):
                 if orders_records['vendorName'] == u'سفارش موردی':
@@ -1175,7 +1238,6 @@ def ReadyToShip(parcelCode):
     'password' : password,
     'parcelCode' : parcelCode
     }
-    print(param)
     client.service.ReadyToShip(**param)
 
 def GetStatus_test(orderId):
@@ -1424,7 +1486,10 @@ def add_empty_status():
     return status
 
 def inventory_sumation(cursor):
-    result = cursor.vestano_inventory.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.vestano_inventory.find({'vendor': session['vendor_name']})
+    else:
+        result = cursor.vestano_inventory.find()
     status_sum = add_empty_status()
     count_sum = 0
     for r in result:
@@ -1499,3 +1564,21 @@ def write_excel(cursor):
         xf = 0
         sheet.write(row, col, value)
     excel_file.save(filename)
+
+def calculate_wage(vendor, weight):
+    if vendor == u'سفارش موردی':
+        if weight < 10000:
+            vestano_wage = config.to10
+        elif 10000 <= weight < 15000:
+            vestano_wage = config.to15
+        elif 15000 <= weight < 20000:
+            vestano_wage = config.to20
+        elif 20000 <= weight < 25000:
+            vestano_wage = config.to25
+        elif 25000 <= weight < 30000:
+            vestano_wage = config.to30
+        elif weight >= 30000:
+            vestano_wage = config.gthan30
+    else:
+        vestano_wage = config.wage
+    return vestano_wage

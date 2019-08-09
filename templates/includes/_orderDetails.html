@@ -290,7 +290,9 @@
 		{% elif code == 'cnl' %}
 			<div style="margin-top: 3vh;">
 				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3;">ویرایش سفارش</a>
-				<a class="button" href="javascript:processFunction('/delete-order/{{details[13]}}')" title="حذف کامل سفارش" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">حذف سفارش</a>
+				{% if session['role'] == 'admin' %}
+					<a class="button" href="javascript:processFunction('/delete-order/{{details[13]}}')" title="حذف کامل سفارش" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">حذف سفارش</a>
+				{% endif %}
 			</div>
 		{% elif code == 'rts' %}
 			<div style="margin-top: 3vh;">

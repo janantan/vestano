@@ -66,7 +66,7 @@
         </div>
         {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
           <div class="mrg-vh8">
-            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+            <textarea id="refuse-description" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
           </div>
           {% set class = "mrg-vh4" %}
         {% else %}
@@ -132,7 +132,7 @@
           </div>
           {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
             <div class="mrg-vh4">
-              <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+              <textarea id="refuse-description" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
             </div>
             {% set class = "mrg-vh2" %}
           {% else %}
@@ -183,7 +183,7 @@
           </div>
           {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
             <div class="mrg-vh8">
-              <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+              <textarea id="refuse-description" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
             </div>
             {% set class = "mrg-vh2" %}
           {% else %}
@@ -317,7 +317,7 @@
         </div>
         {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
           <div class="mrg-vh1">
-            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+            <textarea id="refuse-description" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
           </div>
           {% set class = "mrg-vh1" %}
         {% else %}
@@ -375,7 +375,7 @@
         </div>
         {% if (session['role'] != 'vendor_admin') or ('refuse_reason' in transfer_details) %}
           <div class="mrg-vh4">
-            <textarea id="descriptionTD" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
+            <textarea id="refuse-description" style="background-color: #f8e8dd;" name="refuse_reason" placeholder="لطفا در صورت رد درخواست علت آن را اینجا بنویسید.">{{transfer_details['refuse_reason']}}</textarea>
           </div>
           {% set class = "mrg-vh2" %}
         {% else %}
@@ -624,7 +624,7 @@
   }
 
   function refuseBtn() {
-    var txtarea = document.getElementById('descriptionTD').value;
+    var txtarea = document.getElementById('refuse-description').value;
     if (! txtarea) {
       document.getElementById('refuse-btn').href = "";
       alert('لطفا علت رد درخواست را در محل مربوطه بنویسید.')

@@ -501,7 +501,11 @@ a.export {
 
 .div5 {
     float: right;
-    width: 25%;
+    width: 20%;
+}
+
+.div5 a {
+    text-decoration: none;
 }
 
 .div5 h3 {
@@ -596,7 +600,7 @@ a.export {
 }
 
 .footer p {
-    width: 80%;
+    width: 90%;
 }
 
 .footer {
@@ -879,6 +883,14 @@ a.export {
     font-family: "B-Roya";
 }
 
+#refuse-description {
+    width: 31vw;
+    height: 6vh;
+    color: black;
+    font-size: 14px;
+    font-family: "B-Roya";
+}
+
 #order tr th {
     width: 20vw;
 }
@@ -980,7 +992,7 @@ a.export {
 }
 
 .vw6 {
-    width: 4vw !important;
+    width: 6vw !important;
 }
 
 .vw5 {
@@ -1077,6 +1089,25 @@ a.export {
 
 .font16 {
     font-size: 16px;
+}
+
+.footer-content-font {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.footer-content-div {
+    margin: 0;
+    min-height: 50vh;
+    padding: 50px 100px;
+    text-align: justify;
+}
+
+.footer-content-fieldset {
+    min-height: 50vh;
+    background: white !important;
+    border: none;
+    padding: 50px 100px;
 }
 
 .blue {
@@ -1450,6 +1481,16 @@ tr#rows:hover {
 
 .tab-fieldset {
     overflow:auto;
+}
+
+.login-div {
+    position: fixed;
+    top: 35vh;
+    left: 16vw;
+}
+
+.mobile-login-div {
+    display: none;
 }
 
 body > footer span {

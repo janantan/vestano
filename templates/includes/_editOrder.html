@@ -165,7 +165,7 @@
                   </fieldset>
                 </td>
               </tr>
-              {% if (session['role'] == 'vendor_admin') or (session['role'] == 'admin') %}
+              {% if (session['role'] == 'vendor_admin') or (session['role'] == 'admin') or (session['role'] == 'office') %}
                 {% if 'guaranteeProduct' in data %}
                 {% if data['guaranteeProduct'] %}{% set grntck = 'checked' %}{% else %}{% set grntck = '' %}{% endif %}
                 {% endif %}
