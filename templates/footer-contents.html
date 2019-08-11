@@ -86,12 +86,37 @@
 					</p>
 
 				{% elif sub_item == 'complaints' %}
-					<p class="footer-content-font">
-						ثبت شکایات
-					</p>
-					<p>
-						هموطن گرامی در صورتی که خرید یا ارسال و دریافت محصول خود را با سامانه پستی وستانو انجام داده اید و نسبت به آن انتقاد، پیشنهاد و یا شکایتی دارید، لطفا از طریق ارسال فرم زیر به دفتر سامانه پستی وستانو اقدام نمایید که همکاران بازرسی در اسرع وقت با شما تماس حاصل نمایند.
-					</p>
+					<div>
+						<p class="footer-content-font">
+							ثبت شکایات
+						</p>
+						<p>
+							هموطن گرامی در صورتی که خرید یا ارسال و دریافت محصول خود را با سامانه پستی وستانو انجام داده اید و نسبت به آن انتقاد، پیشنهاد و یا شکایتی دارید، لطفا از طریق ارسال فرم زیر به دفتر سامانه پستی وستانو اقدام نمایید که همکاران بازرسی در اسرع وقت با شما تماس حاصل نمایند.
+						</p>
+					</div>
+					<div class="new-ticket-fieldset" style="height: unset;">
+						<form method="POST" action="">
+							<div>
+								<label>نام و نام خانوادگی<span> *</span></label>
+								<input id="complaints-name" type="text" name="complaints-name" placeholder="" required size="30" />
+							</div>
+							<div>
+								<label>شماره تماس<span> *</span></label>
+								<input id="complaints-phone" type="text" name="complaints-phone" placeholder="" required size="30" />
+							</div>
+							<div>
+								<label>ایمیل</label>
+								<input id="complaints-email" type="email" name="complaints-email" placeholder="" size=30"" />
+							</div>
+							<div style="clear:both;">
+								<label>توضیحات<span> *</span></label>
+								<textarea rows="5" cols="50" id="complaints-text" name="complaints-text" placeholder="" required></textarea>
+							</div>
+							<div style="margin-top: 3vh;">
+								<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="تایید و ارسال" />
+							</div>
+						</form>
+					</div>
 
 				{% elif sub_item == 'contact' %}
 					<p class="footer-content-font">

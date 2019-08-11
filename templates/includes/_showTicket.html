@@ -38,6 +38,8 @@
 								<div class="show-ticket-div-2">
 									{% if ticket_details['sender_departement'] %}
 										<a style="color: rgba(21,76,122);" title="نام فرستنده: {{ticket_details['sender_name']}}"><span>واحد {{ticket_details['sender_departement']}} </span></a><span></span><span style="color: rgb(162,180,194);">({{ticket_details['sender_username']}})</span>
+									{% elif 'sender_email' in ticket_details %}
+										<a style="color: rgba(21,76,122);" title="شماره تماس: {{ticket_details['sender_phone']}}"><span>{{ticket_details['sender_name']}} </span></a><span style="color: rgb(162,180,194);">(ایمیل: {{ticket_details['sender_email']}})</span>
 									{% else %}
 										<a style="color: rgba(21,76,122);" title="شماره تماس: {{ticket_details['sender_phone']}}"><span>{{ticket_details['sender_name']}} </span></a><span style="color: rgb(162,180,194);">(فروشگاه {{ticket_details['vendor']}})</span>
 									{% endif %}

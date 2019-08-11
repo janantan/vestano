@@ -946,7 +946,7 @@ def edit_orders(orderId):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
-    edit_result = cursor.canceled_orders.find_one({'orderId': orderId})
+    edit_result = cursor.temp_orders.find_one({'orderId': orderId})
     state_result = cursor.states.find_one({'Code': edit_result['stateCode']})
     stateName = state_result['Name']
     for rec in state_result['Cities']:
@@ -959,6 +959,7 @@ def edit_orders(orderId):
     if request.method == 'POST':
         temp_order_products = []
         if edit_result['vendorName'] == u'سفارش موردی':
+            weight = 0
             for i in range (1, 100):
                 if request.form.get('product_'+str(i)):
                     Edit_result = utils.editStuff(
@@ -976,33 +977,30 @@ def edit_orders(orderId):
                         )
                     temp_order_product = {}
                     temp_order_product['productId'] = request.form.get('product_'+str(i))
+                    p_details = cursor.case_inventory.find_one({'productId': temp_order_product['productId']})
                     temp_order_product['count'] = int(request.form.get('count_'+str(i)))
                     temp_order_product['price'] = int(request.form.get('price_'+str(i)))
                     temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
-
-                    vinvent = cursor.case_inventory.find_one({'productId':request.form.get('product_'+str(i))})
-                    vinvent['status']['83'] -= int(request.form.get('count_'+str(i)))
-                    cursor.case_inventory.update_many(
-                        {'productId': vinvent['productId']},
-                        {'$set':{'status': vinvent['status']}}
-                        )
+                    temp_order_product['productName'] = p_details['productName']
+                    temp_order_product['weight'] = p_details['weight']
+                    temp_order_product['description'] = p_details['description']
+                    weight += temp_order_product['weight']*temp_order_product['count']
 
                     temp_order_products.append(temp_order_product)
         else:
+            weight = 0
             for i in range (1, 100):
                 if request.form.get('product_'+str(i)):
                     temp_order_product = {}
                     temp_order_product['productId'] = request.form.get('product_'+str(i))
+                    p_details = cursor.vestano_inventory.find_one({'productId': temp_order_product['productId']})
                     temp_order_product['count'] = int(request.form.get('count_'+str(i)))
                     temp_order_product['price'] = int(request.form.get('price_'+str(i)))
                     temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
-
-                    vinvent = cursor.vestano_inventory.find_one({'productId':request.form.get('product_'+str(i))})
-                    vinvent['status']['83'] -= int(request.form.get('count_'+str(i)))
-                    cursor.vestano_inventory.update_many(
-                        {'productId': vinvent['productId']},
-                        {'$set':{'status': vinvent['status']}}
-                        )
+                    temp_order_product['productName'] = p_details['productName']
+                    temp_order_product['weight'] = p_details['weight']
+                    temp_order_product['description'] = p_details['description']
+                    weight += temp_order_product['weight']*temp_order_product['count']
 
                     temp_order_products.append(temp_order_product)
 
@@ -1014,30 +1012,74 @@ def edit_orders(orderId):
                 int(request.form.get('payType')))
             pTypeCode = int(request.form.get('payType'))
 
-        if edit_result['vendorName'] == u'سفارش موردی':
-            temp_order = {
-            'vendorName' : u'سفارش موردی',
-            'registerFirstName' : request.form.get('r_first_name'),
-            'registerLastName' : request.form.get('r_last_name'),
-            'registerCellNumber' : request.form.get('r_cell_number'),
-            'stateCode' : int(request.form.get('stateCode')),
-            'cityCode' : int(request.form.get('cityCode')),
-            'registerAddress' : request.form.get('address'),
-            'registerPostalCode' : request.form.get('postal_code'),
-            'products' : temp_order_products,
-            'serviceType' : int(request.form.get('serviceType')),
-            'payType' : pTypeCode,
-            'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
-            'orderTime': jdatetime.datetime.now().strftime('%M : %H')
-            }
+        temp_wage = utils.calculate_wage(edit_result['vendorName'], weight)
 
-            new_orderId = utils.test_temp_order(temp_order)
-            flash(u'ثبت شد!', 'success')
+        if edit_result['vendorName'] == u'سفارش موردی':
+
+            cursor.temp_orders.update_many(
+                {'orderId': orderId},
+                {'$set':{
+                'vendorName' : edit_result['vendorName'],
+                'senderFirstName' : request.form.get('s_first_name'),
+                'senderLastName' : request.form.get('s_last_name'),
+                'senderCellNumber' : request.form.get('s_cell_number'),
+                'senderAddress' : request.form.get('s_address'),
+                'senderPostalCode' : request.form.get('s_postal_code'),
+                'receiverFirstName' : request.form.get('r_first_name'),
+                'receiverLastName' : request.form.get('r_last_name'),
+                'receiverCellNumber' : request.form.get('r_cell_number'),
+                'stateCode' : int(request.form.get('stateCode')),
+                'cityCode' : int(request.form.get('cityCode')),
+                'registerAddress' : request.form.get('address'),
+                'registerPostalCode' : request.form.get('postal_code'),
+                'products' : temp_order_products,
+                'serviceType' : sType,
+                'payType' : pType,
+                'username' : session['username'],
+                'packing': int(request.form.get('packing')),
+                'carton': int(request.form.get('carton')),
+                'gathering': int(request.form.get('gathering')),
+                'without_ck': request.form.getlist('without_ck'),
+                'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+                'temp_wage': temp_wage
+                }
+                }
+                )
+
+            cursor.today_orders.update_many(
+                {'orderId': orderId},
+                {'$set':{
+                'vendorName' : edit_result['vendorName'],
+                'senderFirstName' : request.form.get('s_first_name'),
+                'senderLastName' : request.form.get('s_last_name'),
+                'senderCellNumber' : request.form.get('s_cell_number'),
+                'senderAddress' : request.form.get('s_address'),
+                'senderPostalCode' : request.form.get('s_postal_code'),
+                'receiverFirstName' : request.form.get('r_first_name'),
+                'receiverLastName' : request.form.get('r_last_name'),
+                'receiverCellNumber' : request.form.get('r_cell_number'),
+                'stateCode' : int(request.form.get('stateCode')),
+                'cityCode' : int(request.form.get('cityCode')),
+                'registerAddress' : request.form.get('address'),
+                'registerPostalCode' : request.form.get('postal_code'),
+                'products' : temp_order_products,
+                'serviceType' : sType,
+                'payType' : pType,
+                'username' : session['username'],
+                'packing': int(request.form.get('packing')),
+                'carton': int(request.form.get('carton')),
+                'gathering': int(request.form.get('gathering')),
+                'without_ck': request.form.getlist('without_ck'),
+                'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+                'temp_wage': temp_wage
+                }
+                }
+                )
 
             cursor.case_orders.update_many(
                 {'orderId': orderId},
                 {'$set':{
-                'vendorName' : u'سفارش موردی',
+                'vendorName' : edit_result['vendorName'],
                 'senderFirstName' : request.form.get('s_first_name'),
                 'senderLastName' : request.form.get('s_last_name'),
                 'senderCellNumber' : request.form.get('s_cell_number'),
@@ -1057,13 +1099,12 @@ def edit_orders(orderId):
                 'packing': int(request.form.get('packing')),
                 'carton': int(request.form.get('carton')),
                 'gathering': int(request.form.get('gathering')),
-                'orderId' : new_orderId,
                 'without_ck': request.form.getlist('without_ck'),
-                'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
-                'orderTime': jdatetime.datetime.now().strftime('%M : %H')
+                'temp_wage': temp_wage
                 }
                 }
                 )
+            flash(u'ثبت شد!', 'success')
 
         else:
             if request.form.getlist('grnt'):
@@ -1071,30 +1112,99 @@ def edit_orders(orderId):
             else:
                 grnt = ''
 
-            temp_order = {
-            'vendorName' : u'روژیاپ',
-            'registerFirstName' : request.form.get('first_name'),
-            'registerLastName' : request.form.get('last_name'),
-            'registerCellNumber' : request.form.get('cell_number'),
-            'stateCode' : int(request.form.get('stateCode')),
-            'cityCode' : int(request.form.get('cityCode')),
-            'registerAddress' : request.form.get('address'),
-            'registerPostalCode' : request.form.get('postal_code'),
-            'guaranteeProduct' : grnt,
-            'products' : temp_order_products,
-            'serviceType' : int(request.form.get('serviceType')),
-            'payType' : pTypeCode,
-            'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
-            'orderTime': jdatetime.datetime.now().strftime('%M : %H')
-            }
-            print(utils.test_temp_order(temp_order))
+            cursor.temp_orders.update_many(
+                {'orderId': orderId},
+                {'$set':{
+                'vendorName' : edit_result['vendorName'],
+                'registerFirstName' : request.form.get('first_name'),
+                'registerLastName' : request.form.get('last_name'),
+                'registerCellNumber' : request.form.get('cell_number'),
+                'stateCode' : int(request.form.get('stateCode')),
+                'cityCode' : int(request.form.get('cityCode')),
+                'registerAddress' : request.form.get('address'),
+                'registerPostalCode' : request.form.get('postal_code'),
+                'grntProduct' : grnt,
+                'products' : temp_order_products,
+                'serviceType' : sType,
+                'payType' : pType,
+                'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+                'temp_wage': temp_wage
+                }})
+
+            cursor.today_orders.update_many(
+                {'orderId': orderId},
+                {'$set':{
+                'vendorName' : edit_result['vendorName'],
+                'registerFirstName' : request.form.get('first_name'),
+                'registerLastName' : request.form.get('last_name'),
+                'registerCellNumber' : request.form.get('cell_number'),
+                'stateCode' : int(request.form.get('stateCode')),
+                'cityCode' : int(request.form.get('cityCode')),
+                'registerAddress' : request.form.get('address'),
+                'registerPostalCode' : request.form.get('postal_code'),
+                'grntProduct' : grnt,
+                'products' : temp_order_products,
+                'serviceType' : sType,
+                'payType' : pType,
+                'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+                'temp_wage': temp_wage
+                }})
+
+            if not cursor.guarantee_orders.find_one({'orderId': orderId}):
+                if grnt:
+                    temp_order = {
+                    'orderId': orderId,
+                    'vendorName' : edit_result['vendorName'],
+                    'registerFirstName' : request.form.get('first_name'),
+                    'registerLastName' : request.form.get('last_name'),
+                    'registerCellNumber' : request.form.get('cell_number'),
+                    'stateCode' : int(request.form.get('stateCode')),
+                    'cityCode' : int(request.form.get('cityCode')),
+                    'registerAddress' : request.form.get('address'),
+                    'registerPostalCode' : request.form.get('postal_code'),
+                    'grntProduct' : grnt,
+                    'products' : temp_order_products,
+                    'serviceType' : sType,
+                    'payType' : pType,
+                    'orderDate': edit_result['orderDate'],
+                    'orderTime': edit_result['orderTime'],
+                    'record_date': edit_result['record_date'],
+                    'record_time': edit_result['record_time'],
+                    'parcelCode': '-',
+                    'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+                    'status' : 80
+                    }
+                    cursor.guarantee_orders.insert_one(temp_order)
+
+            else:
+                if not grnt:
+                    cursor.guarantee_orders.remove({'orderId': orderId})
+                else:
+                    cursor.guarantee_orders.update_many(
+                        {'orderId': orderId},
+                        {'$set':{
+                        'vendorName' : edit_result['vendorName'],
+                        'registerFirstName' : request.form.get('first_name'),
+                        'registerLastName' : request.form.get('last_name'),
+                        'registerCellNumber' : request.form.get('cell_number'),
+                        'stateCode' : int(request.form.get('stateCode')),
+                        'cityCode' : int(request.form.get('cityCode')),
+                        'registerAddress' : request.form.get('address'),
+                        'registerPostalCode' : request.form.get('postal_code'),
+                        'grntProduct' : grnt,
+                        'products' : temp_order_products,
+                        'serviceType' : sType,
+                        'payType' : pType,
+                        'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+                        'temp_wage': temp_wage
+                        }})
             flash(u'ثبت شد!', 'success')
 
         
 
-        cursor.canceled_orders.remove({'orderId': orderId})
-        cursor.today_orders.remove({'orderId': orderId})
-        cursor.guarantee_orders.remove({'orderId': orderId})
+        #cursor.canceled_orders.remove({'orderId': orderId})
+        #cursor.today_orders.remove({'orderId': orderId})
+        #cursor.guarantee_orders.remove({'orderId': orderId})
         #return redirect(request.referrer)
 
 
@@ -2504,8 +2614,31 @@ def change_password():
             flash('Current Password Not Matched!', 'danger')
     return render_template('includes/_changePassword.html')
 
-@app.route('/footer-contents/<sub_item>')
+@app.route('/footer-contents/<sub_item>', methods=['GET', 'POST'])
 def footer_contents(sub_item):
+    if sub_item == 'complaints':
+        if request.method == 'POST':
+            record = {'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
+            record['departement'] = 'management'
+            record['title'] = 'فرم ثبت شکایات'
+            record['sender_name'] = request.form.get('complaints-name')
+            record['sender_phone'] = request.form.get('complaints-phone')
+            record['sender_departement'] = request.form.get('complaints-departement')
+            record['text'] = request.form.get('complaints-text').split("\n")
+            record['number'] = 'VES-T-' + str(random2.randint(10000000, 99999999))
+            record['ref_ticket'] = ''
+            record['sender_username'] = request.form.get('complaints-email')
+            record['sender_email'] = request.form.get('complaints-email')
+            record['vendor'] = ""
+            record['reply'] = {'sender':[], 'text':[], 'datetime':[]}
+            record['forward'] = {'forward_from':[], 'forward_to':[], 'text':[], 'datetime':[], 'description':[]}
+            record['read'] = False
+            record['support_reply'] = False
+            record['sender_reply'] = True
+
+            flash(u'با موفقیت ثبت شد. همکاران بازرسی در اسرع وقت با شما تماس خواهند گرفت.', 'success')
+
+            cursor.tickets.insert_one(record)
 
     return render_template('footer-contents.html',
         sub_item = sub_item

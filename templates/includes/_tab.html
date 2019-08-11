@@ -157,7 +157,7 @@
 					{% if session['role'] == 'vendor_admin' %}
 						<tr>
 							<td>
-								<a style={{trf}} href="/user-pannel/inventory-transfer/newT">حواله به انبار ({{session['unread_inv_transfers']}})</a>
+								<a style={{trf}} href="/user-pannel/inventory-transfer/all">حواله به انبار ({{session['unread_inv_transfers']}})</a>
 							</td>
 						</tr>
 					{% elif session['role'] == 'admin' %}
@@ -171,7 +171,7 @@
 				{% if 'inventManagement' in session['access'] %}
 						<tr>
 							<td>
-								<a style={{mng}} href="/user-pannel/inventory-management/new">مدیریت انبار</a>
+								<a style={{mng}} href="/user-pannel/inventory-management/all">مدیریت انبار</a>
 							</td>
 						</tr>
 				{% endif %}

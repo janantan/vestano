@@ -166,8 +166,8 @@
                 </td>
               </tr>
               {% if (session['role'] == 'vendor_admin') or (session['role'] == 'admin') or (session['role'] == 'office') %}
-                {% if 'guaranteeProduct' in data %}
-                {% if data['guaranteeProduct'] %}{% set grntck = 'checked' %}{% else %}{% set grntck = '' %}{% endif %}
+                {% if 'grntProduct' in data %}
+                {% if data['grntProduct'] %}{% set grntck = 'checked' %}{% else %}{% set grntck = '' %}{% endif %}
                 {% endif %}
                 <tr>
                   <td>
@@ -361,6 +361,10 @@
           }
           xhr.open('GET', '/validator-ajax?data='+data+'&type='+type, true);
           xhr.send();
+        }
+
+        window.onunload = function() {
+          window.opener.location.reload();
         }
       </script>
     </body>

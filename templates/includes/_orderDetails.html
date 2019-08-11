@@ -285,13 +285,13 @@
 			<div style="margin-top: 3vh;">
 				<a class="button" href="javascript:processFunction('/confirm-order/{{details[13]}}')" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
 				<a class="button" href="javascript:processFunction('/cancel-order/{{details[13]}}')" title="ارسال به سفارشات لغو شده" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">لغو سفارش</a>
-				<a class="button" href="javascript:processFunction('/pending-order/{{details[13]}}')" title="ارسال به در انتظار کالا" style="background-color: #f3f3f3; float: left;">عدم موجودی</a>
+				<a class="button" href="javascript:processFunction('/pending-order/{{details[13]}}')" title="ارسال به در انتظار کالا" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">عدم موجودی</a>
+				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3; float: left;">ویرایش سفارش</a>
 			</div>
 		{% elif code == 'cnl' %}
 			<div style="margin-top: 3vh;">
-				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3;">ویرایش سفارش</a>
 				{% if session['role'] == 'admin' %}
-					<a class="button" href="javascript:processFunction('/delete-order/{{details[13]}}')" title="حذف کامل سفارش" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">حذف سفارش</a>
+					<a class="button" href="javascript:processFunction('/delete-order/{{details[13]}}')" title="حذف کامل سفارش" style="background-color: #f3f3f3;">حذف سفارش</a>
 				{% endif %}
 			</div>
 		{% elif code == 'rts' %}

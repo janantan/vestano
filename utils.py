@@ -1081,7 +1081,10 @@ def transfer_req(cursor):
     for r in result:
         if 'productId' in r.keys():
             r_result = cursor.vestano_inventory.find_one({'productId': r['productId']})
-            r['productName'] = r_result['productName']
+            if r_result:
+                r['productName'] = r_result['productName']
+            else:
+                r['productName'] = ""
         r['request_type'] = transfer_req_type(r['request_type'])
         transfer_list.append(r)
     return transfer_list
