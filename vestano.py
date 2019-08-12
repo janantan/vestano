@@ -1020,14 +1020,9 @@ def edit_orders(orderId):
                 {'orderId': orderId},
                 {'$set':{
                 'vendorName' : edit_result['vendorName'],
-                'senderFirstName' : request.form.get('s_first_name'),
-                'senderLastName' : request.form.get('s_last_name'),
-                'senderCellNumber' : request.form.get('s_cell_number'),
-                'senderAddress' : request.form.get('s_address'),
-                'senderPostalCode' : request.form.get('s_postal_code'),
-                'receiverFirstName' : request.form.get('r_first_name'),
-                'receiverLastName' : request.form.get('r_last_name'),
-                'receiverCellNumber' : request.form.get('r_cell_number'),
+                'registerFirstName' : request.form.get('r_first_name'),
+                'registerLastName' : request.form.get('r_last_name'),
+                'registerCellNumber' : request.form.get('r_cell_number'),
                 'stateCode' : int(request.form.get('stateCode')),
                 'cityCode' : int(request.form.get('cityCode')),
                 'registerAddress' : request.form.get('address'),
@@ -1036,10 +1031,6 @@ def edit_orders(orderId):
                 'serviceType' : sType,
                 'payType' : pType,
                 'username' : session['username'],
-                'packing': int(request.form.get('packing')),
-                'carton': int(request.form.get('carton')),
-                'gathering': int(request.form.get('gathering')),
-                'without_ck': request.form.getlist('without_ck'),
                 'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
                 'temp_wage': temp_wage
                 }
@@ -1050,14 +1041,9 @@ def edit_orders(orderId):
                 {'orderId': orderId},
                 {'$set':{
                 'vendorName' : edit_result['vendorName'],
-                'senderFirstName' : request.form.get('s_first_name'),
-                'senderLastName' : request.form.get('s_last_name'),
-                'senderCellNumber' : request.form.get('s_cell_number'),
-                'senderAddress' : request.form.get('s_address'),
-                'senderPostalCode' : request.form.get('s_postal_code'),
-                'receiverFirstName' : request.form.get('r_first_name'),
-                'receiverLastName' : request.form.get('r_last_name'),
-                'receiverCellNumber' : request.form.get('r_cell_number'),
+                'registerFirstName' : request.form.get('r_first_name'),
+                'registerLastName' : request.form.get('r_last_name'),
+                'registerCellNumber' : request.form.get('r_cell_number'),
                 'stateCode' : int(request.form.get('stateCode')),
                 'cityCode' : int(request.form.get('cityCode')),
                 'registerAddress' : request.form.get('address'),
@@ -1066,10 +1052,6 @@ def edit_orders(orderId):
                 'serviceType' : sType,
                 'payType' : pType,
                 'username' : session['username'],
-                'packing': int(request.form.get('packing')),
-                'carton': int(request.form.get('carton')),
-                'gathering': int(request.form.get('gathering')),
-                'without_ck': request.form.getlist('without_ck'),
                 'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
                 'temp_wage': temp_wage
                 }
@@ -1127,6 +1109,7 @@ def edit_orders(orderId):
                 'products' : temp_order_products,
                 'serviceType' : sType,
                 'payType' : pType,
+                'username' : session['username'],
                 'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
                 'temp_wage': temp_wage
                 }})
@@ -1146,6 +1129,7 @@ def edit_orders(orderId):
                 'products' : temp_order_products,
                 'serviceType' : sType,
                 'payType' : pType,
+                'username' : session['username'],
                 'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
                 'temp_wage': temp_wage
                 }})
@@ -1171,6 +1155,7 @@ def edit_orders(orderId):
                     'record_date': edit_result['record_date'],
                     'record_time': edit_result['record_time'],
                     'parcelCode': '-',
+                    'username' : session['username'],
                     'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
                     'status' : 80
                     }
@@ -1195,6 +1180,7 @@ def edit_orders(orderId):
                         'products' : temp_order_products,
                         'serviceType' : sType,
                         'payType' : pType,
+                        'username' : session['username'],
                         'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
                         'temp_wage': temp_wage
                         }})
