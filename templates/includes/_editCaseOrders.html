@@ -14,7 +14,7 @@
           <legend>ویرایش سفارش شماره {{data['orderId']}}</legend>
           <table id="ordering">
             <thead></thead>
-            <tbody style="height: 95vh;">
+            <tbody style="height: 100vh;">
               <tr>
                 <td>
                   <fieldset style="background: rgb(255,248,248);">
@@ -149,13 +149,13 @@
                         {% if sType==1 %}{% set ck1 = 'checked' %}{% else %}{% set ck1 = '' %}{% endif %}
                         {% if pType==88 %}{% set ck88 = 'checked' %}{% else %}{% set ck88 = '' %}{% endif %}
                         <td>
-                          <label><input type="radio" name="serviceType" value="2" {{ck2}} required/>سفارشی <span id="sefareshi" style="color: green;"></span></label>
+                          <label><input id="sefareshi-radio" type="radio" name="serviceType" onchange="getDeliveryPrice()" value="2" {{ck2}} required/>سفارشی <span id="sefareshi" style="color: green;"></span></label>
                         </td>
                         <td>
-                          <label><input type="radio" name="serviceType" value="1" {{ck1}} required/>پیشتاز <span id="pishtaz" style="color: green;"></span></label>
+                          <label><input id="pishtaz-radio" type="radio" name="serviceType" onchange="getDeliveryPrice()" value="1" {{ck1}} required/>پیشتاز <span id="pishtaz" style="color: green;"></span></label>
                         </td>
                         <td>
-                          <label><input type="checkbox" name="free" value="88" {{ck88}}/>ارسال رایگان</label>
+                          <label><input id="free" type="checkbox" name="free" value="88" {{ck88}}/>ارسال رایگان</label>
                         </td>
                       </tr>
                     </table>
@@ -164,17 +164,17 @@
               </tr>
               <tr>
                 <td>
-                  <fieldset style="background: rgb(255,248,248);" onclick="getDeliveryPrice()">
+                  <fieldset style="background: rgb(255,248,248);">
                     <legend>شیوه پرداخت</legend>
                     <table id="order-1">
                       <tr>
                         {% if pType==1 %}{% set pck1 = 'checked' %}{% else %}{% set pck1 = '' %}{% endif %}
                         {% if pType==2 %}{% set pck2 = 'checked' %}{% else %}{% set pck2 = '' %}{% endif %}
                         <td>
-                          <label><input id="payType1" type="radio" name="payType" value="1" {{pck1}}/>پرداخت در محل</label>
+                          <label><input id="payType1" type="radio" name="payType" onchange="getDeliveryPrice()" value="1" {{pck1}}/>پرداخت در محل</label>
                         </td>
                         <td>
-                          <label><input id="payType2" type="radio" name="payType" value="2" {{pck2}}/>پرداخت آنلاین</label>
+                          <label><input id="payType2" type="radio" name="payType" onchange="getDeliveryPrice()" value="2" {{pck2}}/>پرداخت آنلاین</label>
                         </td>
                       </tr>
                     </table>
@@ -188,23 +188,46 @@
                     <table id="order-2">
                       <tbody style="height: 20vh;">
                         <tr>
-                          <td>
-                            <label>هزینه کارتن: <input id="carton" type="number" name="carton" value="{{case_data['carton']}}" placeholder="(ریال)" size="6" required/></label>
+                          <td style="display: none;">
+                            <input id="product-price" value="{{data['products'][0]['price']}}" type="number"/>
+                          </td>
+                          <td style="display: none;">
+                            <input id="pishtaz-input" type="number"/>
+                          </td>
+                          <td style="display: none;">
+                            <input id="sefareshi-input" type="number"/>
                           </td>
                           <td>
-                            <label>هزینه بسته بندی: <input id="packing" type="number" name="packing" value="{{case_data['packing']}}" placeholder="(ریال)" size="6" required/></label>
+                            <label>کارمزد (ریال):</label>
+                            <input id="wage" type="number" name="wage" style="width: 7vw;" value="{{case_data['wage']}}" required/>
                           </td>
                           <td>
-                            <label>هزینه جمع آوری: <input id="gathering" type="number" name="gathering" value="{{case_data['gathering']}}" placeholder="(ریال)" size="6" required/></label>
+                            <label>هزینه کارتن (ریال): <input id="carton" type="number" name="carton" value="{{case_data['carton']}}" style="width: 7vw;" required/></label>
+                          </td>
+                          <td>
+                            <label>هزینه بسته بندی (ریال): <input id="packing" type="number" name="packing" value="{{case_data['packing']}}" style="width: 7vw;" required/></label>
+                          </td>
+                          <td>
+                            <label>هزینه جمع آوری (ریال): <input id="gathering" type="number" name="gathering" value="{{case_data['gathering']}}" style="width: 7vw;" required/></label>
                           </td>
                           {% if case_data['without_ck']|length %}{% set without_ck = 'checked' %}{% else %}{% set without_ck = '' %}{% endif %}
-                          <td>
+                          <td style="width: 25%;">
                             <label><input type="checkbox" name="without_ck" {{without_ck}} value="1"/>فاقد وجه نقد و اشیاء قیمتی</label>
                           </td>
                         </tr>
                       </tbody>
                     </table>
                   </fieldset>
+                </td>
+              </tr>
+              <tr>
+                {% if case_data['rad']|length %}{% set rad = 'checked' %}{% else %}{% set rad = '' %}{% endif %}
+                <td style="width: 20%; float: right;">
+                  <label style="color: red; font-weight: bold; margin: 2vw 0;"><input type="checkbox" id="rad" name="rad" value="true" {{rad}} onchange="rentalAtDest()" />کرایه در مقصد</label>
+                </td>
+                {% if case_data['cgd']|length %}{% set cgd = 'checked' %}{% else %}{% set cgd = '' %}{% endif %}
+                <td style="width: 20%; float: right;">
+                  <label style="color: red; font-weight: bold; margin: 2vw 0;"><input type="checkbox" id="cgd" name="cgd" value="true" {{cgd}} onchange="productPriceAtDest()" />هزینه کالا در مقصد</label>
                 </td>
               </tr>
             </tbody>
@@ -308,6 +331,7 @@
                 document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
                 document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
                 document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
+                document.getElementById('product-price').value = json.price;
 
                 anyChange();
              }
@@ -317,6 +341,7 @@
         }
 
         function getDeliveryPrice() {
+          refreshWeightPrice();
           var c = document.getElementById('city').value;
           if (document.getElementById('payType1').checked) {
             var pType = document.getElementById('payType1').value;
@@ -330,6 +355,12 @@
                 var json = JSON.parse(this.responseText);
                 document.getElementById('sefareshi').innerHTML = '(' +json.sefareshi+ ' ریال)';
                 document.getElementById('pishtaz').innerHTML = '(' +json.pishtaz+ ' ریال)';
+                document.getElementById('sefareshi-input').value = json.sefareshi;
+                document.getElementById('pishtaz-input').value = json.pishtaz;
+
+                if (document.getElementById('rad').checked) {
+                  rentalAtDest();
+                }
              }
           }
           xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+Price+'&city='+c+'&pType='+pType, true);
@@ -366,6 +397,7 @@
           document.getElementById('price-sum').value = Price;
           document.getElementById('weight-sum').value = Weight;
           document.getElementById('discount-sum').value = Discount;
+          wageCalculator(Weight);
         }
 
         function anyChange() {
@@ -394,6 +426,53 @@
           }
           xhr.open('GET', '/validator-ajax?data='+data+'&type='+type, true);
           xhr.send();
+        }
+
+        function wageCalculator(weight) {
+          const xhr = new XMLHttpRequest();
+          xhr.onreadystatechange = function() {
+              if (this.readyState == 4 && this.status == 200) {
+                var json = JSON.parse(this.responseText);
+                document.getElementById('wage').value = json.wage;
+             }
+          }
+          xhr.open('GET', '/wage-calculator?weight='+weight, true);
+          xhr.send();
+        }
+
+        function rentalAtDest() {
+          var rad = document.getElementById('rad').checked;
+          var wage = parseInt(document.getElementById('wage').value);
+          var packing = parseInt(document.getElementById('packing').value);
+          var carton = parseInt(document.getElementById('carton').value);
+          var gathering = parseInt(document.getElementById('gathering').value);
+          var sum = wage+packing+carton+gathering;
+          if (rad) {
+            document.getElementById('price1').value = sum;
+            document.getElementById('price-sum').value = sum;
+            anyChange();
+            document.getElementById('free').checked = false;
+            document.getElementById('free').disabled = true;
+            document.getElementById('cgd').checked = false;
+          } else {
+            document.getElementById('price1').value = document.getElementById('product-price').value;
+            document.getElementById('price-sum').value = document.getElementById('product-price').value;
+            document.getElementById('free').disabled = false;
+          }
+        }
+
+        function productPriceAtDest() {
+          var cgd = document.getElementById('cgd').checked;
+          if (cgd) {
+            document.getElementById('free').checked = true;
+            document.getElementById('free').disabled = false;
+            document.getElementById('payType1').checked = true;
+            document.getElementById('rad').checked = false;
+            document.getElementById('price1').value = document.getElementById('product-price').value;
+            document.getElementById('price-sum').value = document.getElementById('product-price').value;
+          } else {
+            document.getElementById('free').checked = false;
+          }
         }
       </script>
     </body>

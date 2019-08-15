@@ -174,15 +174,15 @@
         </tr>
         <tr>
           <td>
-            <fieldset style="background: rgb(255,248,248);" onclick="getDeliveryPrice()">
+            <fieldset style="background: rgb(255,248,248);">
               <legend>شیوه پرداخت</legend>
               <table id="order-1">
                 <tr>
                   <td>
-                    <label><input id="payType1" type="radio" name="payType" value="1" checked />پرداخت در محل</label>
+                    <label><input id="payType1" type="radio" name="payType" onchange="getDeliveryPrice()" value="1" checked />پرداخت در محل</label>
                   </td>
                   <td>
-                    <label><input id="payType2" type="radio" name="payType" value="2" />پرداخت آنلاین</label>
+                    <label><input id="payType2" type="radio" name="payType" onchange="getDeliveryPrice()" value="2" />پرداخت آنلاین</label>
                   </td>
                 </tr>
               </table>

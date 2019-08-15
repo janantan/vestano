@@ -8,7 +8,11 @@
         <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
     </head>
     <body class="card" style="direction: rtl; margin: 0 auto;">
+    	{% if details[1] == 'سفارش موردی' %}
+    	<fieldset class="fieldset" style="background-color: #bcd1fe;">
+    	{% else %}
     	<fieldset class="fieldset" style="background-color: #bcd1fe; height: 80vh;">
+    	{% endif %}
     		<div>
     			<span style="font-weight: bold;">اطلاعات سفارش</span>
     		</div>
@@ -152,20 +156,76 @@
 						<span> {{details[15]}} ریال </span>
 					</td>
 				</tr>
-				<tr>
-					<td>
-						<span class="blue bold">نشانی:</span>
-					</td>
-					<td colspan="5">
-						<span>{{details[8]}}</span>
-					</td>
-					<td>
-						<span class="blue bold">هزینه ارسال:</span>
-					</td>
-					<td>
-						<span> {{details[17]}} ریال </span>
-					</td>
-				</tr>
+				{% if details[1] == 'سفارش موردی' %}
+					<tr>
+						<td>
+							<span class="blue bold font14">هزینه بسته بندی:</span>
+						</td>
+						<td>
+							<span>{{details[22]}} ریال</span>
+						</td>
+						<td>
+							<span class="blue bold font14">هزینه کارتن:</span>
+						</td>
+						<td>
+							<span>{{details[23]}} ریال</span>
+						</td>
+						<td>
+							<span class="blue bold font14"> هزینه جمع آوری:</span>
+						</td>
+						<td>
+							<span>{{details[24]}} ریال</span>
+						</td>
+						<td>
+							<span class="blue bold font14">هزینه ارسال:</span>
+						</td>
+						<td>
+							<span>{{details[17]}} ریال</span>
+						</td>
+					</tr>
+					{% if details[25] != None %}
+						{% if details[25] %}{% set rad='checked' %}{% else %}{% set rad='' %}{% endif %}
+						{% if details[26] %}{% set cgd='checked' %}{% else %}{% set cgd='' %}{% endif %}
+						<tr>
+							<td>
+								<span class="blue bold font14">کرایه در مقصد:</span>
+							</td>
+							<td>
+								<span><input type="checkbox" {{rad}} /></span>
+							</td>
+							<td>
+								<span class="blue bold font14">هزینه کالا در مقصد:</span>
+							</td>
+							<td>
+								<span><input type="checkbox" {{cgd}} /></span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<span class="blue bold">نشانی:</span>
+							</td>
+							<td colspan="5">
+								<span>{{details[8]}}</span>
+							</td>
+						</tr>
+					{% endif %}
+				{% else %}
+					{% if details[27] %}{% set grnt='checked' %}{% else %}{% set grnt='' %}{% endif %}
+					<tr>
+						<td>
+							<span class="blue bold">نشانی:</span>
+						</td>
+						<td colspan="5">
+							<span>{{details[8]}}</span>
+						</td>
+						<td>
+							<span class="blue bold font14">کالای گارانتی:</span>
+						</td>
+						<td>
+							<span><input type="checkbox" {{grnt}} /></span>
+						</td>
+					</tr>
+				{% endif %}
 			</table>
 			<fieldset class="p-fieldset">
 				<legend>اقلام سفارش</legend>
@@ -266,16 +326,84 @@
 							<td>
 								<span>{{details[11]-(details[11]*details[12]/100)}}</span>
 							</td>
-							<td class="vw18 bg-green">
-								<span>{{details[11]-(details[11]*details[12]/100) + details[15] + details[17]}} ریال</span>
-							</td>
+							{% if details[1] == 'سفارش موردی' %}
+								{% if details[25] != None %}
+									{% if details[25] %}
+										<td class="vw18 bg-green">
+											<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+										</td>
+									{% elif details[26] %}
+										<td class="vw18 bg-green">
+											<span>{{details[11]-(details[11]*details[12]/100)}} ریال</span>
+										</td>
+									{% else %}
+										{% if details[7] == 'پرداخت آنلاین' %}
+											<td class="vw18 bg-green">
+												<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% else %}
+											<td class="vw18 bg-green">
+												<span>{{details[11]-(details[11]*details[12]/100)+details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% endif %}
+									{% endif %}
+								{% else %}
+									{% if details[7] == 'پرداخت آنلاین' %}
+										<td class="vw18 bg-green">
+											<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+										</td>
+									{% else %}
+										<td class="vw18 bg-green">
+											<span>{{details[11]-(details[11]*details[12]/100)+details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+										</td>
+									{% endif %}
+								{% endif %}
+							{% else %}
+								<td class="vw18 bg-green">
+									<span>{{details[11]-(details[11]*details[12]/100) + details[15]}} ریال</span>
+								</td>
+							{% endif %}
 						{% else %}
 							<td>
 								<span>{{details[11]}}</span>
 							</td>
-							<td class="vw18 bg-green">
-								<span>{{details[11] + details[15] + details[17]}} ریال</span>
-							</td>
+							{% if details[1] == 'سفارش موردی' %}
+								{% if details[25] != None %}
+									{% if details[25] %}
+										<td class="vw18 bg-green">
+											<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+										</td>
+									{% elif details[26] %}
+										<td class="vw18 bg-green">
+											<span>{{details[11]}} ریال</span>
+										</td>
+									{% else %}
+										{% if details[7] == 'پرداخت آنلاین' %}
+											<td class="vw18 bg-green">
+												<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% else %}
+											<td class="vw18 bg-green">
+												<span>{{details[11]+details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% endif %}
+									{% endif %}
+								{% else %}
+									{% if details[7] == 'پرداخت آنلاین' %}
+										<td class="vw18 bg-green">
+											<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+										</td>
+									{% else %}
+										<td class="vw18 bg-green">
+											<span>{{details[11]+details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+										</td>
+									{% endif %}
+								{% endif %}
+							{% else %}
+								<td class="vw18 bg-green">
+									<span>{{details[11] + details[15]}} ریال</span>
+								</td>
+							{% endif %}
 						{% endif %}
 					</tr>
 				</table>
@@ -283,9 +411,21 @@
 		</fieldset>
 		{% if code == 'temp' %}
 			<div style="margin-top: 3vh;">
+				{% if session['role'] != 'vendor_admin' %}
 				<a class="button" href="javascript:processFunction('/confirm-order/{{details[13]}}')" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
 				<a class="button" href="javascript:processFunction('/cancel-order/{{details[13]}}')" title="ارسال به سفارشات لغو شده" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">لغو سفارش</a>
 				<a class="button" href="javascript:processFunction('/pending-order/{{details[13]}}')" title="ارسال به در انتظار کالا" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">عدم موجودی</a>
+				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3; float: left;">ویرایش سفارش</a>
+				{% else %}
+				<a class="button" href="javascript:processFunction('/cancel-order/{{details[13]}}')" title="ارسال به سفارشات لغو شده" style="background-color: #f3f3f3;">لغو سفارش</a>
+				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3; float: right; margin-left: 1vw;">ویرایش سفارش</a>
+				{% endif %}
+			</div>
+		{% elif code == 'caseTemp' %}
+			<div style="margin-top: 3vh;">
+				<a class="button" href="javascript:processFunction('/confirm-order/{{details[13]}}')" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
+				<a class="button" href="javascript:processFunction('/cancel-order/{{details[13]}}')" title="ارسال به سفارشات لغو شده" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">لغو سفارش</a>
+				<!--<a class="button" href="javascript:processFunction('/pending-order/{{details[13]}}')" title="ارسال به در انتظار کالا" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">عدم موجودی</a>-->
 				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3; float: left;">ویرایش سفارش</a>
 			</div>
 		{% elif code == 'cnl' %}
@@ -337,6 +477,9 @@
 						close();
 					} else if (url.includes('return-order')) {
 						opener.location.href = '/user-pannel/pending-orders';
+						close();
+					} else if ("{{code}}" == 'caseTemp') {
+						opener.location.href = '/user-pannel/caseOrderList';
 						close();
 					} else {
 						opener.location.href = '/user-pannel/orderList';

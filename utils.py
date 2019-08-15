@@ -69,6 +69,22 @@ def temp_orders(cursor):
             statusToString(r['status']), pNameList))
     return temp
 
+def caseTemp_orders(cursor):
+    if session['role'] == 'vendor_admin':
+        result = cursor.caseTemp_orders.find({'vendorName': session['vendor_name']})
+    else:
+        result = cursor.caseTemp_orders.find()
+    temp = []
+    for r in result:
+        pNameList = []
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
+        state_result = cursor.states.find_one({'Code': r['stateCode']})
+        temp.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            statusToString(r['status']), pNameList))
+    return temp
+
 def today_orders(cursor):
     if session['role'] == 'vendor_admin':
         result = cursor.today_orders.find({'vendorName': session['vendor_name']})
@@ -326,12 +342,15 @@ def financial(cursor):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-            if (pType == 2) or (pType == 88):
+            if pType == 2:
                 vendor_account = config.wage
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            elif pType == 88:
+                vendor_account = 0 - (r['costs']['price'])
+                post_account = (r['costs']['price']+config.wage) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
-                vendor_account = 0 - (r['costs']['price'] - config.wage)
-                post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                vendor_account = 0 - (r['costs']['price'])
+                post_account = (r['costs']['price']+config.wage)
             vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
@@ -405,12 +424,15 @@ def v_financial(cursor):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-            if (pType == 2) or (pType == 88):
+            if pType == 2:
                 vendor_account = 0 - config.wage
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            elif pType == 88:
+                vendor_account = r['costs']['price']
+                post_account = (r['costs']['price']+config.wage) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
-                vendor_account = r['costs']['price'] - config.wage
-                post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                vendor_account = r['costs']['price']
+                post_account = (r['costs']['price']+config.wage)
             vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
@@ -494,12 +516,15 @@ def financial_vendor_credit(cursor):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-            if (pType == 2) or (pType == 88):
+            if pType == 2:
                 vendor_account = 0 - config.wage
                 #post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            elif pType == 88:
+                vendor_account = r['costs']['price']
+                #post_account = (r['costs']['price']+config.wage) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
-                vendor_account = r['costs']['price'] - config.wage
-                #post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                vendor_account = r['costs']['price']
+                #post_account = (r['costs']['price']+config.wage)
             #vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
@@ -570,10 +595,12 @@ def req_credit_orders(cursor, orderId_list):
                 r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                 r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-        if (pType == 2) or (pType == 88):
+        if pType == 2:
             vendor_account = 0 - config.wage
+        elif pType == 88:
+            vendor_account = r['costs']['price']
         else:
-            vendor_account = r['costs']['price'] - config.wage
+            vendor_account = r['costs']['price']
 
         t_vendor_account += vendor_account
 
@@ -671,11 +698,12 @@ def details(cursor, orderId, code):
     city = ""
     price = 0
     count = 0
-    weight = 0
     Weight = 0
     discount = 0
     if code == 'temp':
         r = cursor.temp_orders.find_one({'orderId': orderId})
+    elif code == 'caseTemp':
+        r = cursor.caseTemp_orders.find_one({'orderId': orderId})
     elif code == 'rts':
         r = cursor.ready_to_ship.find_one({'orderId': orderId})
     elif code == 'accounting':
@@ -745,26 +773,43 @@ def details(cursor, orderId, code):
 
     if r['vendorName'] == u'سفارش موردی':
         case_ord_res = cursor.case_orders.find_one({'orderId': orderId})
-        if weight < 10000:
-            wage = config.to10
-        elif 10000 <= weight < 15000:
-            wage = config.to15
-        elif 15000 <= weight < 20000:
-            wage = config.to20
-        elif 20000 <= weight < 25000:
-            wage = config.to25
-        elif 25000 <= weight < 30000:
-            wage = config.to30
-        elif weight >= 30000:
-            wage = config.gthan30
+        if 'wage' not in case_ord_res.keys():
+            wage = calculate_wage(r['vendorName'], Weight)
+        else:
+            wage = case_ord_res['wage']
+        packing = case_ord_res['packing']
+        carton = case_ord_res['carton']
+        gathering = case_ord_res['gathering']
         senderName = case_ord_res['senderFirstName'] + ' ' + case_ord_res['senderLastName']
         senderCellNumber = case_ord_res['senderCellNumber']
-        senderPostalCode = case_ord_res['senderPostalCode']        
+        senderPostalCode = case_ord_res['senderPostalCode']
+        grnt = None
+        if 'rad' in case_ord_res.keys():
+            if len(case_ord_res['rad']):
+                rad = True
+            else:
+                rad = False
+            if len(case_ord_res['cgd']):
+                cgd = True
+            else:
+                cgd = False
+        else:
+            rad = None
+            cgd = None
     else:
         wage = config.wage
+        packing = 0
+        carton = 0
+        gathering = 0
         senderName = ''
         senderCellNumber = ''
         senderPostalCode = ''
+        if 'grntProduct' in r.keys():
+            grnt = r['grntProduct']
+        else:
+            grnt = None
+        rad = None
+        cgd = None
 
     if 'costs' in r.keys():
         deliveryPrice = r['costs']['PostDeliveryPrice'] + r['costs']['VatTax']
@@ -777,7 +822,7 @@ def details(cursor, orderId, code):
             else:
                 temp_wage = wage
         else:
-            deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price, weight, sType, pType)
+            deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price, Weight, sType, pType)
             deliveryPrice = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
             if 'temp_wage' in r.keys():
                 temp_wage = r['temp_wage']
@@ -785,6 +830,10 @@ def details(cursor, orderId, code):
                 temp_wage = wage
             if code == 'temp':
                 cursor.temp_orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'temp_delivery_costs': deliveryPrice, 'temp_wage': wage}})
+            elif code == 'caseTemp':
+                cursor.caseTemp_orders.update_many(
                     {'orderId': r['orderId']},
                     {'$set':{'temp_delivery_costs': deliveryPrice, 'temp_wage': wage}})
             elif code == 'today':
@@ -808,7 +857,7 @@ def details(cursor, orderId, code):
         r['registerFirstName']+' '+r['registerLastName'], r['registerCellNumber'], r['registerPostalCode'],
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
         r['products'],count, price, discount, orderId, status, temp_wage, parcelCode, deliveryPrice,
-        senderName, senderCellNumber, senderPostalCode, Weight)
+        senderName, senderCellNumber, senderPostalCode, Weight, packing, carton, gathering, rad, cgd, grnt)
 
     return details
 
@@ -962,7 +1011,36 @@ def statusToString(statusCode):
     if statusCode==83:
         statusString = u'لغو شده'
 
-    return statusString    
+    return statusString
+
+def statusToStringForCaseOrders(statusCode):
+    if statusCode in [0, 2, 5]:
+        statusString = u'ارسال شده'
+    elif statusCode in [10, 11]:
+        statusString = u'برگشتی'
+    elif statusCode in [7, 70, 71]:
+        statusString = u'تحویل داده شده'
+    elif statusCode == 9:
+        statusString = u'توقیفی'
+    elif statusCode == 8:
+        statusString = u'باجه معطله'
+    elif statusCode == 80:
+        statusString = u'در صف پردازش'
+    else:
+        statusString = u'لطفا با وستانو تماس بگیرید'
+
+    return statusString
+
+def RolesToFarsi(role):
+    if role == 'admin':
+        roleFarsi = u'مدیر'
+    if role == 'office':
+        roleFarsi = u'دفتر'
+    if role == 'vendor_admin':
+        roleFarsi = u'مدیر فروشگاه'
+    if role == 'support':
+        roleFarsi = u'پشتیبانی'
+    return roleFarsi
 
 def states(cursor):
     result = cursor.states.find()
@@ -1079,12 +1157,6 @@ def transfer_req(cursor):
     result = cursor.inventory_transfer.find()
     transfer_list = []
     for r in result:
-        if 'productId' in r.keys():
-            r_result = cursor.vestano_inventory.find_one({'productId': r['productId']})
-            if r_result:
-                r['productName'] = r_result['productName']
-            else:
-                r['productName'] = ""
         r['request_type'] = transfer_req_type(r['request_type'])
         transfer_list.append(r)
     return transfer_list
@@ -1094,14 +1166,16 @@ def transfer_details(cursor, number):
     result['transfer_req_type'] = transfer_req_type(result['request_type'])
     if 'productId' in result.keys():
         r_result = cursor.vestano_inventory.find_one({'productId': result['productId']})
-        if result['request_type'] != 'edit':
-            result['productName'] = r_result['productName']
-            result['price'] = r_result['price']
-            result['percentDiscount'] = r_result['percentDiscount']
-            result['weight'] = r_result['weight']
+        if r_result:
             result['exist_count'] = r_result['count']
-        else:
-            result['exist_count'] = r_result['count']
+        #if result['request_type'] != 'edit':
+            #result['productName'] = r_result['productName']
+            #result['price'] = r_result['price']
+            #result['percentDiscount'] = r_result['percentDiscount']
+            #result['weight'] = r_result['weight']
+            #result['exist_count'] = r_result['count']
+        #else:
+            #result['exist_count'] = r_result['count']
     return result
 
 def GetCities(stateId):

@@ -1,5 +1,6 @@
 {% set home = "color:#fafafa;" %}
 {% set temp = "color:#fafafa;" %}
+{% set caseTemp = "color:#fafafa;" %}
 {% set rts = "color:#fafafa;" %}
 {% set pnd = "color:#fafafa;" %}
 {% set grnt = "color:#fafafa;" %}
@@ -16,12 +17,15 @@
 {% set acc = "color:#fafafa;" %}
 {% set ticket = "color:#fafafa;" %}
 {% set rgs = "color:#fafafa;" %}
+{% set users = "color:#fafafa;" %}
 {% set api = "color:#fafafa;" %}
 
 {% if "home" in request.base_url %}
 	{% set home = "color:yellow;" %}
 {% elif "orderList" in request.base_url %}
 	{% set temp = "color:yellow;" %}
+{% elif "caseOrderList" in request.base_url %}
+	{% set caseTemp = "color:yellow;" %}
 {% elif "ready-to-ship" in request.base_url %}
 	{% set rts = "color:yellow;" %}
 {% elif "pending-orders" in request.base_url %}
@@ -54,6 +58,8 @@
 	{% set ticket = "color:yellow;" %}
 {% elif "register" in request.base_url %}
 	{% set rgs = "color:yellow;" %}
+{% elif "users-management" in request.base_url %}
+	{% set users = "color:yellow;" %}
 {% elif "api-guide" in request.base_url %}
 	{% set api = "color:yellow;" %}
 {% endif %}
@@ -83,10 +89,17 @@
 						</td>
 					</tr>
 				{% endif %}
-				{% if ('processList' or 'caseProcessList') in session['access'] %}
+				{% if 'processList' in session['access'] %}
 					<tr>
 						<td>
 							<a style={{temp}} href="/user-pannel/orderList">صف پردازش ({{session['temp_orders']}})</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'caseProcessList' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{caseTemp}} href="/user-pannel/caseOrderList">صف پردازش موردی ({{session['caseTemp_orders']}})</a>
 						</td>
 					</tr>
 				{% endif %}
@@ -186,6 +199,13 @@
 					<tr>
 						<td>
 							<a style={{rgs}} href="/register">ایجاد کاربری</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']) %}
+					<tr>
+						<td>
+							<a style={{users}} href="/users-management/Users">مدیریت کاربران</a>
 						</td>
 					</tr>
 				{% endif %}

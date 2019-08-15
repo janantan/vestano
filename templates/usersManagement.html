@@ -1,0 +1,191 @@
+{% extends 'layout.html' %}
+
+{% include 'includes/_logo.html' %}
+
+{% block body %}
+	<div class="container">
+		{% include 'includes/_tab.html' %}
+  		<main class="card">
+			<div class="dropdown-content-inventory">
+				<input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
+			</div>
+			{% include 'includes/_usersManagementTab.html' %}
+			{% if sub_item == 'Users' %}
+				<fieldset class="fieldset" style="margin-top: 1vh; height: 75vh;">
+					<legend>مدیریت کاربران:</legend>
+					<table id="inventory">
+						<thead>
+							<tr style="background: yellow;">
+								<th style="width: 50px;">
+									<span>ردیف</span>
+								</th>
+								<th>
+									<span>نام و نام خانوادگی</span>
+								</th>
+								<th>
+									<span>نام کاربری</span>
+								</th>
+								<th>
+									<span>سطح کاربری</span>
+								</th>
+								<th>
+									<span>پست الکترونیکی</span>
+								</th>
+								<th>
+									<span>تلفن</span>
+								</th>
+								<th>
+									<span>تاریخ ایجاد</span>
+								</th>
+								<th>
+									<span>اقدام</span>
+								</th>
+								<th style="width: 15px;"></th>
+							</tr>
+						</thead>
+						<tbody id="myDropdown" style="height: 72vh;">
+							{% for rec in data %}
+								<tr class="rows">
+									<td style="width: 50px;">
+										<span>{{loop.index}}</span>
+									</td>
+									<td>
+										<span>{{rec['name']}}</span>
+									</td>
+									<td>
+										<span>{{rec['username']}}</span>
+									</td>
+									<td>
+										<span>{{rec['role']}}</span>
+									</td>
+									<td>
+										<span>{{rec['email']}}</span>
+									</td>
+									<td>
+										<span>{{rec['phone']}}</span>
+									</td>
+									<td>
+										<span>{{rec['created_date']}}</span>
+									</td>
+									<td>
+										<a href="javascript:window.open('/orders-details/{{rec[0]}}/temp', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+										<a href="javascript:window.open('/orders-details/{{rec[0]}}/temp', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</fieldset>
+			{% endif %}
+		</main>
+	</div>
+
+	<script type="text/javascript">
+		function filter() {
+			var input, value, tr, div, i;
+			input = document.getElementById("myInput-inventory");
+			value = input.value.toUpperCase();
+			div = document.getElementById("myDropdown");
+			tr = div.getElementsByTagName("tr");
+			if (isNaN(value)) {
+				for (i = 0; i < (tr.length); i++) {
+					span = tr[i].getElementsByTagName("span");
+					txtValue = span[2].textContent;
+					if (txtValue.toUpperCase().indexOf(value) > -1) {
+						tr[i].style.display = "";
+					} else {
+						txtValue = span[3].textContent;
+						if (txtValue.toUpperCase().indexOf(value) > -1) {
+							tr[i].style.display = "";
+						} else {
+							txtValue = span[4].textContent;
+							if (txtValue.toUpperCase().indexOf(value) > -1) {
+								tr[i].style.display = "";
+							} else {
+								txtValue = span[7].textContent;
+								if (txtValue.toUpperCase().indexOf(value) > -1) {
+									tr[i].style.display = "";
+								} else {
+									txtValue = span[9].textContent;
+									if (txtValue.toUpperCase().indexOf(value) > -1) {
+										tr[i].style.display = "";
+									} else {
+										txtValue = span[5].textContent;
+										txtValue = txtValue.replace(/\s/g, '');
+										txtValue = reverse_date_1(txtValue);
+										if (txtValue.toUpperCase().indexOf(value) > -1) {
+											tr[i].style.display = "";
+										} else { 
+											txtValue = span[5].textContent;
+											//txtValue = txtValue.replace(/\s/g, '');
+											txtValue = reverse_date_2(txtValue);
+											if (txtValue.toUpperCase().indexOf(value) > -1) {
+												tr[i].style.display = "";
+											} else {
+												txtValue = span[6].textContent;
+												txtValue = txtValue.replace(/\s/g, '');
+												txtValue = reverse_time(txtValue);
+												if (txtValue.toUpperCase().indexOf(value) > -1) {
+													tr[i].style.display = "";
+												} else {
+													tr[i].style.display = "none";
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			} else {
+				for (i = 0; i < (tr.length); i++) {
+					span = tr[i].getElementsByTagName("span");
+					txtValue = span[1].textContent;
+					if (txtValue.toUpperCase().indexOf(value) > -1) {
+						tr[i].style.display = "";
+					} else {
+						txtValue = span[5].textContent;
+						txtValue = txtValue.replace(/\s/g, '');
+						if (txtValue.toUpperCase().indexOf(value) > -1) {
+							tr[i].style.display = "";
+						} else {
+							txtValue = span[6].textContent;
+							txtValue = txtValue.replace(/\s/g, '');
+							if (txtValue.toUpperCase().indexOf(value) > -1) {
+								tr[i].style.display = "";
+							} else {
+								txtValue = span[8].textContent;
+								txtValue = txtValue.replace(/\s/g, '');
+								if (txtValue.toUpperCase().indexOf(value) > -1) {
+									tr[i].style.display = "";
+								} else {
+									tr[i].style.display = "none";
+								}
+							}
+						}
+					}
+				}
+				span = tr[0].getElementsByTagName("span");
+				txtValue = span[5].textContent;
+				txtValue = txtValue.replace(/\s/g, '');
+				//alert(txtValue)
+			}
+		}
+
+		function reverse_date_1(s) {
+			s = s.split("/").reverse().join("/");
+			return s;
+		}
+
+		function reverse_date_2(s) {
+			s = s.split(" / ").reverse().join(" / ");
+			return s;
+		} 
+
+		function reverse_time(s) {
+			s = s.split(":").reverse().join(":");
+			return s;
+		}
+	</script>
+{% endblock %}

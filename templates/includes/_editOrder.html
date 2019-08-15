@@ -74,6 +74,35 @@
                       {% for i in range(data['products']|length) %}
                         <tr id="row{{i+1}}" class="order-0">
                           <td>
+                            <select id="product{{i+1}}" onchange="product('product{{i+1}}')" disabled required>
+                              <option value="{{data['products'][i]['productId']}}">{{data['products'][i]['productName']}}</option>
+                              {% for item in inventory %}
+                                <option value="{{item[1]}}">{{item[0]}}</option>
+                                }
+                              {% endfor %}
+                            </select>
+                          </td>                  
+                          <td>
+                            <input type="text" id="count{{i+1}}" value="{{data['products'][i]['count']}}" onchange="anyChange()" size="4" disabled required/>
+                          </td>
+                          <td>
+                            <input id="price{{i+1}}" type="text" value="{{data['products'][i]['price']}}" onchange="anyChange()" size="6" disabled required/>
+                          </td>
+                          <td>
+                            <input id="discount{{i+1}}" type="text" value="{{data['products'][i]['percentDiscount']}}" onchange="anyChange()" size="6" disabled required/>
+                          </td>
+                          <td>
+                            <input id="weight{{i+1}}" type="text" value="{{data['products'][i]['weight']}}" onchange="anyChange()" size="6" disabled required/>
+                          </td>
+                          <td>
+                            <a href="#" title="حذف" class="del-box"> - </a>
+                            <a href="#" title="افزودن" class="add-box"> + </a>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                      {% for i in range(data['products']|length) %}
+                        <tr id="row{{i+1}}" class="order-0" style="display: none;">
+                          <td>
                             <select id="product{{i+1}}" name="product_{{i+1}}" onchange="product('product{{i+1}}')" required>
                               <option value="{{data['products'][i]['productId']}}">{{data['products'][i]['productName']}}</option>
                               {% for item in inventory %}
@@ -148,17 +177,17 @@
               </tr>
               <tr>
                 <td>
-                  <fieldset onclick="getDeliveryPrice()">
+                  <fieldset>
                     <legend>شیوه پرداخت</legend>
                     <table id="order-1">
                       <tr>
                         {% if pType==1 %}{% set pck1 = 'checked' %}{% else %}{% set pck1 = '' %}{% endif %}
                         {% if pType==2 %}{% set pck2 = 'checked' %}{% else %}{% set pck2 = '' %}{% endif %}
                         <td>
-                          <label><input id="payType1" type="radio" name="payType" value="1" {{pck1}}/>پرداخت در محل</label>
+                          <label><input id="payType1" type="radio" name="payType" onchange="getDeliveryPrice()" value="1" {{pck1}}/>پرداخت در محل</label>
                         </td>
                         <td>
-                          <label><input id="payType2" type="radio" name="payType" value="2" {{pck2}}/>پرداخت آنلاین</label>
+                          <label><input id="payType2" type="radio" name="payType" onchange="getDeliveryPrice()" value="2" {{pck2}}/>پرداخت آنلاین</label>
                         </td>
                       </tr>
                     </table>
@@ -284,6 +313,7 @@
         }
 
         function getDeliveryPrice() {
+          refreshWeightPrice();
           var c = document.getElementById('city').value;
           if (document.getElementById('payType1').checked) {
             var pType = document.getElementById('payType1').value;

@@ -133,7 +133,39 @@
     	</table>
     	<fieldset class="fieldset" style="margin: 50px 10px; border: none;">
     		<legend>مشخصات مرسوله:</legend>
-			<table style="text-align: center; border: 1px solid gray;">
+    		{% if cgd %}
+	    		<table style="text-align: center; border: 1px solid gray;">
+					<tr style="border: 1px solid black;">
+						<th style="height: 60px; width: 230px; background: yellow;">
+							<span>بارکد پستی</span>
+						</th>
+						<th style="height: 60px; width: 150px; background: yellow;">
+							<span>وزن</span>
+						</th>
+						<th style="height: 60px; width: 230px; background: yellow;">
+							<span>قیمت محصول</span>
+						</th>
+						<th style="height: 60px; width: 230px; background: yellow;">
+							<span>مجموع</span>
+						</th>
+					</tr>
+					<tr style="border: 1px solid black;">
+						<td style="height: 60px;">
+							<span>{{parcelCode}}</span>
+						</td>
+						<td>
+							<span>{{weight}} گرم</span>
+						</td>
+						<td>
+							<span>{{price}}</span>
+						</td>
+						<td>
+							<span>{{price}}</span>
+						</td>
+					</tr>
+				</table><br>
+			{% endif %}
+			<table style="text-align: center; border: 1px solid gray; margin-top: 3vh;">
 				<tr style="border: 1px solid black;">
 					<th style="height: 60px; width: 230px; background: yellow;">
 						<span>بارکد پستی</span>
