@@ -20,8 +20,8 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
-VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+#VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
 
@@ -1040,7 +1040,84 @@ def RolesToFarsi(role):
         roleFarsi = u'مدیر فروشگاه'
     if role == 'support':
         roleFarsi = u'پشتیبانی'
+    if role == 'api':
+        roleFarsi = u'وب سرویس'
     return roleFarsi
+
+def accessToFarsi(access):
+    if access == 'caseOrdering':
+        accessFarsi = u'ثبت سفارش موردی'
+    if access == 'Ordering':
+        accessFarsi = u'ثبت سفارش'
+    if access == 'caseProcessList':
+        accessFarsi = u'صف پردازش (موردی)'
+    if access == 'processList':
+        accessFarsi = u'صف پردازش (فروشگاه)'
+    if access == 'todayOrders':
+        accessFarsi = u'سفارشات امروز'
+    if access == 'cnlOrders':
+        accessFarsi = u'سفارشات لغو شده'
+    if access == 'rtsOrders':
+        accessFarsi = u'سفارشات آماده ارسال'
+    if access == 'pndOrders':
+        accessFarsi = u'سفارشات در انتظار کالا'
+    if access == 'grntOrders':
+        accessFarsi = u'سفارشات گارانتی'
+    if access == 'allOrders':
+        accessFarsi = u'مشاهده همه سفارشات'
+    if access == 'caseNewStuff':
+        accessFarsi = u'افزودن کالای موردی'
+    if access == 'caseEditStuff':
+        accessFarsi = u'ویرایش کالای موردی'
+    if access == 'newStuff':
+        accessFarsi = u'افزودن کالای جدید'
+    if access == 'incStuff':
+        accessFarsi = u'افزودن کالای موجود'
+    if access == 'editStuff':
+        accessFarsi = u'ویرایش کالا'
+    if access == 'newPack':
+        accessFarsi = u'ایجاد بسته'
+    if access == 'releaseStuff':
+        accessFarsi = u'خروج از انبار'
+    if access == 'searchStuff':
+        accessFarsi = u'جستجو در انبار'
+    if access == 'inventory':
+        accessFarsi = u'انبارداری'
+    if access == 'financialRep':
+        accessFarsi = u'گزارشات و تسویه مالی'
+    if access == 'accounting':
+        accessFarsi = u'حسابداری'
+    if access == 'vendorCredit':
+        accessFarsi = u'بستانکاری فروشگاه'
+    if access == 'creditList':
+        accessFarsi = u'لیست درخواست های واریز وجه'
+    if access == 'paidList':
+        accessFarsi = u'مبالغ واریزی'
+    if access == 'searchPage':
+        accessFarsi = u'مشاهده گزارشات (صفحه جستجو)'
+    if access == 'vendorTicket':
+        accessFarsi = u'تیکت فروشگاه'
+    if access == 'adminTicket':
+        accessFarsi = u'تیکت مدیریت'
+    if access == 'ordersTicket':
+        accessFarsi = u'تیکت سفارشات'
+    if access == 'inventoryTicket':
+        accessFarsi = u'تیکت انبارداری'
+    if access == 'financialTicket':
+        accessFarsi = u'تیکت حسابداری'
+    if access == 'techTicket':
+        accessFarsi = u'تیکت فنی'
+    if access == 'incCredit':
+        accessFarsi = u'افزایش اعتبار '
+    if access == 'requestForStuff':
+        accessFarsi = u'درخواست حواله و خروج از انبار'
+    if access == 'dashboard':
+        accessFarsi = u'داشبورد'
+    if access == 'defineUser':
+        accessFarsi = u'ایجاد کاربری'
+    if access == 'inventManagement':
+        accessFarsi = u'مدیریت انبار'
+    return accessFarsi
 
 def states(cursor):
     result = cursor.states.find()

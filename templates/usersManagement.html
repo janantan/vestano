@@ -9,14 +9,20 @@
 			<div class="dropdown-content-inventory">
 				<input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
 			</div>
-			{% include 'includes/_usersManagementTab.html' %}
-			{% if sub_item == 'Users' %}
+			{% if session['role'] != 'vendor_admin' %}
+				{% include 'includes/_usersManagementTab.html' %}
+			{% endif %}
+			{% if (sub_item == 'Users') or (sub_item == 'api') %}
+				{% if session['role'] != 'vendor_admin' %}
 				<fieldset class="fieldset" style="margin-top: 1vh; height: 75vh;">
+				{% else %}
+				<fieldset class="fieldset" style="margin-top: 3vh; height: 80vh;">
+				{% endif %}
 					<legend>مدیریت کاربران:</legend>
 					<table id="inventory">
 						<thead>
 							<tr style="background: yellow;">
-								<th style="width: 50px;">
+								<th style="width: 4vw;">
 									<span>ردیف</span>
 								</th>
 								<th>
@@ -28,7 +34,7 @@
 								<th>
 									<span>سطح کاربری</span>
 								</th>
-								<th>
+								<th style="width: 14vw;">
 									<span>پست الکترونیکی</span>
 								</th>
 								<th>
@@ -40,13 +46,88 @@
 								<th>
 									<span>اقدام</span>
 								</th>
-								<th style="width: 15px;"></th>
+								<th style="width: 1vw;"></th>
 							</tr>
 						</thead>
-						<tbody id="myDropdown" style="height: 72vh;">
+						<tbody id="myDropdown" style="height: 71vh;">
 							{% for rec in data %}
-								<tr class="rows">
-									<td style="width: 50px;">
+								{% if session['username'] == rec['username'] %}
+								<tr id="rows" class="border-bottom" onclick="usersDetail('{{rec['username']}}')" style="background: #81fc81;">
+								{% else %}
+								<tr id="rows" class="border-bottom" onclick="usersDetail('{{rec['username']}}')">
+								{% endif %}
+									<td style="width: 4vw;">
+										<span>{{loop.index}}</span>
+									</td>
+									<td>
+										<span>{{rec['name']}}</span>
+									</td>
+									<td>
+										<span class="font14">{{rec['username']}}</span>
+									</td>
+									<td>
+										<a title="{{('\n'.join(rec['access']))}}"><span>{{rec['role']}}</span></a>
+									</td>
+									<td style="width: 14vw;">
+										<span class="font14">{{rec['email']}}</span>
+									</td>
+									<td>
+										<span>{{rec['phone']}}</span>
+									</td>
+									<td>
+										<span>{{rec['created_date']}}</span>
+									</td>
+									<td id="no-action" onclick="tdOnclick()">
+						              <a href="/delete-user/{{rec['username']}}" title="حذف کاربر"><span style="float: unset; margin: auto;" id="delete"></span></a>
+						            </td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</fieldset>
+			{% elif sub_item == 'vendors' %}
+				<fieldset class="fieldset" style="margin-top: 1vh; height: 75vh;">
+					<legend>مدیریت کاربران:</legend>
+					<table id="inventory">
+						<thead>
+							<tr style="background: yellow;">
+								<th style="width: 4vw;">
+									<span>ردیف</span>
+								</th>
+								<th>
+									<span>نام و نام خانوادگی</span>
+								</th>
+								<th>
+									<span class="font14">نام کاربری</span>
+								</th>
+								<th>
+									<span>سطح کاربری</span>
+								</th>
+								<th>
+									<span>نام فروشگاه</span>
+								</th>
+								<th>
+									<span>تلفن</span>
+								</th>
+								<th>
+									<span>شماره حساب</span>
+								</th>
+								<th>
+									<span>نام صاحب حساب</span>
+								</th>
+								<th>
+									<span>تاریخ ایجاد</span>
+								</th>
+								<th>
+									<span>اقدام</span>
+								</th>
+								<th style="width: 1vw;"></th>
+							</tr>
+						</thead>
+						<tbody id="myDropdown" style="height: 71vh;">
+							{% for rec in data %}
+								<tr id="rows" class="border-bottom" onclick="usersDetail('{{rec['username']}}')">
+									<td style="width: 4vw;">
 										<span>{{loop.index}}</span>
 									</td>
 									<td>
@@ -56,21 +137,26 @@
 										<span>{{rec['username']}}</span>
 									</td>
 									<td>
-										<span>{{rec['role']}}</span>
+										<a title="{{('\n'.join(rec['access']))}}"><span>{{rec['role']}}</span></a>
 									</td>
 									<td>
-										<span>{{rec['email']}}</span>
+										<span>{{rec['vendor_name']}}</span>
 									</td>
 									<td>
 										<span>{{rec['phone']}}</span>
 									</td>
 									<td>
-										<span>{{rec['created_date']}}</span>
+										<span>{{rec['account_number']}}</span>
 									</td>
 									<td>
-										<a href="javascript:window.open('/orders-details/{{rec[0]}}/temp', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
-										<a href="javascript:window.open('/orders-details/{{rec[0]}}/temp', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+										<span>{{rec['account_holder']}}</span>
 									</td>
+									<td>
+										<span>{{rec['created_date']}}</span>
+									</td>
+									<td id="no-action" onclick="tdOnclick()">
+						              <a href="/delete-user/{{rec['username']}}" title="حذف کاربر"><span style="float: unset; margin: auto;" id="delete"></span></a>
+						            </td>
 								</tr>
 							{% endfor %}
 						</tbody>
@@ -90,48 +176,27 @@
 			if (isNaN(value)) {
 				for (i = 0; i < (tr.length); i++) {
 					span = tr[i].getElementsByTagName("span");
-					txtValue = span[2].textContent;
+					txtValue = span[1].textContent;
 					if (txtValue.toUpperCase().indexOf(value) > -1) {
 						tr[i].style.display = "";
 					} else {
-						txtValue = span[3].textContent;
+						txtValue = span[2].textContent;
 						if (txtValue.toUpperCase().indexOf(value) > -1) {
 							tr[i].style.display = "";
 						} else {
-							txtValue = span[4].textContent;
+							txtValue = span[3].textContent;
 							if (txtValue.toUpperCase().indexOf(value) > -1) {
 								tr[i].style.display = "";
 							} else {
-								txtValue = span[7].textContent;
+								txtValue = span[4].textContent;
 								if (txtValue.toUpperCase().indexOf(value) > -1) {
 									tr[i].style.display = "";
 								} else {
-									txtValue = span[9].textContent;
+									txtValue = span[7].textContent;
 									if (txtValue.toUpperCase().indexOf(value) > -1) {
 										tr[i].style.display = "";
 									} else {
-										txtValue = span[5].textContent;
-										txtValue = txtValue.replace(/\s/g, '');
-										txtValue = reverse_date_1(txtValue);
-										if (txtValue.toUpperCase().indexOf(value) > -1) {
-											tr[i].style.display = "";
-										} else { 
-											txtValue = span[5].textContent;
-											//txtValue = txtValue.replace(/\s/g, '');
-											txtValue = reverse_date_2(txtValue);
-											if (txtValue.toUpperCase().indexOf(value) > -1) {
-												tr[i].style.display = "";
-											} else {
-												txtValue = span[6].textContent;
-												txtValue = txtValue.replace(/\s/g, '');
-												txtValue = reverse_time(txtValue);
-												if (txtValue.toUpperCase().indexOf(value) > -1) {
-													tr[i].style.display = "";
-												} else {
-													tr[i].style.display = "none";
-												}
-											}
-										}
+										tr[i].style.display = "none";
 									}
 								}
 							}
@@ -141,27 +206,22 @@
 			} else {
 				for (i = 0; i < (tr.length); i++) {
 					span = tr[i].getElementsByTagName("span");
-					txtValue = span[1].textContent;
+					txtValue = span[5].textContent;
 					if (txtValue.toUpperCase().indexOf(value) > -1) {
 						tr[i].style.display = "";
 					} else {
-						txtValue = span[5].textContent;
+						txtValue = span[6].textContent;
 						txtValue = txtValue.replace(/\s/g, '');
 						if (txtValue.toUpperCase().indexOf(value) > -1) {
 							tr[i].style.display = "";
-						} else {
+						} 
+						else {
 							txtValue = span[6].textContent;
 							txtValue = txtValue.replace(/\s/g, '');
 							if (txtValue.toUpperCase().indexOf(value) > -1) {
 								tr[i].style.display = "";
 							} else {
-								txtValue = span[8].textContent;
-								txtValue = txtValue.replace(/\s/g, '');
-								if (txtValue.toUpperCase().indexOf(value) > -1) {
-									tr[i].style.display = "";
-								} else {
-									tr[i].style.display = "none";
-								}
+								tr[i].style.display = "none";
 							}
 						}
 					}
@@ -186,6 +246,14 @@
 		function reverse_time(s) {
 			s = s.split(":").reverse().join(":");
 			return s;
+		}
+
+		function usersDetail(username) {
+			window.open("/users-detail/"+username, 'User Details', 'width=950,height=500,top=100,left=300');
+		}
+
+		function tdOnclick() {
+			event.cancelBubble=true;
 		}
 	</script>
 {% endblock %}

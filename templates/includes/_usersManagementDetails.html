@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fa-IR" style="padding: 10px 10px;">
+    <head>
+        <title>سامانه پستی وستانو</title>
+        <!--<meta charset="utf-8" />-->
+        <meta content="text/html;charset=UTF-8" http-equiv="Content-Type" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
+    </head>
+    <body class="card" style="direction: rtl; margin: 0 auto;">
+    	{% include 'includes/_messages.html' %}
+		<div id="login-form">
+			<section>
+				<form method="POST" action="">
+					<fieldset style="height: 87vh;">
+						<legend>ویرایش اطلاعات:</legend>
+						<table id="registering" style="width: -webkit-fill-available;">
+							<tbody style="height: 80vh;">
+								<tr>
+				                    <td>					
+										<label class="right" for="name">نام و نام خانوادگی</label>
+										<input id="name" type="text" name="name" value="{{data['name']}}" required />
+									</td>
+								</tr>
+								{% if (data['vendor_name']) and (session['role'] != 'vendor_admin') %}
+									<tr>
+					                    <td>					
+											<label class="right" for="vendor-name">نام فروشگاه</label>
+											<input id="vendor-name" type="text" name="vendor-name" value="{{data['vendor_name']}}" />
+										</td>
+									</tr>
+									{% if not api_user %}
+									<tr id="account-number-tr">
+					                    <td>					
+											<label class="right" for="account-number">شماره حساب فروشگاه (بانک ملی)</label>
+											<input id="account-number" type="text" name="account-number" value="{{data['account_number']}}" />
+										</td>
+									</tr>
+									<tr id="account-holder-tr">
+					                    <td>					
+											<label class="right" for="account-holder">نام صاحب حساب</label>
+											<input id="account-holder" type="text" name="account-holder" value="{{data['account_holder']}}" />
+										</td>
+									</tr>
+									{% endif %}
+								{% endif %}
+								<tr>			                    
+				                    <td>
+										<label class="right" for="email">پست الکترونیکی</label>
+										<input id="email" type="email" name="email" value="{{data['email']}}" />
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<label class="right" for="phone">تلفن</label>
+										<input id="phone" type="text" name="phone" value="{{data['phone']}}" />
+									</td>
+								</tr>
+								<tr>				                    
+									<td>					
+										<label class="right" for="username">نام کاربری</label>
+										<input id="username" type="text" name="username" value="{{data['username']}}" placeholder="e.g. John" disabled required />
+									</td>
+								</tr>
+								{% if not api_user %}
+									<tr>
+										<td>
+											<label class="right" for="role">سطح کاربری</label>
+											<select id="role" name="role" onchange="defaultAccess()">
+												<option value="{{data['role']}}">{{role}}</option>
+												<option value="admin">مدیر</option>
+												<option value="office">دفتر</option>
+												<option value="vendor_admin">مدیر فروشگاه</option>
+												<option value="support">پشتیبانی</option>
+											</select>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label style="margin-bottom: 2vh;" class="right" for="access">سطوح دسترسی</label>
+										</td>
+									</tr>
+									{% if 'caseOrdering' in data['access'] %}{% set ck1='checked' %}{% else %}{% set ck1='' %}{% endif %}
+									{% if 'Ordering' in data['access'] %}{% set ck2='checked' %}{% else %}{% set ck2='' %}{% endif %}
+									{% if 'caseProcessList' in data['access'] %}{% set ck3='checked' %}{% else %}{% set ck3='' %}{% endif %}
+									{% if 'processList' in data['access'] %}{% set ck4='checked' %}{% else %}{% set ck4='' %}{% endif %}
+									{% if 'todayOrders' in data['access'] %}{% set ck5='checked' %}{% else %}{% set ck5='' %}{% endif %}
+									{% if 'cnlOrders' in data['access'] %}{% set ck6='checked' %}{% else %}{% set ck6='' %}{% endif %}
+									{% if 'rtsOrders' in data['access'] %}{% set ck7='checked' %}{% else %}{% set ck7='' %}{% endif %}
+									{% if 'pndOrders' in data['access'] %}{% set ck8='checked' %}{% else %}{% set ck8='' %}{% endif %}
+									{% if 'grntOrders' in data['access'] %}{% set ck9='checked' %}{% else %}{% set ck9='' %}{% endif %}
+									{% if 'allOrders' in data['access'] %}{% set ck10='checked' %}{% else %}{% set ck10='' %}{% endif %}
+									{% if 'caseNewStuff' in data['access'] %}{% set ck11='checked' %}{% else %}{% set ck11='' %}{% endif %}
+									{% if 'caseEditStuff' in data['access'] %}{% set ck12='checked' %}{% else %}{% set ck12='' %}{% endif %}
+									{% if 'newStuff' in data['access'] %}{% set ck13='checked' %}{% else %}{% set ck13='' %}{% endif %}
+									{% if 'incStuff' in data['access'] %}{% set ck14='checked' %}{% else %}{% set ck14='' %}{% endif %}
+									{% if 'editStuff' in data['access'] %}{% set ck15='checked' %}{% else %}{% set ck15='' %}{% endif %}
+									{% if 'newPack' in data['access'] %}{% set ck16='checked' %}{% else %}{% set ck16='' %}{% endif %}
+									{% if 'releaseStuff' in data['access'] %}{% set ck17='checked' %}{% else %}{% set ck17='' %}{% endif %}
+									{% if 'searchStuff' in data['access'] %}{% set ck18='checked' %}{% else %}{% set ck18='' %}{% endif %}
+									{% if 'inventory' in data['access'] %}{% set ck19='checked' %}{% else %}{% set ck19='' %}{% endif %}
+									{% if 'financialRep' in data['access'] %}{% set ck20='checked' %}{% else %}{% set ck20='' %}{% endif %}
+									{% if 'accounting' in data['access'] %}{% set ck21='checked' %}{% else %}{% set ck21='' %}{% endif %}
+									{% if 'vendorCredit' in data['access'] %}{% set ck22='checked' %}{% else %}{% set ck22='' %}{% endif %}
+									{% if 'creditList' in data['access'] %}{% set ck23='checked' %}{% else %}{% set ck23='' %}{% endif %}
+									{% if 'paidList' in data['access'] %}{% set ck24='checked' %}{% else %}{% set ck24='' %}{% endif %}
+									{% if 'searchPage' in data['access'] %}{% set ck25='checked' %}{% else %}{% set ck25='' %}{% endif %}
+									{% if 'vendorTicket' in data['access'] %}{% set ck26='checked' %}{% else %}{% set ck26='' %}{% endif %}
+									{% if 'adminTicket' in data['access'] %}{% set ck27='checked' %}{% else %}{% set ck27='' %}{% endif %}
+									{% if 'ordersTicket' in data['access'] %}{% set ck28='checked' %}{% else %}{% set ck28='' %}{% endif %}
+									{% if 'inventoryTicket' in data['access'] %}{% set ck29='checked' %}{% else %}{% set ck29='' %}{% endif %}
+									{% if 'financialTicket' in data['access'] %}{% set ck30='checked' %}{% else %}{% set ck30='' %}{% endif %}
+									{% if 'techTicket' in data['access'] %}{% set ck31='checked' %}{% else %}{% set ck31='' %}{% endif %}
+									{% if 'incCredit' in data['access'] %}{% set ck32='checked' %}{% else %}{% set ck32='' %}{% endif %}
+									{% if 'requestForStuff' in data['access'] %}{% set ck33='checked' %}{% else %}{% set ck33='' %}{% endif %}
+									{% if 'dashboard' in data['access'] %}{% set ck34='checked' %}{% else %}{% set ck34='' %}{% endif %}
+									{% if 'defineUser' in data['access'] %}{% set ck35='checked' %}{% else %}{% set ck35='' %}{% endif %}
+									{% if 'inventManagement' in data['access'] %}{% set ck36='checked' %}{% else %}{% set ck36='' %}{% endif %}
+
+									{% if session['role'] == 'vendor_admin' %}
+										<tr class="access">
+											<td>
+												<label><input id="access2" type="checkbox" {{ck2}} name="access" value="Ordering">ثبت سفارش</label>
+											</td>
+											<td>
+												<label><input id="access4" type="checkbox" {{ck4}} name="access" value="processList">صف پردازش</label>
+											</td>
+											<td>
+												<label><input id="access5" type="checkbox" {{ck5}} name="access" value="todayOrders">سفارشات امروز</label>
+											</td>
+											<td>
+												<label><input id="access6" type="checkbox" {{ck6}} name="access" value="cnlOrders">سفارشات لغو شده</label>
+											</td>
+											<td>
+												<label><input id="access8" type="checkbox" {{ck8}} name="access" value="pndOrders">سفارشات در انتظار کالا</label>
+											</td>
+											<td>
+												<label><input id="access9" type="checkbox" {{ck9}} name="access" value="grntOrders">سفارشات گارانتی</label>
+											</td>
+											<td>
+												<label><input id="access10" type="checkbox" {{ck10}} name="access" value="allOrders">مشاهده همه سفارشات</label>
+											</td>
+											<td>
+												<label><input id="access13" type="checkbox" {{ck13}} name="access" value="newStuff">افزودن کالای جدید</label>
+											</td>
+											<td>
+												<label><input id="access14" type="checkbox" {{ck14}} name="access" value="incStuff">افزودن کالای موجود</label>
+											</td>
+											<td>
+												<label><input id="access15" type="checkbox" {{ck15}} name="access" value="editStuff">ویرایش کالا</label>
+											</td>
+											<td>
+												<label><input id="access16" type="checkbox" {{ck16}} name="access" value="newPack">ایجاد بسته</label>
+											</td>
+											<td>
+												<label><input id="access17" type="checkbox" {{ck17}} name="access" value="releaseStuff">خروج از انبار</label>
+											</td>
+											<td>
+												<label><input id="access18" type="checkbox" {{ck18}} name="access" value="searchStuff">جستجو در انبار</label>
+											</td>
+											<td>
+												<label><input id="access19" type="checkbox" {{ck19}} name="access" value="inventory">انبارداری</label>
+											</td>
+											<td>
+												<label><input id="access20" type="checkbox" {{ck20}} name="access" value="financialRep">گزارشات و تسویه مالی</label>
+											</td>
+											<td>
+												<label><input id="access21" type="checkbox" {{ck21}} name="access" value="accounting">حسابداری</label>
+											</td>
+											<td>
+												<label><input id="access22" type="checkbox" {{ck22}} name="access" value="vendorCredit">بستانکاری فروشگاه</label>
+											</td>
+											<td>
+												<label><input id="access23" type="checkbox" {{ck23}} name="access" value="creditList">لیست درخواست های واریز وجه</label>
+											</td>
+											<td>
+												<label><input id="access24" type="checkbox" {{ck24}} name="access" value="paidList">مبالغ واریزی</label>
+											</td>
+											<td>
+												<label><input id="access25" type="checkbox" {{ck25}} name="access" value="searchPage">مشاهده گزارشات (صفحه جستجو)</label>
+											</td>
+											<td>
+												<label><input id="access26" type="checkbox" {{ck26}} name="access" value="vendorTicket">تیکت فروشگاه</label>
+											</td>
+											<td>
+												<label><input id="access32" type="checkbox" {{ck32}} name="access" value="incCredit">افزایش اعتبار </label>
+											</td>
+											<td>
+												<label><input id="access33" type="checkbox" {{ck33}} name="access" value="requestForStuff">درخواست حواله و خروج از انبار</label>
+											</td>
+											<td>
+												<label><input id="access34" type="checkbox" {{ck34}} name="access" value="dashboard">داشبورد</label>
+											</td>
+										</tr>
+									{% else %}
+										<tr class="access">
+											<td>
+												<label><input id="access1" type="checkbox" name="access" {{ck1}} value="caseOrdering">ثبت سفارش موردی</label>
+											</td>
+											<td>
+												<label><input id="access2" type="checkbox" name="access" {{ck2}} value="Ordering">ثبت سفارش</label>
+											</td>
+											<td>
+												<label><input id="access3" type="checkbox" name="access" {{ck3}} value="caseProcessList">صف پردازش (موردی)</label>
+											</td>
+											<td>
+												<label><input id="access4" type="checkbox" name="access" {{ck4}} value="processList">صف پردازش (فروشگاه)</label>
+											</td>
+											<td>
+												<label><input id="access5" type="checkbox" name="access" {{ck5}} value="todayOrders">سفارشات امروز</label>
+											</td>
+											<td>
+												<label><input id="access6" type="checkbox" name="access" {{ck6}} value="cnlOrders">سفارشات لغو شده</label>
+											</td>
+											<td>
+												<label><input id="access7" type="checkbox" name="access" {{ck7}} value="rtsOrders">سفارشات آماده ارسال</label>
+											</td>
+											<td>
+												<label><input id="access8" type="checkbox" name="access" {{ck8}} value="pndOrders">سفارشات در انتظار کالا</label>
+											</td>
+											<td>
+												<label><input id="access9" type="checkbox" name="access" {{ck9}} value="grntOrders">سفارشات گارانتی</label>
+											</td>
+											<td>
+												<label><input id="access10" type="checkbox" name="access" {{ck10}} value="allOrders">مشاهده همه سفارشات</label>
+											</td>
+											<td>
+												<label><input id="access11" type="checkbox" name="access" {{ck11}} value="caseNewStuff">افزودن کالای موردی</label>
+											</td>
+											<td>
+												<label><input id="access12" type="checkbox" name="access" {{ck12}} value="caseEditStuff">ویرایش کالای موردی</label>
+											</td>
+											<td>
+												<label><input id="access13" type="checkbox" name="access" {{ck13}} value="newStuff">افزودن کالای جدید</label>
+											</td>
+											<td>
+												<label><input id="access14" type="checkbox" name="access" {{ck14}} value="incStuff">افزودن کالای موجود</label>
+											</td>
+											<td>
+												<label><input id="access15" type="checkbox" name="access" {{ck15}} value="editStuff">ویرایش کالا</label>
+											</td>
+											<td>
+												<label><input id="access16" type="checkbox" name="access" {{ck16}} value="newPack">ایجاد بسته</label>
+											</td>
+											<td>
+												<label><input id="access17" type="checkbox" name="access" {{ck17}} value="releaseStuff">خروج از انبار</label>
+											</td>
+											<td>
+												<label><input id="access18" type="checkbox" name="access" {{ck18}} value="searchStuff">جستجو در انبار</label>
+											</td>
+											<td>
+												<label><input id="access19" type="checkbox" name="access" {{ck19}} value="inventory">انبارداری</label>
+											</td>
+											<td>
+												<label><input id="access20" type="checkbox" name="access" {{ck20}} value="financialRep">گزارشات و تسویه مالی</label>
+											</td>
+											<td>
+												<label><input id="access21" type="checkbox" name="access" {{ck21}} value="accounting">حسابداری</label>
+											</td>
+											<td>
+												<label><input id="access22" type="checkbox" name="access" {{ck22}} value="vendorCredit">بستانکاری فروشگاه</label>
+											</td>
+											<td>
+												<label><input id="access23" type="checkbox" name="access" {{ck23}} value="creditList">لیست درخواست های واریز وجه</label>
+											</td>
+											<td>
+												<label><input id="access24" type="checkbox" name="access" {{ck24}} value="paidList">مبالغ واریزی</label>
+											</td>
+											<td>
+												<label><input id="access25" type="checkbox" name="access" {{ck25}} value="searchPage">مشاهده گزارشات (صفحه جستجو)</label>
+											</td>
+											<td>
+												<label><input id="access26" type="checkbox" name="access" {{ck26}} value="vendorTicket">تیکت فروشگاه</label>
+											</td>
+											<td>
+												<label><input id="access27" type="checkbox" name="access" {{ck27}} value="adminTicket">تیکت مدیریت</label>
+											</td>
+											<td>
+												<label><input id="access28" type="checkbox" name="access" {{ck28}} value="ordersTicket">تیکت سفارشات</label>
+											</td>
+											<td>
+												<label><input id="access29" type="checkbox" name="access" {{ck29}} value="inventoryTicket">تیکت انبارداری</label>
+											</td>
+											<td>
+												<label><input id="access30" type="checkbox" name="access" {{ck30}} value="financialTicket">تیکت حسابداری</label>
+											</td>
+											<td>
+												<label><input id="access31" type="checkbox" name="access" {{ck31}} value="techTicket">تیکت فنی</label>
+											</td>
+
+											<td>
+												<label><input id="access32" type="checkbox" name="access" {{ck32}} value="incCredit">افزایش اعتبار </label>
+											</td>
+											<td>
+												<label><input id="access33" type="checkbox" name="access" {{ck33}} value="requestForStuff">درخواست حواله و خروج از انبار</label>
+											</td>
+											<td>
+												<label><input id="access34" type="checkbox" name="access" {{ck34}} value="dashboard">داشبورد</label>
+											</td>
+											<td>
+												<label><input id="access35" type="checkbox" name="access" {{ck35}} value="defineUser">ایجاد کاربری</label>
+											</td>
+											<td>
+												<label><input id="access36" type="checkbox" name="access" {{ck36}} value="inventManagement">مدیریت انبار</label>
+											</td>
+										</tr>
+									{% endif %}
+								{% endif %}
+								<tr>
+									<td style="padding-top: 5vh; text-align: right;">
+										<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ویرایش اطلاعات" />
+									</td>
+									<td style="padding-top: 6vh; padding-right: 15vw;">
+										<a class="button" href="/delete-user/{{data['username']}}"><span>حذف کاربر</span></a>
+									</td>
+									<td style="padding-top: 6vh; padding-right: 2vw;">
+										<a class="button" href="/reset-password/{{data['username']}}" title="تغییر کلمه عبور به '123456'"><span>بازیابی کلمه عبور</span></a>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</fieldset>
+				</form>
+			</section>
+		</div>
+		<script type="text/javascript">
+			function defaultAccess() {
+				var role = document.getElementById('role').value;
+				if (role == 'admin') {
+					for (i = 1; i < 37; i++) {
+						document.getElementById('access'+i).checked = true;
+					}
+				} else if (role == 'office') {
+					for (i = 1; i < 37; i++) {
+						document.getElementById('access'+i).checked = true;
+					}
+					for (i = 26; i <= 35; i++) {
+						document.getElementById('access'+i).checked = false;
+					}
+					document.getElementById('access22').checked = false;
+				} else if (role == 'vendor_admin') {
+					for (i = 1; i < 37; i++) {
+						document.getElementById('access'+i).checked = false;
+					}
+					document.getElementById('access2').checked = true;
+					for (i = 5; i <= 10; i++) {
+						document.getElementById('access'+i).checked = true;
+					}
+					document.getElementById('access7').checked = false;
+					for (i = 13; i <= 26; i++) {
+						document.getElementById('access'+i).checked = true;
+					}
+					for (i = 32; i <= 35; i++) {
+						document.getElementById('access'+i).checked = true;
+					}
+				} else if (role == 'support') {
+					for (i = 1; i < 37; i++) {
+						document.getElementById('access'+i).checked = false;
+					}
+					document.getElementById('access25').checked = true;
+					document.getElementById('access31').checked = true;
+				}
+			}
+
+			window.onunload = function() {
+				window.opener.location.reload();
+			}
+		</script>
+	</body>
+</html>

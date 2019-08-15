@@ -2606,7 +2606,7 @@ def about():
 def register():
     if (session['role'] == 'admin') or (session['role'] == 'vendor_admin'):
         if request.method == 'POST':
-            users = {'created_date': datetime.datetime.now()}
+            users = {'created_date': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             users['name'] = request.form.get('name')
             users['vendor_name'] = request.form.get('vendor-name')
             users['account_number'] = request.form.get('account-number')
@@ -2622,7 +2622,8 @@ def register():
                 users['role'] = 'api'
                 users['acces'] = []
                 result = cursor.api_users.find_one({"username": users['username']})
-                if result:
+                result2 = cursor.users.find_one({"username": users['username']})
+                if result or result2:
                     flash(u'نام کاربری تکراری است. لطفا نام کاربری دیگری انتخاب کنید', 'danger')
                 else:
                     if new_password == confirm:
@@ -2653,14 +2654,49 @@ def register():
 
     return render_template('register.html')
 
-@app.route('/users-management/<sub_item>', methods=['GET', 'POST'])
+@app.route('/users-management/<sub_item>', methods=['GET'])
 @token_required
 def users_management(sub_item):
+    if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']):
+        pass
+    else:
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
+    data = []
     if sub_item == 'Users':
-        result = cursor.users.find()
-        data = []
+        if session['role'] == 'vendor_admin':
+            result = cursor.users.find({'vendor_name':session['vendor_name']})
+            result2 = []
+        else:
+            result = cursor.users.find()
+            result2 = cursor.api_users.find()
         for r in result:
-            r['created_date'] = r['created_date'].strftime('%Y/%m/%d - %H:%M')
+            access_list = []
+            r['created_date'] = r['created_date']
+            r['role'] = utils.RolesToFarsi(r['role'])
+            for access in r['access']:
+                access_list.append(utils.accessToFarsi(access))
+            r['access'] = access_list
+            data.append(r)
+        for r in result2:
+            r['created_date'] = r['created_date']
+            r['role'] = utils.RolesToFarsi(r['role'])
+            data.append(r)
+    elif (sub_item == 'vendors') and (session['role'] == 'admin'):
+        result = cursor.users.find()
+        for r in result:
+            if r['vendor_name']:
+                access_list = []
+                r['created_date'] = r['created_date']
+                r['role'] = utils.RolesToFarsi(r['role'])
+                for access in r['access']:
+                    access_list.append(utils.accessToFarsi(access))
+                r['access'] = access_list
+                data.append(r)
+    elif (sub_item == 'api') and (session['role'] == 'admin'):
+        result = cursor.api_users.find()
+        for r in result:
+            r['created_date'] = r['created_date']
             r['role'] = utils.RolesToFarsi(r['role'])
             data.append(r)
 
@@ -2668,6 +2704,102 @@ def users_management(sub_item):
         sub_item = sub_item,
         data = data
         )
+
+@app.route('/users-detail/<username>', methods=['GET', 'POST'])
+@token_required
+def users_detail(username):
+    if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']):
+        pass
+    else:
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
+
+    data = []
+    role = ''
+    api_user = False
+    result = cursor.users.find_one({'username': username})
+    if not result:
+        result = cursor.api_users.find_one({'username': username})
+        if result:
+            api_user = True
+    if result:
+        data = result
+        role = utils.RolesToFarsi(result['role'])
+
+    if request.method == 'POST':
+        if api_user:
+            cursor.api_users.update_many(
+                {"username": username},
+                {'$set': {
+                'edit_date': jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'),
+                'editor_username': session['username'],
+                'name': request.form.get('name'),
+                'vendor_name': request.form.get('vendor-name'),
+                'email': request.form.get('email'),
+                'phone': request.form.get('phone')
+                }
+                }
+                )
+        else:
+            cursor.users.update_many(
+                {"username": username},
+                {'$set': {
+                'edit_date': jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'),
+                'editor_username': session['username'],
+                'name': request.form.get('name'),
+                'vendor_name': request.form.get('vendor-name'),
+                'account_number': request.form.get('account-number'),
+                'account_holder': request.form.get('account-holder'),
+                'email': request.form.get('email'),
+                'phone': request.form.get('phone'),
+                'role': request.form.get('role'),
+                'access': request.form.getlist('access'),
+                }
+                }
+                )
+
+        flash(u'ویرایش اطلاعات  با موفقیت انجام شد!', 'success')
+
+    return render_template('includes/_usersManagementDetails.html',
+        data = data,
+        role = role,
+        api_user = api_user
+        )
+
+@app.route('/delete-user/<username>', methods=['GET'])
+@token_required
+def delete_user(username):
+    if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']):
+        pass
+    else:
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
+
+    cursor.users.remove({'username':username})
+    cursor.api_users.remove({'username':username})
+    flash(u'کاربر با موفقیت حذف شد.', 'success')
+    return redirect(request.referrer)
+
+@app.route('/reset-password/<username>', methods=['GET'])
+@token_required
+def reset_password(username):
+    if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']):
+        pass
+    else:
+        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        return redirect(request.referrer)
+
+    new_pass = sha256_crypt.hash(str('123456'))
+    cursor.users.update_many(
+            {"username": username},
+            {'$set': {'password': new_pass}}
+            )
+    cursor.api_users.update_many(
+            {"username": username},
+            {'$set': {'password': new_pass}}
+            )
+    flash(u'تغییر پسورد با موفقیت انجام شد.', 'success')
+    return redirect(request.referrer)
 
 @app.route('/change-password', methods=['GET', 'POST'])
 @token_required

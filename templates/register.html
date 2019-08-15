@@ -14,7 +14,7 @@
 							<table id="registering">
 								<tr>
 				                    <td>					
-										<label class="right" for="name">نام کاربر</label>
+										<label class="right" for="name">نام و نام خانوادگی</label>
 										<input id="name" type="text" name="name" required />
 									</td>
 								</tr>
@@ -56,7 +56,7 @@
 								<tr>				                    
 									<td>					
 										<label class="right" for="username">نام کاربری</label>
-										<input id="username" type="text" name="username" placeholder="e.g. John" required />
+										<input id="username" type="text" name="username" required />
 									</td>
 								</tr>
 								<tr>
@@ -94,6 +94,9 @@
 									<tr class="access">
 										<td>
 											<label><input id="access2" type="checkbox" name="access" value="Ordering">ثبت سفارش</label>
+										</td>
+										<td>
+											<label><input id="access4" type="checkbox" name="access" value="processList">صف پردازش</label>
 										</td>
 										<td>
 											<label><input id="access5" type="checkbox" name="access" value="todayOrders">سفارشات امروز</label>
@@ -357,7 +360,7 @@
 					document.getElementById('access'+i).checked = false;
 				}
 				document.getElementById('access2').checked = true;
-				for (i = 5; i <= 10; i++) {
+				for (i = 4; i <= 10; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
 				document.getElementById('access7').checked = false;
