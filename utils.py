@@ -20,8 +20,8 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
-#VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
+#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
 
@@ -158,11 +158,11 @@ def guarantee_orders(cursor):
     return grnt
 
 def pending_orders(cursor):
-    #remove 7 days before orders
     if session['role'] == 'vendor_admin':
         result = cursor.pending_orders.find({'vendorName': session['vendor_name']})
     else:
         result = cursor.pending_orders.find()
+    #remove 7 days before orders
     d = jdatetime.datetime.today() - jdatetime.timedelta(days=7)
     seven_days_before = d.strftime('%Y/%m/%d')
     for r in result:
@@ -170,19 +170,46 @@ def pending_orders(cursor):
             for i in range(len(r['products'])):
                 vinvent = cursor.vestano_inventory.find_one({'productId':r['products'][i]['productId']})
                 vinvent['status']['82'] -= r['products'][i]['count']
+                #if '84' in vinvent['status'].keys():
+                    #vinvent['status']['84'] += r['products'][i]['count']
+                #else:
+                    #vinvent['status']['84'] = r['products'][i]['count']
                 cursor.vestano_inventory.update_many(
                     {'productId': vinvent['productId']},
                     {'$set':{'status': vinvent['status']}}
                     )
-            cursor.pending_orders.remove({'orderId': r['orderId']})
-            cursor.deleted_orders.insert_one(r)
+            cursor.pending_orders.update_many(
+                {'orderId': r['orderId']},
+                {'$set':{'status': 84}}
+                )
+            cursor.today_orders.update_many(
+                {'orderId': r['orderId']},
+                {'$set':{'status': 84}}
+                )
+            cursor.guarantee_orders.update_many(
+                {'orderId': r['orderId']},
+                {'$set':{'status': 84}}
+                )
+            #cursor.pending_orders.remove({'orderId': r['orderId']})
+            #cursor.delFmPendings.insert_one(r)
+            #cursor.deleted_orders.insert_one(r)
 
     if session['role'] == 'vendor_admin':
-        result = cursor.pending_orders.find({'vendorName': session['vendor_name']})
+        result = cursor.pending_orders.find({'vendorName': session['vendor_name'], 'status':82})
+        result2 = cursor.pending_orders.find({'vendorName': session['vendor_name'], 'status':84})
     else:
-        result = cursor.pending_orders.find()
+        result = cursor.pending_orders.find({'status':82})
+        result2 = cursor.pending_orders.find({'status':84})
     pnd = []
     for r in result:
+        pNameList = []
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
+        state_result = cursor.states.find_one({'Code': r['stateCode']})
+        pnd.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            statusToString(r['status']), pNameList))
+    for r in result2:
         pNameList = []
         for i in range(len(r['products'])):
             pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
@@ -771,6 +798,9 @@ def details(cursor, orderId, code):
 
     parcelCode = r['parcelCode']
 
+    if 'registerPhoneNumber' not in r.keys():
+        r['registerPhoneNumber'] = '-'
+
     if r['vendorName'] == u'سفارش موردی':
         case_ord_res = cursor.case_orders.find_one({'orderId': orderId})
         if 'wage' not in case_ord_res.keys():
@@ -857,7 +887,8 @@ def details(cursor, orderId, code):
         r['registerFirstName']+' '+r['registerLastName'], r['registerCellNumber'], r['registerPostalCode'],
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
         r['products'],count, price, discount, orderId, status, temp_wage, parcelCode, deliveryPrice,
-        senderName, senderCellNumber, senderPostalCode, Weight, packing, carton, gathering, rad, cgd, grnt)
+        senderName, senderCellNumber, senderPostalCode, Weight, packing, carton, gathering, rad,
+        cgd, grnt, r['registerPhoneNumber'])
 
     return details
 
@@ -1010,6 +1041,8 @@ def statusToString(statusCode):
         statusString = u'در انتظار کالا'
     if statusCode==83:
         statusString = u'لغو شده'
+    if statusCode==84:
+        statusString = u'حذف از در انتظار کالا'
 
     return statusString
 
@@ -1138,6 +1171,9 @@ def Products(cursor, product):
     result = cursor.vestano_inventory.find_one({'productId': product})
     if not result:
         result = cursor.case_inventory.find_one({'productId': product})
+    if 'pack_products' not in result.keys():
+        result['pack_products'] = []
+
     ans = {
     'productName': result['productName'],
     'productId': product,
@@ -1145,7 +1181,8 @@ def Products(cursor, product):
     'vendor': result['vendor'],
     'price': result['price'] - config.defaultWageForDefineStuff,
     'weight': result['weight'],
-    'discount': result['percentDiscount']
+    'discount': result['percentDiscount'],
+    'pack_products': result['pack_products']
     }
     return ans
 
@@ -1717,6 +1754,100 @@ def write_excel(cursor):
         value = invent[i-1][6]
         xf = 0
         sheet.write(row, col, value)
+    excel_file.save(filename)
+
+def write_excel_financial(cursor, role):
+    #filename = "E:/projects/VESTANO/Vestano/static/pdf/financial.xls"
+    filename = "/root/vestano/static/pdf/xls/financial.xls"
+    f = financial(cursor)
+    finan = f['record']
+    excel_file = xlwt.Workbook()
+    today = jdatetime.datetime.today().strftime('%Y-%m-%d')
+    sheet = excel_file.add_sheet(today)
+    style0 = xlwt.easyxf('font: name Times New Roman, bold on;'
+        'pattern: pattern solid, fore_colour yellow;'
+        'align: horiz center;')
+    if role == 'vendor_admin':
+        sheet.cols_right_to_left = 1
+        sheet.write(0, 0, u'شناسه سفارش', style0)
+        sheet.write(0, 1, u'کد رهگیری', style0)
+        sheet.write(0, 2, u'مبلغ تمام شده کالا', style0)
+        sheet.write(0, 3, u'کارمزد', style0)
+        sheet.write(0, 4, u'بستانکار | بدهکار فروشگاه', style0)
+        sheet.write(0, 5, u'وضعیت درخواست وجه', style0)
+        sheet.write(0, 6, u'وضعیت مرسوله', style0)
+        sheet.write(0, 7, u'نوع پرداخت', style0)
+        for i in range(1, len(finan)+1):
+            row = i
+            for j in range(3):
+                col = j
+                ctype = 'string'
+                value = finan[i-1][j]
+                xf = 0
+                sheet.write(row, col, value)
+            col = 3
+            ctype = 'string'
+            value = finan[i-1][6]
+            xf = 0
+            sheet.write(row, col, value)
+            col = 4
+            ctype = 'string'
+            value = (0 - finan[i-1][7])
+            xf = 0
+            sheet.write(row, col, value)
+            col = 5
+            ctype = 'string'
+            value = finan[i-1][13]
+            xf = 0
+            sheet.write(row, col, value)
+            col = 6
+            ctype = 'string'
+            value = finan[i-1][12]
+            xf = 0
+            sheet.write(row, col, value)
+            col = 7
+            ctype = 'string'
+            value = finan[i-1][10]
+            xf = 0
+            sheet.write(row, col, value)
+    else:
+        sheet.cols_right_to_left = 1
+        sheet.write(0, 0, u'شناسه سفارش', style0)
+        sheet.write(0, 1, u'کد رهگیری', style0)
+        sheet.write(0, 2, u'مبلغ تمام شده کالا', style0)
+        sheet.write(0, 3, u'هزینه ارسال', style0)
+        sheet.write(0, 4, u'ارزش افزوده', style0)
+        sheet.write(0, 5, u'حق ثبت', style0)
+        sheet.write(0, 6, u'کارمزد', style0)
+        sheet.write(0, 7, u'بستانکار | بدهکار فروشگاه', style0)
+        sheet.write(0, 8, u'بستانکار | بدهکار پست', style0)
+        sheet.write(0, 9, u'بستانکار | بدهکار وستانو', style0)
+        sheet.write(0, 10, u'وضعیت درخواست وجه', style0)
+        sheet.write(0, 11, u'وضعیت مرسوله', style0)
+        sheet.write(0, 12, u'نوع پرداخت', style0)
+        for i in range(1, len(finan)+1):
+            row = i
+            for j in range(10):
+                col = j
+                ctype = 'string'
+                value = finan[i-1][j]
+                xf = 0
+                sheet.write(row, col, value)
+            col = 10
+            ctype = 'string'
+            value = finan[i-1][13]
+            xf = 0
+            sheet.write(row, col, value)
+            col = 11
+            ctype = 'string'
+            value = finan[i-1][12]
+            xf = 0
+            sheet.write(row, col, value)
+            col = 12
+            ctype = 'string'
+            value = finan[i-1][10]
+            xf = 0
+            sheet.write(row, col, value)
     excel_file.save(filename)
 
 def calculate_wage(vendor, weight):

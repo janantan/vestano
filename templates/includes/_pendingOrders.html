@@ -44,13 +44,23 @@
 		</thead>
 		<tbody id="myDropdown" style="height: 74vh;">
 			{% for rec in pending_orders %}
-				<tr class="rows">
+				{% if rec[8] == 'در انتظار کالا' %}
+				<tr class="rows" style="background: #f9f9f9;">
+				{% else %}
+				<tr class="rows" style="color: #df0000; background: #e0e0e0;">
+				{% endif %}
 					<td style="width: 50px;">
 						<span>{{loop.index}}</span>
 					</td>
-					<td>
-						<a title="{{('\n'.join(rec[9]))}}"><span>{{rec[0]}}</span></a>
-					</td>
+					{% if rec[8] == 'در انتظار کالا' %}
+						<td>
+							<a title="{{('\n'.join(rec[9]))}}"><span>{{rec[0]}}</span></a>
+						</td>
+					{% else %}
+						<td>
+							<a title="{{('\n'.join(rec[9]))}}"><span style="color: #df0000;">{{rec[0]}}</span></a>
+						</td>
+					{% endif %}
 					<td>
 						<span>{{rec[1]}}</span>
 					</td>

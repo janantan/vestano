@@ -322,7 +322,7 @@
       <div class="mrg-vh4 mrg-vw23">
         <fieldset id="search-result" class="fieldset" style="border: none; display: none;">
           <table class="search-row">
-            <tr style="background: yellow;">
+            <tr style="background: #db4d81;">
               <th class="vw15">
                 <span>عنوان کالا</span>
               </th>
@@ -362,6 +362,55 @@
                 <span id="price"></span>
               </td>
             </tr>
+          </table>
+          <div id="pack_details0" style="display: none; margin-bottom: 1vh;">
+            <span class="bold">جزئیات  بسته:</span>
+          </div>
+          <table id="pack_table" style="display: none; text-align: center;">
+            <tbody style="height: 5vh;">
+              <tr style="background: #009ca5;">
+                <th class="vw15">
+                  <span>عنوان کالا</span>
+                </th>
+                <th class="vw8">
+                  <span>شناسه کالا</span>
+                </th>
+                <th class="vw10">
+                  <span>شرکت فروشنده</span>
+                </th>
+                <th class="vw6">
+                  <span>تعداد</span>
+                </th>
+                <th class="vw8">
+                  <span>وزن</span>
+                </th>
+                <th class="vw8">
+                  <span>قیمت</span>
+                </th>
+              </tr>
+              {% for i in range(10) %}
+                <tr id="pack_details{{i+1}}">
+                  <td class="vw15">
+                    <span id="p_name{{i+1}}"></span>
+                  </td>
+                  <td class="vw8">
+                    <span id="p_id{{i+1}}"></span>
+                  </td>
+                  <td class="vw10">
+                    <span id="vendor{{i+1}}"></span>
+                  </td>
+                  <td class="vw6">
+                    <span id="count{{i+1}}"></span>
+                  </td>
+                  <td class="vw8">
+                    <span id="weight{{i+1}}"></span>
+                  </td>
+                  <td class="vw8">
+                    <span id="price{{i+1}}"></span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
           </table>
         </fieldset>
       </div>
@@ -689,6 +738,25 @@
             document.getElementById('count').innerHTML = json.count
             document.getElementById('weight').innerHTML = json.weight + ' گرم'
             document.getElementById('price').innerHTML = json.price + ' ریال'
+
+            var pack = json.pack_products
+            var pack_len = pack.length;
+            if (pack_len) {
+              document.getElementById('pack_details0').style.display = 'block';
+              document.getElementById('pack_table').style.display = 'block';
+              for (i = 0; i < pack_len; i++) {
+                //document.getElementById('pack_details'+(i+1)).style.display = 'block';
+                document.getElementById('p_name'+(i+1)).innerHTML = pack[i].productName;
+                document.getElementById('p_id'+(i+1)).innerHTML = pack[i].productId;
+                document.getElementById('vendor'+(i+1)).innerHTML = json.vendor;
+                document.getElementById('count'+(i+1)).innerHTML = pack[i].count;
+                document.getElementById('weight'+(i+1)).innerHTML = pack[i].weight + ' گرم';
+                document.getElementById('price'+(i+1)).innerHTML = pack[i].price + ' ریال';
+              }
+            } else {
+              document.getElementById('pack_details0').style.display = 'none';
+              document.getElementById('pack_table').style.display = 'none';
+            }
        }
     }
     xhr.open('GET', '/ajax?code=' + product_id, true);

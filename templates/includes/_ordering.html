@@ -13,6 +13,7 @@
                 <input id="first_name" type="text" name="first_name" onchange="validator('first_name', 'name')" placeholder="نام" required />
                 <input id="last_name" type="text" name="last_name" onchange="validator('last_name', 'name')" placeholder="نام خانوادگی" required />
                 <input id="cell_number" type="text" name="cell_number" onchange="validator('cell_number', 'number')" placeholder="شماره موبایل" />
+                <input id="phone_number" type="text" name="phone_number" onchange="validator('phone_number', 'phone')" placeholder="تلفن ثابت" />
               </div>
               <div>
                 <label>آدرس</label>
@@ -377,7 +378,7 @@
             document.getElementById(id_name).value = "";
             document.getElementById(id_name).focus();
             if (type == 'name') {
-              alert('خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی باشند!');
+              alert('خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی و لاتین باشند!');
             } else {
               alert('خطا !\nشماره موبایل به درستی وارد نشده است!');
             }

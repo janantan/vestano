@@ -49,7 +49,7 @@ name_schema = {
 'name': {
     'type': 'string',
     'required': True,
-    'regex': '^[ آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهءئی]+$'
+    'regex': '^[ آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهءئیa-zA-Z*_. @#&()+]+$'
 }
 }
 
@@ -57,7 +57,16 @@ number_schema = {
 'number':{
     'type': 'string',
     'required': True,
-    'regex': '^([0])[0-9]+$',
+    'regex': '^([0])[\d -]+$',
+    'maxlength': 11
+}
+}
+
+phone_schema = {
+'number':{
+    'type': 'string',
+    'required': True,
+    'regex': '^[\d -]+$',
     'maxlength': 11
 }
 }
@@ -82,11 +91,11 @@ class SomeSoapService(spyne.Service):
     __in_protocol__ = Soap11(validator='lxml')
     __out_protocol__ = Soap11()
 
-    @spyne.srpc(String, String, Unicode, Unicode, Unicode, String, Integer, Integer, Unicode, String,
+    @spyne.srpc(String, String, Unicode, Unicode, Unicode, String, String, Integer, Integer, Unicode, String,
         Array(Products), Integer, Integer, String, String, String, _returns=String)
     def NewOrder(username, password, vendorName, registerFirstName, registerLastName, registerCellNumber,
-        stateCode, cityCode, registerAddress, registerPostalCode, products, serviceType, payType, guaranteeProduct,
-        orderDate, orderTime):
+        registerPhoneNumber, stateCode, cityCode, registerAddress, registerPostalCode, products, serviceType,
+        payType, guaranteeProduct, orderDate, orderTime):
         if not username:
             print('Missed Username Field!')
             return 4
@@ -108,6 +117,8 @@ class SomeSoapService(spyne.Service):
                     return 0
                 if not registerCellNumber:
                     return 0
+                if not registerPhoneNumber:
+                    registerPhoneNumber = '-'
                 if not stateCode:
                     return 0
                 if not cityCode:
@@ -163,6 +174,7 @@ class SomeSoapService(spyne.Service):
                 'registerFirstName' : registerFirstName,
                 'registerLastName' : registerLastName,
                 'registerCellNumber' : registerCellNumber,
+                'registerPhoneNumber' : registerPhoneNumber,
                 'stateCode' : stateCode,
                 'cityCode' : cityCode,
                 'registerAddress' : registerAddress,
@@ -540,6 +552,19 @@ def confirm_orders(code):
             weight = weight + result['products'][i]['weight']
             discount = discount + result['products'][i]['percentDiscount']
 
+        if result['vendorName'] == u'سفارش موردی':
+            cod = cursor.case_orders.find_one({'orderId': code})
+            if (not len(cod['rad'])) and (pType == 1):
+                vestano_costs = cod['wage'] + cod['carton'] + cod['packing'] + cod['gathering']
+                price = price + vestano_costs
+                p = result['products'][0]['price']
+                result['products'][0]['price'] = p + vestano_costs
+                edit_result = utils.editStuff(
+                    result['products'][0]['productId'],
+                    result['products'][0]['weight'],
+                    result['products'][0]['price']
+                    )
+        
         order = {
         'cityCode': result['cityCode'],
         'price': price,
@@ -552,7 +577,7 @@ def confirm_orders(code):
         'firstName': result['registerFirstName'],
         'lastName': result['registerLastName'],
         'address': result['registerAddress'],
-        'phoneNumber': '',
+        'phoneNumber': result['registerPhoneNumber'],
         'cellNumber': result['registerCellNumber'],
         'postalCode': result['registerPostalCode'],
         'products': result['products']
@@ -1170,6 +1195,7 @@ def edit_orders(orderId):
                 'registerFirstName' : request.form.get('first_name'),
                 'registerLastName' : request.form.get('last_name'),
                 'registerCellNumber' : request.form.get('cell_number'),
+                'registerPhoneNumber' : request.form.get('phone_number'),
                 'stateCode' : int(request.form.get('stateCode')),
                 'cityCode' : int(request.form.get('cityCode')),
                 'registerAddress' : request.form.get('address'),
@@ -1191,6 +1217,7 @@ def edit_orders(orderId):
                 'registerFirstName' : request.form.get('first_name'),
                 'registerLastName' : request.form.get('last_name'),
                 'registerCellNumber' : request.form.get('cell_number'),
+                'registerPhoneNumber' : request.form.get('phone_number'),
                 'stateCode' : int(request.form.get('stateCode')),
                 'cityCode' : int(request.form.get('cityCode')),
                 'registerAddress' : request.form.get('address'),
@@ -1213,6 +1240,7 @@ def edit_orders(orderId):
                     'registerFirstName' : request.form.get('first_name'),
                     'registerLastName' : request.form.get('last_name'),
                     'registerCellNumber' : request.form.get('cell_number'),
+                    'registerPhoneNumber' : request.form.get('phone_number'),
                     'stateCode' : int(request.form.get('stateCode')),
                     'cityCode' : int(request.form.get('cityCode')),
                     'registerAddress' : request.form.get('address'),
@@ -1243,6 +1271,7 @@ def edit_orders(orderId):
                         'registerFirstName' : request.form.get('first_name'),
                         'registerLastName' : request.form.get('last_name'),
                         'registerCellNumber' : request.form.get('cell_number'),
+                        'registerPhoneNumber' : request.form.get('phone_number'),
                         'stateCode' : int(request.form.get('stateCode')),
                         'cityCode' : int(request.form.get('cityCode')),
                         'registerAddress' : request.form.get('address'),
@@ -1330,6 +1359,7 @@ def ordering(item):
                 'registerFirstName' : request.form.get('first_name'),
                 'registerLastName' : request.form.get('last_name'),
                 'registerCellNumber' : request.form.get('cell_number'),
+                'registerPhoneNumber' : request.form.get('phone_number'),
                 'stateCode' : int(request.form.get('stateCode')),
                 'cityCode' : int(request.form.get('cityCode')),
                 'registerAddress' : request.form.get('address'),
@@ -2962,6 +2992,14 @@ def validator_ajax():
                 return jsonify({'result': True})
             else:
                 return jsonify({'result': False})
+        elif Type == 'phone':
+            data = {
+            'number' : Data
+            }
+            if v.validate(data, phone_schema):
+                return jsonify({'result': True})
+            else:
+                return jsonify({'result': False})
 
 @app.route('/case-ajax', methods=['GET'])
 def case_ajax():
@@ -3128,6 +3166,15 @@ def show_pdf(orderId):
 def export_excel():
     utils.write_excel(cursor)
     filename = '/root/vestano/static/pdf/xls/inventory.xls'
+    
+    return send_file(filename, as_attachment=True)
+
+@app.route('/export-financial-excel', methods=['GET'])
+@token_required
+def export_financial_excel():
+    utils.write_excel_financial(cursor, session['role'])
+    filename = '/root/vestano/static/pdf/xls/financial.xls'
+    #filename = 'E:/projects/VESTANO/Vestano/static/pdf/financial.xls'
     
     return send_file(filename, as_attachment=True)
 

@@ -81,7 +81,7 @@
 							<span class="blue bold">تلفن ثابت:</span>
 						</td>
 						<td>
-							<span> - </span>
+							<span>{{details[28]}}</span>
 						</td>
 						<td>
 							<span class="blue bold">تلفن همراه:</span>
@@ -108,7 +108,7 @@
 							<span class="blue bold">تلفن ثابت:</span>
 						</td>
 						<td>
-							<span> - </span>
+							<span>{{details[28]}}</span>
 						</td>
 						<td>
 							<span class="blue bold">تلفن همراه:</span>
@@ -448,9 +448,11 @@
 				{% endif %}
 			</div>
 		{% elif code == 'pnd' %}
-			<div style="margin-top: 3vh;">
-				<a class="button" href="javascript:processFunction('/return-order/{{details[13]}}')" title="بازگشت جهت بررسی مجدد" style="background-color: #f3f3f3;">بازگشت به صف پردازش</a>
-			</div>
+			{% if details[14] == 'در انتظار کالا' %}
+				<div style="margin-top: 3vh;">
+					<a class="button" href="javascript:processFunction('/return-order/{{details[13]}}')" title="بازگشت جهت بررسی مجدد" style="background-color: #f3f3f3;">بازگشت به صف پردازش</a>
+				</div>
+			{% endif %}
 		{% elif code == 'all' %}
 			<div style="margin-top: 3vh;">
 				{% if details[1] == 'سفارش موردی' %}
