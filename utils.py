@@ -1,6 +1,5 @@
 #coding: utf-8
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, jsonify
-import datetime
 import string
 import re
 import json
@@ -1867,3 +1866,12 @@ def calculate_wage(vendor, weight):
     else:
         vestano_wage = config.wage
     return vestano_wage
+
+def case_search(cursor, rec):
+    #pass
+    #if rec['orderId'] and rec['s_name'] and rec['r_name'] and rec['stateCode'] and rec['cityCode'] and rec['parcelCode'] and rec['serviceType'] and rec['payType'] and rec['status']:
+    result = cursor.orders.find({
+        'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+        'vendorName': 'سفارش موردی'
+        })
+    return result

@@ -63,23 +63,7 @@
 									</td>
 								</tr>
 								{% if not api_user %}
-									<tr>
-										<td>
-											<label class="right" for="role">سطح کاربری</label>
-											<select id="role" name="role" onchange="defaultAccess()">
-												<option value="{{data['role']}}">{{role}}</option>
-												<option value="admin">مدیر</option>
-												<option value="office">دفتر</option>
-												<option value="vendor_admin">مدیر فروشگاه</option>
-												<option value="support">پشتیبانی</option>
-											</select>
-										</td>
-									</tr>
-									<tr>
-										<td>
-											<label style="margin-bottom: 2vh;" class="right" for="access">سطوح دسترسی</label>
-										</td>
-									</tr>
+									
 									{% if 'caseOrdering' in data['access'] %}{% set ck1='checked' %}{% else %}{% set ck1='' %}{% endif %}
 									{% if 'Ordering' in data['access'] %}{% set ck2='checked' %}{% else %}{% set ck2='' %}{% endif %}
 									{% if 'caseProcessList' in data['access'] %}{% set ck3='checked' %}{% else %}{% set ck3='' %}{% endif %}
@@ -118,6 +102,11 @@
 									{% if 'inventManagement' in data['access'] %}{% set ck36='checked' %}{% else %}{% set ck36='' %}{% endif %}
 
 									{% if session['role'] == 'vendor_admin' %}
+										<tr>
+											<td>
+												<label style="margin-bottom: 2vh;" class="right" for="access">سطوح دسترسی</label>
+											</td>
+										</tr>
 										<tr class="access">
 											<td>
 												<label><input id="access2" type="checkbox" {{ck2}} name="access" value="Ordering">ثبت سفارش</label>
@@ -193,6 +182,23 @@
 											</td>
 										</tr>
 									{% else %}
+										<tr>
+											<td>
+												<label class="right" for="role">سطح کاربری</label>
+												<select id="role" name="role" onchange="defaultAccess()">
+													<option value="{{data['role']}}">{{role}}</option>
+													<option value="admin">مدیر</option>
+													<option value="office">دفتر</option>
+													<option value="vendor_admin">مدیر فروشگاه</option>
+													<option value="support">پشتیبانی</option>
+												</select>
+											</td>
+										</tr>
+										<tr>
+										<td>
+											<label style="margin-bottom: 2vh;" class="right" for="access">سطوح دسترسی</label>
+										</td>
+									</tr>
 										<tr class="access">
 											<td>
 												<label><input id="access1" type="checkbox" name="access" {{ck1}} value="caseOrdering">ثبت سفارش موردی</label>

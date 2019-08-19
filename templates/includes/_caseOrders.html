@@ -128,7 +128,7 @@
                     <input id="count1" type="number" name="count_1" size="4" value="1" onchange="anyChange()" required/>
                   </td>
                   <td>
-                    <input id="price1" type="number" name="price_1" size="6" onchange="anyChange()" required/>
+                    <input id="price1" type="number" name="price_1" size="6" onchange="priceChange()" required/>
                   </td>
                   <td>
                     <input id="discount1" type="number" name="discount_1" size="6" onchange="anyChange()" required/>
@@ -193,10 +193,10 @@
               <table id="order-1">
                 <tr>
                   <td>
-                    <label><input id="payType1" type="radio" name="payType" onchange="getDeliveryPrice()" value="1" checked />پرداخت در محل</label>
+                    <label><input id="payType1" type="radio" name="payType" onchange="codChange()" value="1" checked />پرداخت در محل</label>
                   </td>
                   <td>
-                    <label><input id="payType2" type="radio" name="payType" onchange="getDeliveryPrice()" value="2"/>پرداخت آنلاین</label>
+                    <label><input id="payType2" type="radio" name="payType" onchange="onlineChange()" value="2"/>پرداخت آنلاین</label>
                   </td>
                 </tr>
               </table>
@@ -214,6 +214,12 @@
                       <input id="product-price" type="number"/>
                     </td>
                     <td style="display: none;">
+                      <input id="onChange-product-price" type="number"/>
+                    </td>
+                    <td style="display: none;">
+                      <input id="first-wage" value="0" type="number"/>
+                    </td>
+                    <td style="display: none;">
                       <input id="pishtaz-input" type="number"/>
                     </td>
                     <td style="display: none;">
@@ -221,19 +227,19 @@
                     </td>
                     <td>
                       <label>کارمزد (ریال):</label>
-                      <input id="wage" type="number" name="wage" size="6" required/>
+                      <input id="wage" type="number" name="wage" value="0" onchange="wageOnChange()" size="6"  required/>
                     </td>
                     <td>
                       <label>هزینه کارتن (ریال):</label>
-                      <input id="carton" type="number" name="carton" size="6" required/>
+                      <input id="carton" type="number" name="carton" value="0" onchange="wageOnChange()" size="6" required/>
                     </td>
                     <td>
                       <label>هزینه بسته بندی (ریال):</label>
-                      <input id="packing" type="number" name="packing" size="6" required/>
+                      <input id="packing" type="number" name="packing" value="0" onchange="wageOnChange()" size="6" required/>
                     </td>
                     <td>
                       <label>هزینه جمع آوری (ریال):</label>
-                      <input id="gathering" type="number" name="gathering" size="6" required/>
+                      <input id="gathering" type="number" name="gathering" value="0" onchange="wageOnChange()" size="6" required/>
                     </td>
                     <td style="width: 20%;">
                       <label><input type="checkbox" name="without_ck" value="1"/>فاقد وجه نقد و اشیاء قیمتی</label>
@@ -264,10 +270,11 @@
   var show_flag = 0;
   var q=1;
   var i_list = ["row1"];
-  var Weight = 0
-  var Price = 0
-  var Count = 0
-  var Discount = 0
+  var Weight = 0;
+  var Price = 0;
+  var Count = 0;
+  var Discount = 0;
+  var wage_flag = 1;
   function addrow(id_name, action) {
     var original = document.getElementById(id_name);
     var clone = original.cloneNode(true); // "deep" clone
@@ -383,9 +390,9 @@
           document.getElementById('sefareshi-input').value = json.sefareshi;
           document.getElementById('pishtaz-input').value = json.pishtaz;
 
-          if (document.getElementById('rad').checked) {
-            rentalAtDest();
-          }
+          //if (document.getElementById('rad').checked) {
+            //rentalAtDest();
+          //}
        }
     }
     xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+Price+'&city='+c+'&pType='+pType, true);
@@ -419,10 +426,11 @@
     Count = c;
     Discount = d;
     document.getElementById('count-sum').value = Count;
-    document.getElementById('price-sum').value = Price;
+    document.getElementById('price-sum').value = Price;    
     document.getElementById('weight-sum').value = Weight;
     document.getElementById('discount-sum').value = Discount;
     wageCalculator(Weight);
+    return Price;
   }
 
   function anyChange() {
@@ -579,6 +587,7 @@
         document.getElementById(select_id).value = json.productId;
         document.getElementById(price_id).value = json.price;
         document.getElementById('product-price').value = json.price;
+        document.getElementById('onChange-product-price').value = json.price;
         document.getElementById(discount_id).value = json.discount;
         document.getElementById(weight_id).value = json.weight;
         document.getElementById(exist_id).innerHTML = json.count;
@@ -594,7 +603,17 @@
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
           var json = JSON.parse(this.responseText);
-          document.getElementById('wage').value = json.wage;
+          var cod = document.getElementById('payType1').checked;
+          var online = document.getElementById('payType2').checked;
+          if (online) {
+            document.getElementById('wage').value = json.wage;
+            document.getElementById('first-wage').value = json.wage;
+          } else if (cod) {
+            if (wage_flag) {
+              document.getElementById('wage').value = json.wage + 5000;
+            }
+            document.getElementById('first-wage').value = json.wage + 5000;
+          }
        }
     }
     xhr.open('GET', '/wage-calculator?weight='+weight, true);
@@ -616,8 +635,8 @@
       document.getElementById('free').disabled = true;
       document.getElementById('cgd').checked = false;
     } else {
-      document.getElementById('price1').value = document.getElementById('product-price').value;
-      document.getElementById('price-sum').value = document.getElementById('product-price').value;
+      document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
+      document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
       anyChange();
       document.getElementById('free').disabled = false;
     }
@@ -630,11 +649,69 @@
       document.getElementById('free').disabled = false;
       document.getElementById('payType1').checked = true;
       document.getElementById('rad').checked = false;
-      //document.getElementById('price1').value = document.getElementById('product-price').value;
-      //document.getElementById('price-sum').value = document.getElementById('product-price').value;
+      document.getElementById('price1').value = document.getElementById('product-price').value;
+      document.getElementById('price-sum').value = document.getElementById('product-price').value;
       anyChange();
     } else {
       document.getElementById('free').checked = false;
+      document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
+      document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
+      anyChange();
     }
+  }
+
+  function wageOnChange() {
+    var cgd = document.getElementById('cgd').checked;
+    var rad = document.getElementById('rad').checked;
+    var cod = document.getElementById('payType1').checked;
+    var online = document.getElementById('payType2').checked;
+    var post_free = document.getElementById('free').checked;
+    var wage = parseInt(document.getElementById('wage').value);
+    var packing = parseInt(document.getElementById('packing').value);
+    var carton = parseInt(document.getElementById('carton').value);
+    var gathering = parseInt(document.getElementById('gathering').value);
+    var product_price = parseInt(document.getElementById('product-price').value);
+    var sum = wage+packing+carton+gathering;
+    if (rad) {
+      rentalAtDest();
+    }
+    else if (cgd) {
+      productPriceAtDest();
+    }
+    else if ((cod) & (!post_free)) {
+      document.getElementById('price1').value = product_price + sum;
+      document.getElementById('price-sum').value = product_price + sum;
+      document.getElementById('onChange-product-price').value = product_price + sum;
+      anyChange();
+    }
+    else if ((online) & (!post_free)) {
+      document.getElementById('price1').value = product_price;
+      document.getElementById('price-sum').value = product_price + sum;
+      document.getElementById('onChange-product-price').value = product_price;
+      anyChange();
+    }
+    if (wage != parseInt(document.getElementById('first-wage').value)) {
+      wage_flag = 0;
+    }
+  }
+
+  function priceChange() {
+    var price = refreshWeightPrice();
+    getDeliveryPrice();
+    document.getElementById('product-price').value = price;
+  }
+
+  function onlineChange() {
+    document.getElementById('price1').value = document.getElementById('product-price').value;
+    document.getElementById('price-sum').value = document.getElementById('product-price').value;
+    getDeliveryPrice();
+    wageCalculator(document.getElementById('weight1').value);
+  }
+
+  function codChange() {
+    document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
+    document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
+    getDeliveryPrice();
+    wageCalculator(document.getElementById('weight1').value);
   }
 </script>

@@ -1,0 +1,22 @@
+{% set cases = "background:#eee;" %}
+{% set vendors = "background:#eee;" %}
+{% set acc = "background:#eee;" %}
+
+{% if "cases" in request.base_url %}
+	{% set cases = "background:yellow;" %}
+{% elif "vendors" in request.base_url %}
+	{% set vendors = "background:yellow;" %}
+{% elif "accounting" in request.base_url %}
+	{% set acc = "background:yellow;" %}
+{% endif %}
+<div id="tab">
+	{% if 'caseProcessList' in session['access'] %}
+		<a href="/user-pannel/search/cases" style={{cases}} class="button">سفارشات موردی</a>
+	{% endif %}
+	{% if 'processList' in session['access'] %}
+		<a href="/user-pannel/search/vendors" style={{vendors}} class="button">سفارشات فروشگاهی</a>
+	{% endif %}
+	{% if ('financialRep' in session['access']) and ('accounting' in session['access']) %}
+		<a href="/user-pannel/search/accounting" style={{acc}} class="button">حسابداری</a>
+	{% endif %}
+</div>

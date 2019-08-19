@@ -343,6 +343,7 @@
 
 		function defaultAccess() {
 			var role = document.getElementById('role').value;
+			alert(role)
 			if (role == 'admin') {
 				for (i = 1; i < 37; i++) {
 					document.getElementById('access'+i).checked = true;

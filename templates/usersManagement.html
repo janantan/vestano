@@ -12,7 +12,7 @@
 			{% if session['role'] != 'vendor_admin' %}
 				{% include 'includes/_usersManagementTab.html' %}
 			{% endif %}
-			{% if (sub_item == 'Users') or (sub_item == 'api') %}
+			{% if (sub_item == 'Users') or (sub_item == 'office') or (sub_item == 'api') %}
 				{% if session['role'] != 'vendor_admin' %}
 				<fieldset class="fieldset" style="margin-top: 1vh; height: 75vh;">
 				{% else %}
@@ -51,11 +51,19 @@
 						</thead>
 						<tbody id="myDropdown" style="height: 71vh;">
 							{% for rec in data %}
+							{% if session['role'] != 'vendor_admin' %}
 								{% if session['username'] == rec['username'] %}
 								<tr id="rows" class="border-bottom" onclick="usersDetail('{{rec['username']}}')" style="background: #81fc81;">
 								{% else %}
 								<tr id="rows" class="border-bottom" onclick="usersDetail('{{rec['username']}}')">
 								{% endif %}
+							{% else %}
+								{% if session['username'] == rec['username'] %}
+								<tr class="border-bottom" style="background: #81fc81;">
+								{% else %}
+								<tr id="rows" class="border-bottom" onclick="usersDetail('{{rec['username']}}')">
+								{% endif %}
+							{% endif %}
 									<td style="width: 4vw;">
 										<span>{{loop.index}}</span>
 									</td>
@@ -65,9 +73,21 @@
 									<td>
 										<span class="font14">{{rec['username']}}</span>
 									</td>
-									<td>
-										<a title="{{('\n'.join(rec['access']))}}"><span>{{rec['role']}}</span></a>
-									</td>
+									{% if ('ایجاد کاربری' not in rec['access']) and (rec['role'] == 'مدیر فروشگاه' ) %}
+										{% if session['role'] == 'vendor_admin' %}
+										<td>
+											<a title="{{('\n'.join(rec['access']))}}"><span>کاربر</span></a>
+										</td>
+										{% else %}
+										<td>
+											<a title="{{('\n'.join(rec['access']))}}"><span>کاربر فروشگاه</span></a>
+										</td>
+										{% endif %}
+									{% else %}
+										<td>
+											<a title="{{('\n'.join(rec['access']))}}"><span>{{rec['role']}}</span></a>
+										</td>
+									{% endif %}
 									<td style="width: 14vw;">
 										<span class="font14">{{rec['email']}}</span>
 									</td>
@@ -77,9 +97,15 @@
 									<td>
 										<span>{{rec['created_date']}}</span>
 									</td>
-									<td id="no-action" onclick="tdOnclick()">
-						              <a href="/delete-user/{{rec['username']}}" title="حذف کاربر"><span style="float: unset; margin: auto;" id="delete"></span></a>
-						            </td>
+									{% if session['username'] == rec['username'] %}
+										<td id="no-action" onclick="tdOnclick()">
+							              <span style="float: unset; margin: auto;" id="delete"></span>
+							            </td>
+							        {% else %}
+							        	<td id="no-action" onclick="tdOnclick()">
+							              <a href="/delete-user/{{rec['username']}}" title="حذف کاربر"><span style="float: unset; margin: auto;" id="delete"></span></a>
+							            </td>
+							        {% endif %}
 								</tr>
 							{% endfor %}
 						</tbody>
@@ -136,9 +162,15 @@
 									<td>
 										<span>{{rec['username']}}</span>
 									</td>
-									<td>
-										<a title="{{('\n'.join(rec['access']))}}"><span>{{rec['role']}}</span></a>
-									</td>
+									{% if 'ایجاد کاربری' in rec['access'] %}
+										<td>
+											<a title="{{('\n'.join(rec['access']))}}"><span>{{rec['role']}}</span></a>
+										</td>
+									{% else %}
+										<td>
+											<a title="{{('\n'.join(rec['access']))}}"><span>کاربر</span></a>
+										</td>
+									{% endif %}
 									<td>
 										<span>{{rec['vendor_name']}}</span>
 									</td>

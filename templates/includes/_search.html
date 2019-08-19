@@ -1,0 +1,395 @@
+<fieldset class="fieldset" style="background: #fafafa">
+	<legend>لطفا یکی از فیلدهای زیر را جهت جستجو انتخاب کنید:</legend>
+	{% include 'includes/_searchTab.html' %}
+	{% if sub_item == 'all' %}
+		<fieldset class="fieldset mrg-vh2" style="border:none; height: 65vh;">
+		</fieldset>
+	{% elif sub_item == 'cases' %}
+		<fieldset class="fieldset mrg-vh2" style="border:none; height: 68vh;">
+			<form method="POST" action="">
+				<fieldset style="margin-bottom: 0; background: #fff; height: 65vh;">
+					<legend>لطفا فیلترهای مناسب را اعمال کنید:</legend>
+					<table>
+						<tr>
+							<th class="vw15">
+								<span for="pcal1">بازه زمانی جستجو</span><span class="red">*</span>
+							</th>
+							<td class="vw15">
+								<span>از</span><span class="red" style="margin-left: 1vw;">*</span>
+								<input type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')" required>
+							</td>
+							<td class="vw15">
+								<span>تا</span><span class="red" style="margin-left: 1vw;">*</span>
+								<input type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')" required>
+							</td>
+						</tr>
+						<tr>
+							<th class="vw15">
+								<label class="mrg-vh6">شناسه سفارش</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">نام فرستنده</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">نام گیرنده</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">استان مقصد</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">شهر مقصد</label>
+							</th>
+						</tr>
+						<tr>
+							<th class="vw15" style="text-align: center;">
+								<input type="text" id="orderId" name="orderId">
+							</th>
+							<th class="vw15" style="text-align: center;">
+								<input type="text" id="s-name" name="s-name">
+							</th>
+							<th class="vw15" style="text-align: center;">
+								<input type="text" id="r-name" name="r-name">
+							</th>
+							<th class="vw15">
+								<select id="state" name="stateCode" onchange='cities()' style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									{% for item in states %}
+									<option value="{{item[0]}}">{{item[1]}}</option>
+									{% endfor %}
+								</select>
+							</th>
+							<th>
+								<select id="city" name="cityCode">
+            					</select>
+							</th>
+						</tr>
+						<tr>
+							<th class="vw15">
+								<label class="mrg-vh6">بارکد پستی</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">سرویس پستی</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">نوع پرداخت</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">وضعیت</label>
+							</th>
+						</tr>
+						<tr>
+							<th class="vw15" style="text-align: center;">
+								<input type="text" id="parcelCode" name="parcelCode">
+							</th>
+							<th class="vw15">
+								<select id="serviceType" name="serviceType" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="پست سفارشی">پست سفارشی</option>
+									<option value="پست پیشتاز">پست پیشتاز</option>
+								</select>
+							</th>
+							<th class="vw15">
+								<select id="payType" name="payType" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="پرداخت در محل">پرداخت در محل</option>
+									<option value="پرداخت آنلاین">پرداخت آنلاین</option>
+									<option value="rad">کرایه در مقصد</option>
+									<option value="cgd">هزینه کالا در مقصد</option>
+								</select>
+							</th>
+							<th class="vw15">
+								<select id="status" name="status" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="0">تحت بررسی</option>
+									<option value="1">انصرافی</option>
+									<option value="2">آماده ارسال</option>
+									<option value="3">اشتباه در آماده به ارسال</option>
+									<option value="4">عدم حضور مدیر</option>
+									<option value="5">ارسال شده</option>
+									<option value="6">عدم قبول</option>
+									<option value="7">توزیع شده</option>
+									<option value="8">باجه معطله </option>
+									<option value="9">توقیفی</option>
+									<option value="10">پیش برگشتی</option>
+									<option value="11">برگشتی</option>
+									<option value="70">تایید مالی</option>
+									<option value="71">تسویه حساب</option>
+									<option value="80">در صف پردازش</option>
+									<option value="81">ارسال شده از وستانو</option>
+									<option value="83">لغو شده</option>
+								</select>
+							</th>
+						</tr>
+					</table>
+					<div class="mrg-vh12" style="margin-right: 15px;">
+						<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="انجام جستجو" /> 
+					</div>
+				</fieldset>
+			</form>
+		</fieldset>
+	{% elif sub_item == 'vendors' %}
+		<fieldset class="fieldset mrg-vh2" style="border:none; height: 68vh;">
+			<form method="POST" action="">
+				<fieldset style="margin-bottom: 0; background: #fff; height: 65vh;">
+					<legend>لطفا فیلترهای مناسب را اعمال کنید:</legend>
+					<table>
+						<tr>
+							<th class="vw15">
+								<span for="pcal1">بازه زمانی جستجو</span><span class="red">*</span>
+							</th>
+							<td class="vw15">
+								<span>از</span><span class="red" style="margin-left: 1vw;">*</span>
+								<input type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')" required>
+							</td>
+							<td class="vw15">
+								<span>تا</span><span class="red" style="margin-left: 1vw;">*</span>
+								<input type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')" required>
+							</td>
+						</tr>
+						<tr>
+							<th class="vw15">
+								<label class="mrg-vh6">شناسه سفارش</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">شرکت فروشنده</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">نام خریدار</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">استان مقصد</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">شهر مقصد</label>
+							</th>
+						</tr>
+						<tr>
+							<th class="vw15" style="text-align: center;">
+								<input type="text" id="orderId" name="orderId">
+							</th>
+							<th class="vw15">
+								<select id="vendor" name="vendor" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="روژیاپ">روژیاپ</option>
+								</select>
+							</th>
+							<th class="vw15" style="text-align: center;">
+								<input type="text" id="register-name" name="register-name">
+							</th>
+							<th class="vw15">
+								<select id="state" name="stateCode" onchange='cities()' style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									{% for item in states %}
+									<option value="{{item[0]}}">{{item[1]}}</option>
+									{% endfor %}
+								</select>
+							</th>
+							<th>
+								<select id="city" name="cityCode">
+            					</select>
+							</th>
+						</tr>
+						<tr>
+							<th class="vw15">
+								<label class="mrg-vh6">بارکد پستی</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">سرویس پستی</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">نوع پرداخت</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">وضعیت</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">کالای گارانتی</label>
+							</th>
+						</tr>
+						<tr>
+							<th class="vw15" style="text-align: center;">
+								<input type="text" id="parcelCode" name="parcelCode">
+							</th>
+							<th class="vw15">
+								<select id="serviceType" name="serviceType" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="پست سفارشی">پست سفارشی</option>
+									<option value="پست پیشتاز">پست پیشتاز</option>
+								</select>
+							</th>
+							<th class="vw15">
+								<select id="payType" name="payType" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="پرداخت در محل">پرداخت در محل</option>
+									<option value="پرداخت آنلاین">پرداخت آنلاین</option>
+									<option value="ارسال رایگان">ارسال رایگان</option>
+								</select>
+							</th>
+							<th class="vw15">
+								<select id="status" name="status" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="0">تحت بررسی</option>
+									<option value="1">انصرافی</option>
+									<option value="2">آماده ارسال</option>
+									<option value="3">اشتباه در آماده به ارسال</option>
+									<option value="4">عدم حضور مدیر</option>
+									<option value="5">ارسال شده</option>
+									<option value="6">عدم قبول</option>
+									<option value="7">توزیع شده</option>
+									<option value="8">باجه معطله </option>
+									<option value="9">توقیفی</option>
+									<option value="10">پیش برگشتی</option>
+									<option value="11">برگشتی</option>
+									<option value="70">تایید مالی</option>
+									<option value="71">تسویه حساب</option>
+									<option value="80">در صف پردازش</option>
+									<option value="81">ارسال شده از وستانو</option>
+									<option value="82">در انتظار کالا</option>
+									<option value="83">لغو شده</option>
+									<option value="84">حذف از در انتظار کالا</option>
+								</select>
+							</th>
+							<th>
+								<input type="checkbox" name="grnt" value="true"/>
+							</th>
+						</tr>
+					</table>
+					<div class="mrg-vh12" style="margin-right: 15px;">
+						<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="انجام جستجو" /> 
+					</div>
+				</fieldset>
+			</form>
+		</fieldset>
+	{% elif sub_item == 'accounting' %}
+		<fieldset class="fieldset mrg-vh2" style="border:none; height: 68vh;">
+			<form method="POST" action="">
+				<fieldset style="margin-bottom: 0; background: #fff; height: 65vh;">
+					<legend>لطفا فیلترهای مناسب را اعمال کنید:</legend>
+					<table>
+						<tr>
+							<th class="vw15">
+								<span for="pcal1">بازه زمانی جستجو</span><span class="red">*</span>
+							</th>
+							<td class="vw15">
+								<span>از</span><span class="red" style="margin-left: 1vw;">*</span>
+								<input type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')" required>
+							</td>
+							<td class="vw15">
+								<span>تا</span><span class="red" style="margin-left: 1vw;">*</span>
+								<input type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')" required>
+							</td>
+						</tr>
+						<tr>
+							<th class="vw15">
+								<label class="mrg-vh6">شناسه سفارش</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">بارکد پستی</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">وضعیت درخواست وجه</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">وضعیت مرسوله</label>
+							</th>
+							<th class="vw15">
+								<label class="mrg-vh6">نوع پرداخت</label>
+							</th>
+						</tr>
+						<tr>
+							<th class="vw15" style="text-align: center;">
+								<input type="text" id="orderId" name="orderId">
+							</th>
+							<th class="vw15" style="text-align: center;">
+								<input type="text" id="parcelCode" name="parcelCode">
+							</th>
+							<th class="vw15">
+								<select id="credit-req-status" name="credit-req-status" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="در دست بررسی">در دست بررسی</option>
+									<option value="واریز شد">واریز شد</option>
+									<option value="رد درخواست">رد درخواست</option>
+								</select>
+							</th>
+							<th class="vw15">
+								<select id="status" name="status" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="11">برگشتی</option>
+									<option value="70">تایید مالی</option>
+									<option value="71">تسویه حساب</option>
+								</select>
+							</th>
+							<th class="vw15">
+								<select id="payType" name="payType" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="پرداخت در محل">پرداخت در محل</option>
+									<option value="پرداخت آنلاین">پرداخت آنلاین</option>
+									<option value="ارسال رایگان">ارسال رایگان</option>
+								</select>
+							</th>
+						</tr>
+					</table>
+					<div style="margin-right: 15px; margin-top: 14vh;">
+						<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="انجام جستجو" /> 
+					</div>
+				</fieldset>
+			</form>
+		</fieldset>
+	{% endif %}
+</fieldset>
+<script type="text/javascript">
+	function cities() {
+		var state_code = document.getElementById("state").value;
+		var city = document.getElementById("city");
+		if (state_code) {
+			const xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+
+					var json = JSON.parse(this.responseText);
+
+					city.options.length = 1;
+
+					for (var i = 0; i < json.Name.length; i++) {
+					var opt = document.createElement('option');
+						opt.value = json.Code[i];
+						opt.innerHTML = json.Name[i];
+						city.appendChild(opt);
+					}
+				}
+			}
+			xhr.open('GET', '/ajax?code=' + state_code, true);
+			xhr.send(); 
+		} else {
+			city.options.length = 1;
+		}
+	}
+
+	function validator(id_name, type) {
+		var data = document.getElementById(id_name).value;
+		const xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				var json = JSON.parse(this.responseText);
+				if (!json.result) {
+					document.getElementById(id_name).value = "";
+					document.getElementById(id_name).focus();
+					if (type == 'name') {
+						alert('خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی و لاتین باشند!');
+					} else if (type == 'number') {
+						alert('خطا !\nشماره موبایل به درستی وارد نشده است!');
+					} else if (type == 'date') {
+						alert('خطا !\ تاریخ به درستی وارد نشده است!');
+					} else {
+						alert('خطا !\nشماره تلفن ثابت به درستی وارد نشده است!');
+					}
+				}
+			}
+		}
+		xhr.open('GET', '/validator-ajax?data='+data+'&type='+type, true);
+		xhr.send();
+	}
+
+	var objCal1 = new AMIB.persianCalendar( 'pcal1' );
+	var objCal2 = new AMIB.persianCalendar( 'pcal2' );
+</script>

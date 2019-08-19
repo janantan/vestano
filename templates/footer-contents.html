@@ -102,7 +102,7 @@
 							</div>
 							<div>
 								<label>شماره تماس<span> *</span></label>
-								<input id="complaints-phone" type="text" name="complaints-phone" placeholder="" required size="30" />
+								<input id="complaints-phone" type="text" name="complaints-phone" onchange="phoneValidator('complaints-phone', 'phone')" placeholder="" required size="30" />
 							</div>
 							<div>
 								<label>ایمیل</label>
@@ -135,7 +135,10 @@
 						vestaco98@gmail.com
 					</p></a>
 					<p>
-						نشانی: کرمانشاه، الهیه، خیابان رز، سامانه پستی وستانو
+						نشانی: کرمانشاه،کرمانشاه، میدان آزادی، خیابان شهید قندی، ساختمان پست من، طبقه اول
+					</p>
+					<p>
+						ساختمان انبار و پردازش مرکزی: کرمانشاه، کرمانشاه، الهیه، خیابان رز، سامانه پستی وستانو
 					</p>
 				{% elif sub_item == 'software' %}
 					<p class="footer-content-font">
@@ -179,4 +182,27 @@
 	<div class="mobile-footer-div">
 		{% include 'includes/_mobileFooter.html' %}
 	</div>
+	<script type="text/javascript">
+	function phoneValidator(id_name, type) {
+		var data = document.getElementById(id_name).value;
+		const xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+
+				var json = JSON.parse(this.responseText);
+				if (!json.result) {
+					document.getElementById(id_name).value = "";
+					document.getElementById(id_name).focus();
+					if (type == 'name') {
+						alert('خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی و لاتین باشند!');
+					} else {
+						alert('خطا !\nشماره تماس به درستی وارد نشده است!');
+					}
+				}
+			}
+		}
+		xhr.open('GET', '/validator-ajax?data='+data+'&type='+type, true);
+		xhr.send();
+	}
+</script>
 {% endblock %}

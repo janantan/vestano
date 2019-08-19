@@ -66,7 +66,15 @@ phone_schema = {
 'number':{
     'type': 'string',
     'required': True,
-    'regex': '^[\d -]+$',
+    'regex': '^[\d -]+$'
+}
+}
+
+date_schema = {
+'number':{
+    'type': 'string',
+    'required': True,
+    'regex': '^[\d /]+$',
     'maxlength': 11
 }
 }
@@ -489,7 +497,7 @@ def confirm_orders(code):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
-    if ('processList' or 'caseProcessList') not in session['access']:
+    if ('processList' not in session['access']) and ('caseProcessList' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -497,6 +505,9 @@ def confirm_orders(code):
     if not result:
         result = cursor.caseTemp_orders.find_one({"orderId": code})
     if result:
+        if 'registerPhoneNumber' not in result.keys():
+            result['registerPhoneNumber'] = ""
+
         (sType, pType) = utils.typeOfServicesToCode(result['serviceType'], result['payType'])
         new_rec = copy.deepcopy(result)
         price = 0
@@ -552,18 +563,18 @@ def confirm_orders(code):
             weight = weight + result['products'][i]['weight']
             discount = discount + result['products'][i]['percentDiscount']
 
-        if result['vendorName'] == u'سفارش موردی':
-            cod = cursor.case_orders.find_one({'orderId': code})
-            if (not len(cod['rad'])) and (pType == 1):
-                vestano_costs = cod['wage'] + cod['carton'] + cod['packing'] + cod['gathering']
-                price = price + vestano_costs
-                p = result['products'][0]['price']
-                result['products'][0]['price'] = p + vestano_costs
-                edit_result = utils.editStuff(
-                    result['products'][0]['productId'],
-                    result['products'][0]['weight'],
-                    result['products'][0]['price']
-                    )
+        #if result['vendorName'] == u'سفارش موردی':
+            #cod = cursor.case_orders.find_one({'orderId': code})
+            #if (not len(cod['rad'])) and (pType == 1):
+                #vestano_costs = cod['wage'] + cod['carton'] + cod['packing'] + cod['gathering']
+                #price = price + vestano_costs
+                #p = result['products'][0]['price']
+                #result['products'][0]['price'] = p + vestano_costs
+                #edit_result = utils.editStuff(
+                    #result['products'][0]['productId'],
+                    #result['products'][0]['weight'],
+                    #result['products'][0]['price']
+                    #)
         
         order = {
         'cityCode': result['cityCode'],
@@ -624,12 +635,18 @@ def confirm_orders(code):
                 new_rec['status'] = 0
                 new_rec['status_updated'] = False
 
+                if new_rec['vendorName'] == u'سفارش موردی':
+                    case_result = cursor.case_orders.find_one({'orderId': new_rec['orderId']})
+                    vestano_wage = case_result['wage']
+                else:
+                    vestano_wage = utils.calculate_wage(new_rec['vendorName'], weight)
+
                 costs = {
                 'price': price,
                 'PostDeliveryPrice': soap_result['PostDeliveryPrice'],
                 'VatTax': soap_result['VatTax'],
                 'registerCost': config.registerCost,
-                'wage': utils.calculate_wage(new_rec['vendorName'], weight)
+                'wage': vestano_wage
                 }
 
                 new_rec['costs'] = costs
@@ -674,8 +691,6 @@ def confirm_orders(code):
                             city = c['Name']
                             break
 
-                    vestano_wage = utils.calculate_wage(new_rec['vendorName'], weight)
-
                     pdfkit.from_string(render_template('includes/_caseOrderPdf.html',
                         datetime = jdatetime.datetime.now().strftime('%H:%M %Y/%m/%d'),
                         orderId = new_rec['orderId'],
@@ -696,6 +711,7 @@ def confirm_orders(code):
                         packing = case_result['packing'],
                         carton = case_result['carton'],
                         gathering = case_result['gathering'],
+                        vestano_wage = vestano_wage,
                         without_ck = case_result['without_ck'],
                         rad = case_result['rad'],
                         cgd = case_result['cgd'],
@@ -795,7 +811,7 @@ def all_orders():
 @app.route('/finish-process/<orderId>', methods=['GET'])
 @token_required
 def finish_process(orderId):
-    if ('processList' or 'caseProcessList') not in session['access']:
+    if ('processList' not in session['access']) and ('caseProcessList' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -859,7 +875,7 @@ def canceled_orders():
 @app.route('/cancel-order/<orderId>', methods=['GET'])
 @token_required
 def cancel_orders(orderId):
-    if ('processList' or 'caseProcessList') not in session['access']:
+    if ('processList' not in session['access']) and ('caseProcessList' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -953,7 +969,7 @@ def delete_order(orderId):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
-    if ('processList' or 'caseProcessList') not in session['access']:
+    if ('processList' not in session['access']) and ('caseProcessList' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -983,7 +999,7 @@ def delete_order(orderId):
 @app.route('/return-order/<orderId>', methods=['GET'])
 @token_required
 def return_order(orderId):
-    if ('processList' or 'caseProcessList') not in session['access']:
+    if ('processList' not in session['access']) and ('caseProcessList' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -1022,7 +1038,7 @@ def return_order(orderId):
 @app.route('/edit-order/<orderId>', methods=['GET', 'POST'])
 @token_required
 def edit_orders(orderId):
-    if ('Ordering' or 'caseOrdering') not in session['access']:
+    if ('processList' not in session['access']) and ('caseProcessList' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -2429,10 +2445,13 @@ def delete_credit_request(number):
 @app.route('/user-pannel/tickets', methods=['GET'])
 @token_required
 def tickets():
-    if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
-        pass
-    else:
-        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+    access_list = ['vendorTicket', 'adminTicket', 'ordersTicket', 'inventoryTicket', 'financialTicket', 'techTicket']
+    flag = 1
+    for item in access_list:
+        if item in session['access']:
+            flag = 0
+    if flag:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
     return render_template('user_pannel.html',
@@ -2443,13 +2462,16 @@ def tickets():
 @app.route('/user-pannel/tickets/sent', methods=['GET'])
 @token_required
 def sent_tickets():
-    if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
-        pass
-    else:
-        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+    if session['role'] == 'vendor_admin':
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
-    if session['role'] == 'vendor_admin':
+    access_list = ['vendorTicket', 'adminTicket', 'ordersTicket', 'inventoryTicket', 'financialTicket', 'techTicket']
+    flag = 1
+    for item in access_list:
+        if item in session['access']:
+            flag = 0
+    if flag:
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -2461,10 +2483,13 @@ def sent_tickets():
 @app.route('/user-pannel/new-ticket', methods=['GET', 'POST'])
 @token_required
 def new_ticket():
-    if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
-        pass
-    else:
-        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+    access_list = ['vendorTicket', 'adminTicket', 'ordersTicket', 'inventoryTicket', 'financialTicket', 'techTicket']
+    flag = 1
+    for item in access_list:
+        if item in session['access']:
+            flag = 0
+    if flag:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
     if session['role'] == 'vendor_admin':
@@ -2516,10 +2541,13 @@ def new_ticket():
 @app.route('/user-pannel/show-ticket/<ticket_num>', methods=['GET', 'POST'])
 @token_required
 def show_ticket(ticket_num):
-    if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
-        pass
-    else:
-        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+    access_list = ['vendorTicket', 'adminTicket', 'ordersTicket', 'inventoryTicket', 'financialTicket', 'techTicket']
+    flag = 1
+    for item in access_list:
+        if item in session['access']:
+            flag = 0
+    if flag:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
     result = cursor.tickets.find_one({'number':ticket_num})
@@ -2610,13 +2638,16 @@ def show_ticket(ticket_num):
 @app.route('/user-pannel/tickets/forward/<ticket_num>', methods=['GET', 'POST'])
 @token_required
 def forward_tickets(ticket_num):
-    if ('adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
-        pass
-    else:
-        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+    if session['role'] == 'vendor_admin':
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
-    if session['role'] == 'vendor_admin':
+    access_list = ['vendorTicket', 'adminTicket', 'ordersTicket', 'inventoryTicket', 'financialTicket', 'techTicket']
+    flag = 1
+    for item in access_list:
+        if item in session['access']:
+            flag = 0
+    if flag:
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -2624,6 +2655,57 @@ def forward_tickets(ticket_num):
         item = "forwardTickets",
         ticket_num = ticket_num,
         ticket_details = utils.ticket_details(cursor, ticket_num)
+        )
+
+@app.route('/user-pannel/search/<sub_item>', methods=['GET', 'POST'])
+@token_required
+def search(sub_item):
+    if 'searchPage' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='cases') and ('caseProcessList' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='vendors') and ('processList' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='accounting') and (('financialRep' not in session['access']) or ('accounting' not in session['access'])):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    #utils.datetime_date(cursor)
+
+    if request.method == 'POST':
+        if sub_item == 'cases':
+            rec = {}
+            date_from = request.form.get('date_from').encode('utf-8')
+            date_to = request.form.get('date_to').encode('utf-8')
+            date_from = jdatetime.datetime.strptime(date_from, '%Y/%m/%d')
+            date_to = jdatetime.datetime.strptime(date_to, '%Y/%m/%d')
+            date_from = date_from.strftime('%Y/%m/%d')
+            date_to = date_to.strftime('%Y/%m/%d')
+            
+
+            rec['date_from'] = date_from
+            rec['date_to'] = date_to
+            rec['orderId'] = request.form.get('orderId')
+            rec['s_name'] = request.form.get('s-name')
+            rec['r_name'] = request.form.get('r-name')
+            rec['stateCode'] = request.form.get('stateCode')
+            rec['cityCode'] = request.form.get('cityCode')
+            rec['parcelCode'] = request.form.get('parcelCode')
+            rec['serviceType'] = request.form.get('serviceType')
+            rec['payType'] = request.form.get('payType')
+            rec['status'] = request.form.get('status')
+            print(rec)
+            #result = utils.case_search(cursor, rec)
+            utils.case_search(cursor, rec)
+
+
+    return render_template('user_pannel.html',
+        item = "search",
+        sub_item = sub_item,
+        states = utils.states(cursor)
         )
 
 @app.route('/about')
@@ -2635,6 +2717,7 @@ def about():
 @token_required
 def register():
     if (session['role'] == 'admin') or (session['role'] == 'vendor_admin'):
+        user_result = cursor.users.find_one({'username': session['username']})
         if request.method == 'POST':
             users = {'created_date': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             users['name'] = request.form.get('name')
@@ -2666,6 +2749,8 @@ def register():
                 if session['role'] == 'vendor_admin':
                     users['role'] = session['role']
                     users['vendor_name'] = session['vendor_name']
+                    users['account_number'] = user_result['account_number']
+                    users['account_holder'] = user_result['account_holder']
                 else:
                     users['role'] = request.form.get('role')
                 users['access'] = request.form.getlist('access')
@@ -2690,7 +2775,7 @@ def users_management(sub_item):
     if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']):
         pass
     else:
-        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
     data = []
     if sub_item == 'Users':
@@ -2702,14 +2787,12 @@ def users_management(sub_item):
             result2 = cursor.api_users.find()
         for r in result:
             access_list = []
-            r['created_date'] = r['created_date']
             r['role'] = utils.RolesToFarsi(r['role'])
             for access in r['access']:
                 access_list.append(utils.accessToFarsi(access))
             r['access'] = access_list
             data.append(r)
         for r in result2:
-            r['created_date'] = r['created_date']
             r['role'] = utils.RolesToFarsi(r['role'])
             data.append(r)
     elif (sub_item == 'vendors') and (session['role'] == 'admin'):
@@ -2717,7 +2800,6 @@ def users_management(sub_item):
         for r in result:
             if r['vendor_name']:
                 access_list = []
-                r['created_date'] = r['created_date']
                 r['role'] = utils.RolesToFarsi(r['role'])
                 for access in r['access']:
                     access_list.append(utils.accessToFarsi(access))
@@ -2726,9 +2808,14 @@ def users_management(sub_item):
     elif (sub_item == 'api') and (session['role'] == 'admin'):
         result = cursor.api_users.find()
         for r in result:
-            r['created_date'] = r['created_date']
             r['role'] = utils.RolesToFarsi(r['role'])
             data.append(r)
+    elif (sub_item == 'office') and (session['role'] == 'admin'):
+        result = cursor.users.find()
+        for r in result:
+            if (r['role'] == 'office') or (r['role'] == 'support'):
+                r['role'] = utils.RolesToFarsi(r['role'])
+                data.append(r)
 
     return render_template('usersManagement.html',
         sub_item = sub_item,
@@ -2741,7 +2828,7 @@ def users_detail(username):
     if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']):
         pass
     else:
-        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
     data = []
@@ -2771,22 +2858,36 @@ def users_detail(username):
                 }
                 )
         else:
-            cursor.users.update_many(
-                {"username": username},
-                {'$set': {
-                'edit_date': jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'),
-                'editor_username': session['username'],
-                'name': request.form.get('name'),
-                'vendor_name': request.form.get('vendor-name'),
-                'account_number': request.form.get('account-number'),
-                'account_holder': request.form.get('account-holder'),
-                'email': request.form.get('email'),
-                'phone': request.form.get('phone'),
-                'role': request.form.get('role'),
-                'access': request.form.getlist('access'),
-                }
-                }
-                )
+            if session['role'] == 'vendor_admin':
+                cursor.users.update_many(
+                    {"username": username},
+                    {'$set': {
+                    'edit_date': jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'),
+                    'editor_username': session['username'],
+                    'name': request.form.get('name'),
+                    'email': request.form.get('email'),
+                    'phone': request.form.get('phone'),
+                    'access': request.form.getlist('access'),
+                    }
+                    }
+                    )
+            else:
+                cursor.users.update_many(
+                    {"username": username},
+                    {'$set': {
+                    'edit_date': jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'),
+                    'editor_username': session['username'],
+                    'name': request.form.get('name'),
+                    'vendor_name': request.form.get('vendor-name'),
+                    'account_number': request.form.get('account-number'),
+                    'account_holder': request.form.get('account-holder'),
+                    'email': request.form.get('email'),
+                    'phone': request.form.get('phone'),
+                    'role': request.form.get('role'),
+                    'access': request.form.getlist('access'),
+                    }
+                    }
+                    )
 
         flash(u'ویرایش اطلاعات  با موفقیت انجام شد!', 'success')
 
@@ -2802,7 +2903,7 @@ def delete_user(username):
     if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']):
         pass
     else:
-        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
     cursor.users.remove({'username':username})
@@ -2816,7 +2917,7 @@ def reset_password(username):
     if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']):
         pass
     else:
-        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
     new_pass = sha256_crypt.hash(str('123456'))
@@ -2971,35 +3072,42 @@ def price_ajax():
 
 @app.route('/validator-ajax', methods=['GET'])
 def validator_ajax():
-    if 'username' in session:
-        Type = request.args.get('type')
-        Data = request.args.get('data')
+    Type = request.args.get('type')
+    Data = request.args.get('data')
 
-        if Type == 'name':
-            data = {
-            'name' : Data.encode('utf-8').decode('unicode-escape')
-            }
-            if v.validate(data, name_schema):
-                return jsonify({'result': True})
-            else:
-                #flash(u'خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی باشند!', 'danger')
-                return jsonify({'result': False})
-        elif Type == 'number':
-            data = {
-            'number' : Data
-            }
-            if v.validate(data, number_schema):
-                return jsonify({'result': True})
-            else:
-                return jsonify({'result': False})
-        elif Type == 'phone':
-            data = {
-            'number' : Data
-            }
-            if v.validate(data, phone_schema):
-                return jsonify({'result': True})
-            else:
-                return jsonify({'result': False})
+    if Type == 'name':
+        data = {
+        'name' : Data.encode('utf-8').decode('unicode-escape')
+        }
+        if v.validate(data, name_schema):
+            return jsonify({'result': True})
+        else:
+            #flash(u'خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی باشند!', 'danger')
+            return jsonify({'result': False})
+    elif Type == 'number':
+        data = {
+        'number' : Data
+        }
+        if v.validate(data, number_schema):
+            return jsonify({'result': True})
+        else:
+            return jsonify({'result': False})
+    elif Type == 'phone':
+        data = {
+        'number' : Data
+        }
+        if v.validate(data, phone_schema):
+            return jsonify({'result': True})
+        else:
+            return jsonify({'result': False})
+    elif Type == 'date':
+        data = {
+        'number' : Data
+        }
+        if v.validate(data, date_schema):
+            return jsonify({'result': True})
+        else:
+            return jsonify({'result': False})
 
 @app.route('/case-ajax', methods=['GET'])
 def case_ajax():

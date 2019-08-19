@@ -370,6 +370,15 @@ a.export {
     z-index:-1;
 }
 
+.div-fp-login {
+    position: absolute;
+    top: 11vh;
+    right: 21vw;
+    font-family: B-Roya;
+    font-size: 22px;
+    font-weight: bold;
+}
+
 #fp-login {
     position:absolute;
     top:17vh;
@@ -405,6 +414,12 @@ a.export {
     margin-bottom: 20px;
     border-radius: 7px;
     font-size: 18px;
+}
+
+.enamad-div {
+    position: absolute;
+    top: 65vh;
+    left: 16vw;
 }
 
 #fp-register {
@@ -509,7 +524,7 @@ a.export {
 }
 
 .div5 h3 {
-    margin-right: 3vw;
+    margin-right: 2.6vw;
     font-family: 'B-Roya';
 }
 

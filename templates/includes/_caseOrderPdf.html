@@ -131,9 +131,14 @@
     			</td>
     		</tr>
     	</table>
-    	<fieldset class="fieldset" style="margin: 50px 10px; border: none;">
+    	<fieldset class="fieldset" style="margin: 10px 10px; border: none;">
     		<legend>مشخصات مرسوله:</legend>
     		{% if cgd %}
+    			<div style="margin-bottom: 2vh;">
+    				<span class="bold">
+    					پرداختی گیرنده:
+    				</span>
+    			</div>
 	    		<table style="text-align: center; border: 1px solid gray;">
 					<tr style="border: 1px solid black;">
 						<th style="height: 60px; width: 230px; background: yellow;">
@@ -164,61 +169,141 @@
 						</td>
 					</tr>
 				</table><br>
+				<div style="margin-bottom: 2vh; margin-top: 2vh;">
+    				<span class="bold">
+    					پرداختی فرستنده:
+    				</span>
+    			</div>
 			{% endif %}
-			<table style="text-align: center; border: 1px solid gray; margin-top: 3vh;">
-				<tr style="border: 1px solid black;">
-					<th style="height: 60px; width: 230px; background: yellow;">
-						<span>بارکد پستی</span>
-					</th>
-					<th style="height: 60px; width: 80px; background: yellow;">
-						<span>وزن</span>
-					</th>
-					<th style="height: 60px; width: 100px; background: yellow;">
-						<span>هزینه کارتن</span>
-					</th>
-					<th style="height: 60px; width: 100px; background: yellow;">
-						<span>هزینه بسته بندی</span>
-					</th>
-					<th style="height: 60px; width: 100px; background: yellow;">
-						<span>هزینه ارسال</span>
-					</th>
-					<th style="height: 60px; width: 100px; background: yellow;">
-						<span>مالیات بر ارزش افزوده</span>
-					</th>
-					<th style="height: 60px; width: 100px; background: yellow;">
-						<span>هزینه جمع آوری</span>
-					</th>
-					<th style="height: 60px; width: 100px; background: yellow;">
-						<span>مجموع</span>
-					</th>
-				</tr>
-				<tr style="border: 1px solid black;">
-					<td style="height: 60px;">
-						<span>{{parcelCode}}</span>
-					</td>
-					<td>
-						<span>{{weight}} گرم</span>
-					</td>
-					<td>
-						<span>{{carton}}</span>
-					</td>
-					<td>
-						<span>{{packing}}</span>
-					</td>
-					<td>
-						<span>{{deliveryPrice}}</span>
-					</td>
-					<td>
-						<span>{{VatTax}}</span>
-					</td>
-					<td>
-						<span>{{gathering}}</span>
-					</td>
-					<td>
-						<span>{{carton+packing+deliveryPrice+VatTax+gathering}}</span>
-					</td>
-				</tr>
-			</table>
+			{% if (not rad) and (payType == 'پرداخت در محل') %}
+				<table style="text-align: center; border: 1px solid gray; margin-top: 3vh;">
+					<tr style="border: 1px solid black;">
+						<th style="height: 60px; width: 230px; background: yellow;">
+							<span>بارکد پستی</span>
+						</th>
+						<th style="height: 40px; width: 80px; background: yellow;">
+							<span>وزن</span>
+						</th>
+						<th style="height: 40px; width: 100px; background: yellow;">
+							<span>هزینه کالا</span>
+						</th>
+						<th style="height: 40px; width: 100px; background: yellow;">
+							<span>هزینه کارتن</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>هزینه بسته بندی</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>هزینه ارسال</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>مالیات بر ارزش افزوده</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>هزینه جمع آوری</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>مجموع</span>
+						</th>
+					</tr>
+					<tr style="border: 1px solid black;">
+						<td style="height: 60px;">
+							<span>{{parcelCode}}</span>
+						</td>
+						<td>
+							<span>{{weight}} گرم</span>
+						</td>
+						<td>
+							<span>{{price-carton-packing-gathering-vestano_wage}}</span>
+						</td>
+						<td>
+							<span>{{carton}}</span>
+						</td>
+						<td>
+							<span>{{packing}}</span>
+						</td>
+						<td>
+							<span>{{deliveryPrice}}</span>
+						</td>
+						<td>
+							<span>{{VatTax}}</span>
+						</td>
+						<td>
+							<span>{{gathering}}</span>
+						</td>
+						<td>
+							<span>{{price+deliveryPrice+VatTax-vestano_wage}}</span>
+						</td>
+					</tr>
+				</table>
+			{% else %}
+				<table style="text-align: center; border: 1px solid gray; margin-top: 3vh;">
+					<tr style="border: 1px solid black;">
+						<th style="height: 60px; width: 230px; background: yellow;">
+							<span>بارکد پستی</span>
+						</th>
+						<th style="height: 60px; width: 80px; background: yellow;">
+							<span>وزن</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>هزینه کارتن</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>هزینه بسته بندی</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>هزینه ارسال</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>مالیات بر ارزش افزوده</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>هزینه جمع آوری</span>
+						</th>
+						<th style="height: 60px; width: 100px; background: yellow;">
+							<span>مجموع</span>
+						</th>
+					</tr>
+					<tr style="border: 1px solid black;">
+						<td style="height: 60px;">
+							<span>{{parcelCode}}</span>
+						</td>
+						<td>
+							<span>{{weight}} گرم</span>
+						</td>
+						<td>
+							<span>{{carton}}</span>
+						</td>
+						<td>
+							<span>{{packing}}</span>
+						</td>
+						<td>
+							<span>{{deliveryPrice}}</span>
+						</td>
+						<td>
+							<span>{{VatTax}}</span>
+						</td>
+						<td>
+							<span>{{gathering}}</span>
+						</td>
+						<td>
+							<span>{{carton+packing+deliveryPrice+VatTax+gathering}}</span>
+						</td>
+					</tr>
+				</table>
+			{% endif %}
+		</fieldset>
+		<fieldset class="fieldset" style="margin: 20px 10px; padding: 0; border: none;">
+			<div>
+				<p>
+					هموطن گرامی جهت رهگیری مرسوله خود با شماره پیگیری و یا بارکد پستی مرسوله به درگاه اینترنتی <span style="color: blue;">vestanops.com</span> مراجعه نمایید.
+				</p>
+			</div>
+			<div>
+				<p>
+					در صورت هرگونه انتقاد یا شکایت از محصول و یا روند ارسال مرسوله به نشانی اینترنتی <span style="color: blue;">vestanops.com</span> قسمت ثبت شکایات مراجعه نمایید.
+				</p>
+			</div>
 		</fieldset>
 		<fieldset class="fieldset" style="margin: 50px 10px; padding: 0; border: none;">
 			{% if sType == 1 %}

@@ -1,11 +1,14 @@
 {% set users = "background:#eee;" %}
 {% set vendors = "background:#eee;" %}
+{% set office = "background:#eee;" %}
 {% set api = "background:#eee;" %}
 
 {% if "Users" in request.base_url %}
 	{% set users = "background:yellow;" %}
 {% elif "vendors" in request.base_url %}
 	{% set vendors = "background:yellow;" %}
+{% elif "office" in request.base_url %}
+	{% set office = "background:yellow;" %}
 {% elif "api" in request.base_url %}
 	{% set api = "background:yellow;" %}
 {% endif %}
@@ -15,6 +18,9 @@
 	{% endif %}
 	{% if 'defineUser' in session['access'] %}
 		<a href="/users-management/vendors" style={{vendors}} class="button">کاربران فروشگاهی</a>
+	{% endif %}
+	{% if 'defineUser' in session['access'] %}
+		<a href="/users-management/office" style={{office}} class="button">کاربران دفتری</a>
 	{% endif %}
 	{% if 'defineUser' in session['access'] %}
 		<a href="/users-management/api" style={{api}} class="button">کاربران وب سرویس</a>

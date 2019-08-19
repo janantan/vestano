@@ -96,12 +96,12 @@
                                 }
                               {% endfor %}
                             </select>
-                          </td>                  
+                          </td>
                           <td>
                             <input id="count1" type="text" name="count_{{i+1}}" value="{{data['products'][i]['count']}}" size="4" onchange="anyChange()" required/>
                           </td>
                           <td>
-                            <input id="price{{i+1}}" type="text" name="price_{{i+1}}" value="{{data['products'][i]['price']}}" size="6" onchange="anyChange()" required/>
+                            <input id="price{{i+1}}" type="text" name="price_{{i+1}}" value="{{data['products'][i]['price']}}" size="6" onchange="priceChange()" required/>
                           </td>
                           <td>
                             <input id="discount{{i+1}}" type="text" name="discount_{{i+1}}" value="{{data['products'][i]['percentDiscount']}}" size="6" onchange="anyChange()" required/>
@@ -171,10 +171,10 @@
                         {% if pType==1 %}{% set pck1 = 'checked' %}{% else %}{% set pck1 = '' %}{% endif %}
                         {% if pType==2 %}{% set pck2 = 'checked' %}{% else %}{% set pck2 = '' %}{% endif %}
                         <td>
-                          <label><input id="payType1" type="radio" name="payType" onchange="getDeliveryPrice()" value="1" {{pck1}}/>پرداخت در محل</label>
+                          <label><input id="payType1" type="radio" name="payType" onchange="codChange()" value="1" {{pck1}}/>پرداخت در محل</label>
                         </td>
                         <td>
-                          <label><input id="payType2" type="radio" name="payType" onchange="getDeliveryPrice()" value="2" {{pck2}}/>پرداخت آنلاین</label>
+                          <label><input id="payType2" type="radio" name="payType" onchange="onlineChange()" value="2" {{pck2}}/>پرداخت آنلاین</label>
                         </td>
                       </tr>
                     </table>
@@ -192,6 +192,12 @@
                             <input id="product-price" value="{{data['products'][0]['price']}}" type="number"/>
                           </td>
                           <td style="display: none;">
+                            <input id="onChange-product-price" value="{{data['products'][0]['price']}}" type="number"/>
+                          </td>
+                          <td style="display: none;">
+                            <input id="first-wage" value="0" type="number"/>
+                          </td>
+                          <td style="display: none;">
                             <input id="pishtaz-input" type="number"/>
                           </td>
                           <td style="display: none;">
@@ -199,16 +205,16 @@
                           </td>
                           <td>
                             <label>کارمزد (ریال):</label>
-                            <input id="wage" type="number" name="wage" style="width: 7vw;" value="{{case_data['wage']}}" required/>
+                            <input id="wage" type="number" name="wage" onchange="wageOnChange()" style="width: 7vw;" value="{{case_data['wage']}}" required/>
                           </td>
                           <td>
-                            <label>هزینه کارتن (ریال): <input id="carton" type="number" name="carton" value="{{case_data['carton']}}" style="width: 7vw;" required/></label>
+                            <label>هزینه کارتن (ریال): <input id="carton" type="number" name="carton" onchange="wageOnChange()" value="{{case_data['carton']}}" style="width: 7vw;" required/></label>
                           </td>
                           <td>
-                            <label>هزینه بسته بندی (ریال): <input id="packing" type="number" name="packing" value="{{case_data['packing']}}" style="width: 7vw;" required/></label>
+                            <label>هزینه بسته بندی (ریال): <input id="packing" type="number" name="packing" onchange="wageOnChange()" value="{{case_data['packing']}}" style="width: 7vw;" required/></label>
                           </td>
                           <td>
-                            <label>هزینه جمع آوری (ریال): <input id="gathering" type="number" name="gathering" value="{{case_data['gathering']}}" style="width: 7vw;" required/></label>
+                            <label>هزینه جمع آوری (ریال): <input id="gathering" type="number" name="gathering" onchange="wageOnChange()" value="{{case_data['gathering']}}" style="width: 7vw;" required/></label>
                           </td>
                           {% if case_data['without_ck']|length %}{% set without_ck = 'checked' %}{% else %}{% set without_ck = '' %}{% endif %}
                           <td style="width: 25%;">
@@ -358,9 +364,9 @@
                 document.getElementById('sefareshi-input').value = json.sefareshi;
                 document.getElementById('pishtaz-input').value = json.pishtaz;
 
-                if (document.getElementById('rad').checked) {
-                  rentalAtDest();
-                }
+                //if (document.getElementById('rad').checked) {
+                  //rentalAtDest();
+                //}
              }
           }
           xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+Price+'&city='+c+'&pType='+pType, true);
@@ -398,6 +404,7 @@
           document.getElementById('weight-sum').value = Weight;
           document.getElementById('discount-sum').value = Discount;
           wageCalculator(Weight);
+          return Price;
         }
 
         function anyChange() {
@@ -433,7 +440,17 @@
           xhr.onreadystatechange = function() {
               if (this.readyState == 4 && this.status == 200) {
                 var json = JSON.parse(this.responseText);
-                document.getElementById('wage').value = json.wage;
+                var cod = document.getElementById('payType1').checked;
+                var online = document.getElementById('payType2').checked;
+                if (online) {
+                  document.getElementById('wage').value = json.wage;
+                  document.getElementById('first-wage').value = json.wage;
+                } else if (cod) {
+                  if (wage_flag) {
+                    document.getElementById('wage').value = json.wage + 5000;
+                  }
+                  document.getElementById('first-wage').value = json.wage + 5000;
+                }
              }
           }
           xhr.open('GET', '/wage-calculator?weight='+weight, true);
@@ -455,8 +472,9 @@
             document.getElementById('free').disabled = true;
             document.getElementById('cgd').checked = false;
           } else {
-            document.getElementById('price1').value = document.getElementById('product-price').value;
-            document.getElementById('price-sum').value = document.getElementById('product-price').value;
+            document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
+            document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
+            anyChange();
             document.getElementById('free').disabled = false;
           }
         }
@@ -470,9 +488,66 @@
             document.getElementById('rad').checked = false;
             document.getElementById('price1').value = document.getElementById('product-price').value;
             document.getElementById('price-sum').value = document.getElementById('product-price').value;
+            anyChange();
           } else {
             document.getElementById('free').checked = false;
+            document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
+            document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
+            anyChange();
           }
+        }
+
+        function wageOnChange() {
+          var cgd = document.getElementById('cgd').checked;
+          var rad = document.getElementById('rad').checked;
+          var cod = document.getElementById('payType1').checked;
+          var online = document.getElementById('payType2').checked;
+          var post_free = document.getElementById('free').checked;
+          var wage = parseInt(document.getElementById('wage').value);
+          var packing = parseInt(document.getElementById('packing').value);
+          var carton = parseInt(document.getElementById('carton').value);
+          var gathering = parseInt(document.getElementById('gathering').value);
+          var product_price = parseInt(document.getElementById('product-price').value);
+          var sum = wage+packing+carton+gathering;
+          if (rad) {
+            rentalAtDest();
+          }
+          else if (cgd) {
+            productPriceAtDest();
+          }
+          else if ((cod) & (!post_free)) {
+            document.getElementById('price1').value = product_price + sum;
+            document.getElementById('price-sum').value = product_price + sum;
+            document.getElementById('onChange-product-price').value = product_price + sum;
+            anyChange();
+          }
+          else if ((online) & (!post_free)) {
+            document.getElementById('price1').value = product_price;
+            document.getElementById('price-sum').value = product_price + sum;
+            document.getElementById('onChange-product-price').value = product_price;
+            anyChange();
+          }
+          if (wage != parseInt(document.getElementById('first-wage').value)) {
+            wage_flag = 0;
+          }
+        }
+
+        function priceChange() {
+          var price = refreshWeightPrice();
+          getDeliveryPrice();
+          document.getElementById('product-price').value = price;
+        }
+
+        function onlineChange() {
+          document.getElementById('price1').value = document.getElementById('product-price').value;
+          document.getElementById('price-sum').value = document.getElementById('product-price').value;
+          getDeliveryPrice();
+        }
+
+        function codChange() {
+          document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
+          document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
+          getDeliveryPrice();
         }
       </script>
     </body>

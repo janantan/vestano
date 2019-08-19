@@ -379,8 +379,10 @@
             document.getElementById(id_name).focus();
             if (type == 'name') {
               alert('خطا !\nنام و نام خانوادگی باید فقط شامل حروف فارسی و لاتین باشند!');
-            } else {
+            } else if (type == 'number') {
               alert('خطا !\nشماره موبایل به درستی وارد نشده است!');
+            } else {
+              alert('خطا !\nشماره تلفن ثابت به درستی وارد نشده است!');
             }
             
           }
