@@ -1867,11 +1867,115 @@ def calculate_wage(vendor, weight):
         vestano_wage = config.wage
     return vestano_wage
 
+def case_query_result(cursor, rec, query_list_1, query_list_2):
+    if len(query_list_1):
+        query_1 = {
+                'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+                'vendorName': 'سفارش موردی',
+                '$and': query_list_1
+                }
+    else:
+        query_1 = {
+                'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+                'vendorName': 'سفارش موردی'
+                }
+    if len(query_list_2):
+        query_2 = {'$and': query_list_2}
+    else:
+        query_2 = {}
+    result_1 = cursor.orders.find(query_1)
+    result_2 = cursor.case_orders.find(query_2)
+    result = []
+    result_2_list = []
+    if rec['s_name'] and rec['r_name']:
+        for r in result_2:
+            if (rec['s_name'] in (r['senderFirstName']+' '+r['senderLastName'])) and (rec['r_name'] in (r['receiverFirstName']+' '+r['receiverLastName'])):
+                result_2_list.append(r)
+    elif rec['s_name']:
+        for r in result_2:
+            if (rec['s_name'] in (r['senderFirstName']+' '+r['senderLastName'])):
+                result_2_list.append(r)
+    elif rec['r_name']:
+        for r in result_2:
+            if (rec['r_name'] in (r['receiverFirstName']+' '+r['receiverLastName'])):
+                result_2_list.append(r)
+    else:
+        for r in result_2:
+            result_2_list.append(r)
+    for r1 in result_1:
+        for r2 in result_2_list:
+            if r1['orderId'] == r2['orderId']:
+                result.append(r1)
+    return result
+
+def query_result(cursor, rec, query_list):
+    if len(query_list):
+        query = {
+                'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+                'vendorName': {'$ne': 'سفارش موردی'},
+                '$and': query_list
+                }
+    else:
+        query = {
+                'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+                'vendorName': {'$ne': 'سفارش موردی'},
+                }
+    if rec['status']:
+        if rec['status'] == '80':
+            result = cursor.temp_orders.find(query)
+        elif rec['status'] in ['82', '84']:
+            result = cursor.pending_orders.find(query)
+        elif rec['status'] == '83':
+            result = cursor.canceled_orders.find(query)
+        else:
+            result = cursor.orders.find(query)
+    else:
+        if 'serviceType' in rec.keys():
+            result = []
+            result1 = cursor.orders.find(query)
+            #result2 = cursor.orders.find(query)
+            #result3 = cursor.orders.find(query)
+            #result4 = cursor.orders.find(query)
+            for r in result1:
+                result.append(r)
+        else:
+            result = cursor.orders.find(query)
+    return result
+
 def case_search(cursor, rec):
-    #pass
-    #if rec['orderId'] and rec['s_name'] and rec['r_name'] and rec['stateCode'] and rec['cityCode'] and rec['parcelCode'] and rec['serviceType'] and rec['payType'] and rec['status']:
-    result = cursor.orders.find({
-        'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
-        'vendorName': 'سفارش موردی'
-        })
+    query_list_1 = []
+    query_list_2 = []
+    for key, value in rec.items():
+        if (value) and (key not in ['date_from', 'date_to', 's_name', 'r_name', 'rad', 'cgd']):
+            if key in ['stateCode', 'cityCode', 'status']:
+                query_list_1.append({key: int(value)})
+            else:
+                if (value != 'rad') and (value != 'cgd'):
+                    query_list_1.append({key: value})
+        if (value) and (key in ['rad', 'cgd']):
+            query_list_2.append({key: value})
+    print(query_list_1)
+    print(query_list_2)
+    result = case_query_result(cursor, rec, query_list_1, query_list_2)
+    return result
+
+def vendor_search(cursor, rec):
+    query_list = []
+    for key, value in rec.items():
+        if (value) and (key not in ['date_from', 'date_to', 'register_name']):
+            if key in ['stateCode', 'cityCode', 'status']:
+                query_list.append({key: int(value)})
+            else:
+                query_list.append({key: value})
+    print(query_list)
+    result = query_result(cursor, rec, query_list)
+    return result
+
+def accounting_search(cursor, rec):
+    query_list = []
+    for key, value in rec.items():
+        if (value) and (key not in ['date_from', 'date_to']):
+            query_list.append({key: value})
+    print(query_list)
+    result = query_result(cursor, rec, query_list)
     return result

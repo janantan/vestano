@@ -2676,20 +2676,18 @@ def search(sub_item):
     #utils.datetime_date(cursor)
 
     if request.method == 'POST':
-        if sub_item == 'cases':
-            rec = {}
-            date_from = request.form.get('date_from').encode('utf-8')
-            date_to = request.form.get('date_to').encode('utf-8')
-            date_from = jdatetime.datetime.strptime(date_from, '%Y/%m/%d')
-            date_to = jdatetime.datetime.strptime(date_to, '%Y/%m/%d')
-            date_from = date_from.strftime('%Y/%m/%d')
-            date_to = date_to.strftime('%Y/%m/%d')
-            
+        rec = {}
+        date_from = request.form.get('date_from').encode('utf-8')
+        date_to = request.form.get('date_to').encode('utf-8')
+        date_from = jdatetime.datetime.strptime(date_from, '%Y/%m/%d')
+        date_to = jdatetime.datetime.strptime(date_to, '%Y/%m/%d')
+        date_from = date_from.strftime('%Y/%m/%d')
+        date_to = date_to.strftime('%Y/%m/%d')
+        rec['date_from'] = date_from
+        rec['date_to'] = date_to
 
-            rec['date_from'] = date_from
-            rec['date_to'] = date_to
+        if sub_item == 'cases':
             rec['orderId'] = request.form.get('orderId')
-            rec['s_name'] = request.form.get('s-name')
             rec['r_name'] = request.form.get('r-name')
             rec['stateCode'] = request.form.get('stateCode')
             rec['cityCode'] = request.form.get('cityCode')
@@ -2697,9 +2695,40 @@ def search(sub_item):
             rec['serviceType'] = request.form.get('serviceType')
             rec['payType'] = request.form.get('payType')
             rec['status'] = request.form.get('status')
-            print(rec)
-            #result = utils.case_search(cursor, rec)
-            utils.case_search(cursor, rec)
+            rec['s_name'] = request.form.get('s-name')
+            rec['rad'] = []
+            rec['cgd'] = []
+            if rec['payType'] == 'rad':
+                rec['rad'] = ['true']
+            elif rec['payType'] == 'cgd':
+                rec['cgd'] = ['true']
+            result = utils.case_search(cursor, rec)
+            for r in result:
+                print(r['orderId'])
+        if sub_item == 'vendors':
+            rec['orderId'] = request.form.get('orderId')
+            rec['vendorName'] = request.form.get('vendor')
+            rec['register_name'] = request.form.get('register-name')
+            rec['stateCode'] = request.form.get('stateCode')
+            rec['cityCode'] = request.form.get('cityCode')
+            rec['parcelCode'] = request.form.get('parcelCode')
+            rec['serviceType'] = request.form.get('serviceType')
+            rec['payType'] = request.form.get('payType')
+            rec['status'] = request.form.get('status')
+            rec['grntProduct'] = request.form.getlist('grnt')
+            result = utils.vendor_search(cursor, rec)
+            for r in result:
+                print(r['orderId'])
+        if sub_item == 'accounting':
+            rec['orderId'] = request.form.get('orderId')
+            rec['parcelCode'] = request.form.get('parcelCode')
+            rec['vendorName'] = request.form.get('vendor')
+            rec['credit_req_status'] = request.form.get('credit-req-status')
+            rec['status'] = request.form.get('status')
+            rec['payType'] = request.form.get('payType')
+            result = utils.accounting_search(cursor, rec)
+            for r in result:
+                print(r['orderId'])
 
 
     return render_template('user_pannel.html',

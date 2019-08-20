@@ -15,11 +15,11 @@
 								<span for="pcal1">بازه زمانی جستجو</span><span class="red">*</span>
 							</th>
 							<td class="vw15">
-								<span>از</span><span class="red" style="margin-left: 1vw;">*</span>
+								<span style="margin-left: 1vw;">از</span>
 								<input type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')" required>
 							</td>
 							<td class="vw15">
-								<span>تا</span><span class="red" style="margin-left: 1vw;">*</span>
+								<span style="margin-left: 1vw;">تا</span>
 								<input type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')" required>
 							</td>
 						</tr>
@@ -138,11 +138,11 @@
 								<span for="pcal1">بازه زمانی جستجو</span><span class="red">*</span>
 							</th>
 							<td class="vw15">
-								<span>از</span><span class="red" style="margin-left: 1vw;">*</span>
+								<span style="margin-left: 1vw;">از</span>
 								<input type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')" required>
 							</td>
 							<td class="vw15">
-								<span>تا</span><span class="red" style="margin-left: 1vw;">*</span>
+								<span style="margin-left: 1vw;">تا</span>
 								<input type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')" required>
 							</td>
 						</tr>
@@ -267,43 +267,56 @@
 					<legend>لطفا فیلترهای مناسب را اعمال کنید:</legend>
 					<table>
 						<tr>
-							<th class="vw15">
+							<th class="vw22">
 								<span for="pcal1">بازه زمانی جستجو</span><span class="red">*</span>
 							</th>
-							<td class="vw15">
-								<span>از</span><span class="red" style="margin-left: 1vw;">*</span>
+							<td class="vw22">
+								<span style="margin-left: 1vw;">از</span>
 								<input type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')" required>
 							</td>
-							<td class="vw15">
-								<span>تا</span><span class="red" style="margin-left: 1vw;">*</span>
+							<td class="vw22">
+								<span style="margin-left: 1vw;">تا</span>
 								<input type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')" required>
 							</td>
 						</tr>
 						<tr>
-							<th class="vw15">
+							<th class="vw22">
 								<label class="mrg-vh6">شناسه سفارش</label>
 							</th>
-							<th class="vw15">
+							<th class="vw22">
 								<label class="mrg-vh6">بارکد پستی</label>
 							</th>
-							<th class="vw15">
+							<th class="vw22">
+								<label class="mrg-vh6">فروشگاه</label>
+							</th>
+						</tr>
+						<tr>
+							<th class="vw22" style="text-align: center;">
+								<input type="text" id="orderId" name="orderId">
+							</th>
+							<th class="vw22" style="text-align: center;">
+								<input type="text" id="parcelCode" name="parcelCode">
+							</th>
+							<th class="vw22">
+								<select id="vendor" name="vendor" style="padding:10px 20px;">
+									<option value="" disabled selected>(انتخاب کنید)</option>
+									<option value="روژیاپ">روژیاپ</option>
+								</select>
+							</th>
+						</tr>
+						<tr>
+							<th class="vw22">
 								<label class="mrg-vh6">وضعیت درخواست وجه</label>
 							</th>
-							<th class="vw15">
+							<th class="vw22">
 								<label class="mrg-vh6">وضعیت مرسوله</label>
 							</th>
-							<th class="vw15">
+							<th class="vw22">
 								<label class="mrg-vh6">نوع پرداخت</label>
 							</th>
 						</tr>
 						<tr>
-							<th class="vw15" style="text-align: center;">
-								<input type="text" id="orderId" name="orderId">
-							</th>
-							<th class="vw15" style="text-align: center;">
-								<input type="text" id="parcelCode" name="parcelCode">
-							</th>
-							<th class="vw15">
+							<th class="vw22">
 								<select id="credit-req-status" name="credit-req-status" style="padding:10px 20px;">
 									<option value="" disabled selected>(انتخاب کنید)</option>
 									<option value="در دست بررسی">در دست بررسی</option>
@@ -311,7 +324,7 @@
 									<option value="رد درخواست">رد درخواست</option>
 								</select>
 							</th>
-							<th class="vw15">
+							<th class="vw22">
 								<select id="status" name="status" style="padding:10px 20px;">
 									<option value="" disabled selected>(انتخاب کنید)</option>
 									<option value="11">برگشتی</option>
@@ -319,7 +332,7 @@
 									<option value="71">تسویه حساب</option>
 								</select>
 							</th>
-							<th class="vw15">
+							<th class="vw22">
 								<select id="payType" name="payType" style="padding:10px 20px;">
 									<option value="" disabled selected>(انتخاب کنید)</option>
 									<option value="پرداخت در محل">پرداخت در محل</option>
