@@ -2675,6 +2675,8 @@ def search(sub_item):
 
     #utils.datetime_date(cursor)
 
+    result = []
+    search_result = []
     if request.method == 'POST':
         rec = {}
         date_from = request.form.get('date_from').encode('utf-8')
@@ -2715,7 +2717,11 @@ def search(sub_item):
             rec['serviceType'] = request.form.get('serviceType')
             rec['payType'] = request.form.get('payType')
             rec['status'] = request.form.get('status')
-            rec['grntProduct'] = request.form.getlist('grnt')
+            rec['productId'] = request.form.get('product')
+            if request.form.getlist('grnt'):
+                rec['grntProduct'] = 'true'
+            else:
+                rec['grntProduct'] = ''
             result = utils.vendor_search(cursor, rec)
             for r in result:
                 print(r['orderId'])
@@ -2729,12 +2735,21 @@ def search(sub_item):
             result = utils.accounting_search(cursor, rec)
             for r in result:
                 print(r['orderId'])
-
+        search_result = utils.search_result(cursor, result)
+        if len(search_result):
+            flash(u'تعداد '+str(len(search_result))+ u' رکورد یافت شد.', 'success')
+        else:
+            flash(u'رکوردی یافت نشد!', 'danger')
 
     return render_template('user_pannel.html',
         item = "search",
         sub_item = sub_item,
-        states = utils.states(cursor)
+        states = utils.states(cursor),
+        inventory = utils.inventory(cursor),
+        case_inventory = utils.case_inventory(cursor),
+        s_financial = utils.search_financial(cursor, result),
+        s_v_financial = utils.search_v_financial(cursor, result),
+        result = search_result
         )
 
 @app.route('/about')
@@ -3321,15 +3336,19 @@ def api_guide():
     
     return send_file(filename, as_attachment=True)
 
-@app.route('/ticket-attachment/<filename>', methods=['GET'])
-def ticket_attachment(filename):
-    if ('vendorTicket' or 'adminTicket' or 'ordersTicket' or 'inventoryTicket' or 'financialTicket' or 'techTicket') in session['access']:
-        pass
-    else:
-        flash(u'مجاز به حذف این درخواست نیستید!', 'error')
+@app.route('/ticket-attachment/<num>', methods=['GET'])
+def ticket_attachment(num):
+    access_list = ['vendorTicket', 'adminTicket', 'ordersTicket', 'inventoryTicket', 'financialTicket', 'techTicket']
+    flag = 1
+    for item in access_list:
+        if item in session['access']:
+            flag = 0
+    if flag:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
-    #filename = '/root/vestano/static/pdf/apiGuide/api_guide.pdf'
-    
+    result = cursor.tickets.find_one({'number': num})
+    filename = result['attch_path']
+    #filename = app.config['ATTACHED_FILE_FOLDER'] + file
     return send_file(filename, as_attachment=True)
 
 if __name__ == '__main__':

@@ -1,5 +1,10 @@
 #coding: utf-8
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, jsonify
+from suds.client import Client
+from suds.xsd.doctor import Import, ImportDoctor
+from pymongo import MongoClient
+from passlib.hash import sha256_crypt
+from operator import itemgetter
 import string
 import re
 import json
@@ -8,10 +13,6 @@ import xlrd
 import xlwt
 import datetime
 import jdatetime
-from suds.client import Client
-from suds.xsd.doctor import Import, ImportDoctor
-from pymongo import MongoClient
-from passlib.hash import sha256_crypt
 import config
 
 
@@ -19,8 +20,8 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
-VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+#VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
 
@@ -223,6 +224,18 @@ def all_orders(cursor):
         result = cursor.orders.find({'vendorName': session['vendor_name']})
     else:
         result = cursor.orders.find()
+    all_list = []
+    for r in result:
+        pNameList = []
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
+        state_result = cursor.states.find_one({'Code': r['stateCode']})
+        all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            statusToString(r['status']), pNameList))
+    return all_list
+
+def search_result(cursor, result):
     all_list = []
     for r in result:
         pNameList = []
@@ -492,6 +505,162 @@ def v_financial(cursor):
 
     return v_financial
 
+def search_financial(cursor, result):
+    record = []
+    price = 0
+    PostDeliveryPrice = 0
+    VatTax = 0
+    registerCost = 0
+    wage = 0
+    t_vendor_account = 0
+    t_post_account = 0
+    t_vestano_account = 0
+    for r in result:
+        #filter just three status
+        if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
+
+            (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+            #recalulate post delivery costs for returned orders
+            if (r['status'] == 11) and (pType != 2):
+                if 'for_accounting_recalculated_delivery_costs' not in r.keys():
+                    weight = 0
+                    for p in r['products']:
+                        weight += p['weight'] * p['count']
+                    deliveryPriceResult = GetDeliveryPrice(r['cityCode'], r['costs']['price'], weight, sType, 2)
+                    for_accounting_delivery_costs = {
+                    'PostDeliveryPrice': deliveryPriceResult['DeliveryPrice'],
+                    'VatTax': deliveryPriceResult['VatTax']
+                    }
+                    cursor.orders.update_many(
+                        {'orderId': r['orderId']},
+                        {'$set':{'for_accounting_recalculated_delivery_costs': for_accounting_delivery_costs}})
+                    r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
+                    r['costs']['VatTax'] = deliveryPriceResult['VatTax']
+                else:
+                    r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
+                    r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
+
+            if pType == 2:
+                vendor_account = config.wage
+                post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            elif pType == 88:
+                vendor_account = 0 - (r['costs']['price'])
+                post_account = (r['costs']['price']+config.wage) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            else:
+                vendor_account = 0 - (r['costs']['price'])
+                post_account = (r['costs']['price']+config.wage)
+            vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+            t_vendor_account += vendor_account
+            t_post_account += post_account
+            t_vestano_account += vestano_account
+
+            price += r['costs']['price']
+            PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+            VatTax += r['costs']['VatTax']
+            registerCost += r['costs']['registerCost']
+            wage += r['costs']['wage']
+
+            status = statusToString(r['status'])
+
+            if 'credit_req_status' not in r.keys():
+                r['credit_req_status'] = '-'
+            if 'settlement_ref_number' not in r.keys():
+                r['settlement_ref_number'] = ''
+
+            protducts_list = []
+            for p in r['products']:
+                protducts_list.append(p['productName']+' - '+str(p['count']) + u' عدد ')
+
+            record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+            r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+            r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'],
+            protducts_list, status, r['credit_req_status'], r['settlement_ref_number']))
+
+    totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage,t_vendor_account ,t_post_account ,t_vestano_account)
+    s_financial = {'record': record, 'totalCosts': totalCosts}
+
+    return s_financial
+
+def search_v_financial(cursor, result):
+    record = []
+    price = 0
+    PostDeliveryPrice = 0
+    VatTax = 0
+    registerCost = 0
+    wage = 0
+    t_vendor_account = 0
+    t_post_account = 0
+    t_vestano_account = 0
+    for r in result:
+        #filter just three status
+        if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
+
+            (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+            #recalulate post delivery costs for returned orders
+            if (r['status'] == 11) and (pType != 2):
+                if 'for_accounting_recalculated_delivery_costs' not in r.keys():
+                    weight = 0
+                    for p in r['products']:
+                        weight += p['weight'] * p['count']
+                    deliveryPriceResult = GetDeliveryPrice(r['cityCode'], r['costs']['price'], weight, sType, 2)
+                    for_accounting_delivery_costs = {
+                    'PostDeliveryPrice': deliveryPriceResult['DeliveryPrice'],
+                    'VatTax': deliveryPriceResult['VatTax']
+                    }
+                    cursor.orders.update_many(
+                        {'orderId': r['orderId']},
+                        {'$set':{'for_accounting_recalculated_delivery_costs': for_accounting_delivery_costs}})
+                    r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
+                    r['costs']['VatTax'] = deliveryPriceResult['VatTax']
+                else:
+                    r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
+                    r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
+
+            if pType == 2:
+                vendor_account = 0 - config.wage
+                post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            elif pType == 88:
+                vendor_account = r['costs']['price']
+                post_account = (r['costs']['price']+config.wage) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            else:
+                vendor_account = r['costs']['price']
+                post_account = (r['costs']['price']+config.wage)
+            vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+            t_vendor_account += vendor_account
+            t_post_account += post_account
+            t_vestano_account += vestano_account
+
+            price += r['costs']['price']
+            PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+            VatTax += r['costs']['VatTax']
+            registerCost += r['costs']['registerCost']
+            wage += r['costs']['wage']
+
+            status = statusToString(r['status'])
+
+            if 'credit_req_status' not in r.keys():
+                r['credit_req_status'] = '-'
+            if 'settlement_ref_number' not in r.keys():
+                r['settlement_ref_number'] = ''
+
+            protducts_list = []
+            for p in r['products']:
+                protducts_list.append(p['productName']+' - '+str(p['count']) + u' عدد ')
+
+            record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+            r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+            r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'],
+            protducts_list, status, r['credit_req_status'], r['settlement_ref_number']))
+
+    totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage,t_vendor_account ,t_post_account ,t_vestano_account)
+    s_v_financial = {'record': record, 'totalCosts': totalCosts}
+
+    return s_v_financial
+
 def financial_vendor_credit(cursor):
     if session['role'] == 'vendor_admin':
         result = cursor.orders.find({'vendorName': session['vendor_name']})
@@ -752,6 +921,15 @@ def details(cursor, orderId, code):
         r = cursor.guarantee_orders.find_one({'orderId': orderId})
     elif code == 'all':
         r = cursor.orders.find_one({'orderId': orderId})
+    elif code == 'search':
+        if cursor.orders.find_one({'orderId': orderId}):
+            r = cursor.orders.find_one({'orderId': orderId})
+        elif cursor.temp_orders.find_one({'orderId': orderId}):
+            r = cursor.temp_orders.find_one({'orderId': orderId})
+        elif cursor.pending_orders.find_one({'orderId': orderId}):
+            r = cursor.pending_orders.find_one({'orderId': orderId})
+        elif cursor.canceled_orders.find_one({'orderId': orderId}):
+            r = cursor.canceled_orders.find_one({'orderId': orderId})
     if not r:
         return None
     state_result = cursor.states.find_one({'Code': r['stateCode']})
@@ -1883,7 +2061,21 @@ def case_query_result(cursor, rec, query_list_1, query_list_2):
         query_2 = {'$and': query_list_2}
     else:
         query_2 = {}
-    result_1 = cursor.orders.find(query_1)
+    res_1 = cursor.orders.find(query_1)
+    res_2 = cursor.caseTemp_orders.find(query_1)
+    res_3 = cursor.canceled_orders.find(query_1)
+    res_all = []
+    result_1 = []
+    for r in res_1:
+        res_all.append([r, r['datetime']])
+    for r in res_2:
+        res_all.append([r, r['datetime']])
+    for r in res_3:
+        res_all.append([r, r['datetime']])
+    res_all = sorted(res_all, key=itemgetter(1))
+    for r in res_all:
+        result_1.append(r[0])
+
     result_2 = cursor.case_orders.find(query_2)
     result = []
     result_2_list = []
@@ -1911,35 +2103,66 @@ def case_query_result(cursor, rec, query_list_1, query_list_2):
 def query_result(cursor, rec, query_list):
     if len(query_list):
         query = {
-                'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
-                'vendorName': {'$ne': 'سفارش موردی'},
-                '$and': query_list
-                }
+        'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+        'vendorName': {'$ne': 'سفارش موردی'},
+        '$and': query_list
+        }
     else:
         query = {
-                'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
-                'vendorName': {'$ne': 'سفارش موردی'},
-                }
-    if rec['status']:
-        if rec['status'] == '80':
-            result = cursor.temp_orders.find(query)
-        elif rec['status'] in ['82', '84']:
-            result = cursor.pending_orders.find(query)
-        elif rec['status'] == '83':
-            result = cursor.canceled_orders.find(query)
+        'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+        'vendorName': {'$ne': 'سفارش موردی'}
+        }
+    
+    result = []
+    #not for accounting search result
+    if 'serviceType' in rec.keys():
+        if rec['status']:
+            if rec['status'] == '80':
+                res = cursor.temp_orders.find(query)
+            elif rec['status'] in ['82', '84']:
+                res = cursor.pending_orders.find(query)
+            elif rec['status'] == '83':
+                res = cursor.canceled_orders.find(query)
+            else:
+                res = cursor.orders.find(query)
+
+            if rec['register_name']:
+                for r in res:
+                    if rec['register_name'] in (r['registerFirstName']+' '+r['registerLastName']):
+                        result.append(r)
+            else:
+                for r in res:
+                    result.append(r)
+        
         else:
-            result = cursor.orders.find(query)
-    else:
-        if 'serviceType' in rec.keys():
-            result = []
+            result_all = []
+            res = []
             result1 = cursor.orders.find(query)
-            #result2 = cursor.orders.find(query)
-            #result3 = cursor.orders.find(query)
-            #result4 = cursor.orders.find(query)
+            result2 = cursor.temp_orders.find(query)
+            result3 = cursor.pending_orders.find(query)
+            result4 = cursor.canceled_orders.find(query)
             for r in result1:
+                result_all.append([r, r['datetime']])
+            for r in result2:
+                result_all.append([r, r['datetime']])
+            for r in result3:
+                result_all.append([r, r['datetime']])
+            for r in result4:
+                result_all.append([r, r['datetime']])
+            result_all = sorted(result_all, key=itemgetter(1))
+            for r in result_all:
+                res.append(r[0])
+            if rec['register_name']:
+                for r in res:
+                    if rec['register_name'] in (r['registerFirstName']+' '+r['registerLastName']):
+                        result.append(r)
+            else:
+                result = res
+    else:
+        res = cursor.orders.find(query)
+        for r in res:
+            if r['status'] in [11, 70, 71]:
                 result.append(r)
-        else:
-            result = cursor.orders.find(query)
     return result
 
 def case_search(cursor, rec):
@@ -1949,6 +2172,8 @@ def case_search(cursor, rec):
         if (value) and (key not in ['date_from', 'date_to', 's_name', 'r_name', 'rad', 'cgd']):
             if key in ['stateCode', 'cityCode', 'status']:
                 query_list_1.append({key: int(value)})
+            elif key == 'productId':
+                query_list_1.append({'products.productId': value})
             else:
                 if (value != 'rad') and (value != 'cgd'):
                     query_list_1.append({key: value})
@@ -1965,6 +2190,8 @@ def vendor_search(cursor, rec):
         if (value) and (key not in ['date_from', 'date_to', 'register_name']):
             if key in ['stateCode', 'cityCode', 'status']:
                 query_list.append({key: int(value)})
+            elif key == 'productId':
+                query_list.append({'products.productId': value})
             else:
                 query_list.append({key: value})
     print(query_list)
@@ -1975,7 +2202,10 @@ def accounting_search(cursor, rec):
     query_list = []
     for key, value in rec.items():
         if (value) and (key not in ['date_from', 'date_to']):
-            query_list.append({key: value})
+            if key in ['status']:
+                query_list.append({key: int(value)})
+            else:
+                query_list.append({key: value})
     print(query_list)
     result = query_result(cursor, rec, query_list)
     return result
