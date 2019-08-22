@@ -20,8 +20,8 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
-#VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
+#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
 
@@ -167,17 +167,17 @@ def pending_orders(cursor):
     seven_days_before = d.strftime('%Y/%m/%d')
     for r in result:
         if r['datetime'] < seven_days_before:
-            for i in range(len(r['products'])):
-                vinvent = cursor.vestano_inventory.find_one({'productId':r['products'][i]['productId']})
-                vinvent['status']['82'] -= r['products'][i]['count']
+            #for i in range(len(r['products'])):
+                #vinvent = cursor.vestano_inventory.find_one({'productId':r['products'][i]['productId']})
+                #vinvent['status']['82'] -= r['products'][i]['count']
                 #if '84' in vinvent['status'].keys():
                     #vinvent['status']['84'] += r['products'][i]['count']
                 #else:
                     #vinvent['status']['84'] = r['products'][i]['count']
-                cursor.vestano_inventory.update_many(
-                    {'productId': vinvent['productId']},
-                    {'$set':{'status': vinvent['status']}}
-                    )
+                #cursor.vestano_inventory.update_many(
+                    #{'productId': vinvent['productId']},
+                    #{'$set':{'status': vinvent['status']}}
+                    #)
             cursor.pending_orders.update_many(
                 {'orderId': r['orderId']},
                 {'$set':{'status': 84}}
@@ -235,16 +235,39 @@ def all_orders(cursor):
             statusToString(r['status']), pNameList))
     return all_list
 
-def search_result(cursor, result):
+def case_all_orders(cursor):
+    result = cursor.orders.find({'vendorName': 'سفارش موردی'})
     all_list = []
     for r in result:
+        case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
+        if case_result:
+            sender_name = case_result['senderFirstName']+' '+case_result['senderLastName']
+        else:
+            sender_name = '-'
         pNameList = []
         for i in range(len(r['products'])):
             pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList))
+            statusToString(r['status']), pNameList, sender_name))
+    return all_list
+
+def search_result(cursor, result):
+    all_list = []
+    for r in result:
+        case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
+        if case_result:
+            sender_name = case_result['senderFirstName']+' '+case_result['senderLastName']
+        else:
+            sender_name = '-'
+        pNameList = []
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
+        state_result = cursor.states.find_one({'Code': r['stateCode']})
+        all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            statusToString(r['status']), pNameList, sender_name))
     return all_list
 
 def inventory(cursor):
@@ -978,6 +1001,9 @@ def details(cursor, orderId, code):
     if 'registerPhoneNumber' not in r.keys():
         r['registerPhoneNumber'] = '-'
 
+    if 'username' not in r.keys():
+        r['username'] = '-'
+
     if r['vendorName'] == u'سفارش موردی':
         case_ord_res = cursor.case_orders.find_one({'orderId': orderId})
         if 'wage' not in case_ord_res.keys():
@@ -1065,7 +1091,7 @@ def details(cursor, orderId, code):
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
         r['products'],count, price, discount, orderId, status, temp_wage, parcelCode, deliveryPrice,
         senderName, senderCellNumber, senderPostalCode, Weight, packing, carton, gathering, rad,
-        cgd, grnt, r['registerPhoneNumber'])
+        cgd, grnt, r['registerPhoneNumber'], r['username'])
 
     return details
 
@@ -2048,13 +2074,13 @@ def calculate_wage(vendor, weight):
 def case_query_result(cursor, rec, query_list_1, query_list_2):
     if len(query_list_1):
         query_1 = {
-                'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+                'datetime': {'$gte': rec['date_from'], '$lte': rec['date_to']},
                 'vendorName': 'سفارش موردی',
                 '$and': query_list_1
                 }
     else:
         query_1 = {
-                'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+                'datetime': {'$gte': rec['date_from'], '$lte': rec['date_to']},
                 'vendorName': 'سفارش موردی'
                 }
     if len(query_list_2):
@@ -2103,13 +2129,13 @@ def case_query_result(cursor, rec, query_list_1, query_list_2):
 def query_result(cursor, rec, query_list):
     if len(query_list):
         query = {
-        'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+        'datetime': {'$gte': rec['date_from'], '$lte': rec['date_to']},
         'vendorName': {'$ne': 'سفارش موردی'},
         '$and': query_list
         }
     else:
         query = {
-        'datetime': {'$gt': rec['date_from'], '$lt': rec['date_to']},
+        'datetime': {'$gte': rec['date_from'], '$lte': rec['date_to']},
         'vendorName': {'$ne': 'سفارش موردی'}
         }
     

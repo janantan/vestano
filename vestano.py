@@ -319,6 +319,7 @@ def token_required(f):
                     session['pending_orders'] = cursor.pending_orders.estimated_document_count()
                     session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
                     session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
+                    session['case_all_orders'] = cursor.orders.find({'vendorName': u'سفارش موردی'}).count()
                     session['all_orders'] = cursor.orders.estimated_document_count()
                     if 'adminTicket' in session['access']:
                         session['unread_tickets'] = cursor.tickets.find({'sender_reply': True}).count()
@@ -367,6 +368,7 @@ def token_required(f):
                     session['pending_orders'] = cursor.pending_orders.estimated_document_count()
                     session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
                     session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
+                    session['case_all_orders'] = cursor.orders.find({'vendorName': u'سفارش موردی'}).count()
                     session['all_orders'] = cursor.orders.estimated_document_count()
                     if 'adminTicket' in session['access']:
                         session['unread_tickets'] = cursor.tickets.find({'sender_reply': True}).count()
@@ -465,6 +467,14 @@ def home():
 @app.route('/user-pannel/orderList', methods=['GET'])
 @token_required
 def temp_orders():
+    #result = cursor.orders.find()
+    #for r in result:
+        #if r['vendorName'] == u'روژیاب':
+            #cursor.orders.update_many(
+                #{'orderId': r['orderId']},
+                #{'$set':{'vendorName': u'روژیاپ'}}
+                #)
+
     if 'processList' not in session['access']:
         flash(u'شما مجوز لازم برای ورود به این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
@@ -629,6 +639,7 @@ def confirm_orders(code):
                 new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
                 new_rec['parcelCode'] = soap_result['ParcelCode']
                 new_rec['username'] = session['username']
+                new_rec['datetime'] = jdatetime.datetime.today().strftime('%Y/%m/%d')
 
                 #utils.ReadyToShip(soap_result['ParcelCode'])
                 #new_rec['status'] = utils.GetStatus_one(cursor, soap_result['ParcelCode'])
@@ -808,6 +819,20 @@ def all_orders():
         states = utils.states(cursor)
         )
 
+@app.route('/user-pannel/case-all-orders', methods=['GET'])
+@token_required
+def case_all_orders():
+    if 'caseProcessList' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    return render_template('user_pannel.html',
+        item='caseAllOrders',
+        inventory = utils.inventory(cursor),
+        all_orders = utils.case_all_orders(cursor),
+        states = utils.states(cursor)
+        )
+
 @app.route('/finish-process/<orderId>', methods=['GET'])
 @token_required
 def finish_process(orderId):
@@ -884,11 +909,19 @@ def cancel_orders(orderId):
         rec = cursor.caseTemp_orders.find_one({'orderId': orderId})
     cursor.today_orders.update_many(
         {'orderId': orderId},
-        {'$set':{'status': 83}}
+        {'$set':{
+        'status': 83,
+        'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d')
+        }
+        }
         )
     cursor.guarantee_orders.update_many(
         {'orderId': orderId},
-        {'$set':{'status': 83}}
+        {'$set':{
+        'status': 83,
+        'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d')
+        }
+        }
         )
     cursor.canceled_orders.insert_one(rec)
     cursor.temp_orders.remove({'orderId': orderId})
@@ -933,11 +966,13 @@ def pending_order(orderId):
     rec['status'] = 82
     cursor.today_orders.update_many(
         {'orderId': orderId},
-        {'$set':{'status': 82}}
+        {'$set':{'status': 82,
+        'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d')}}
         )
     cursor.guarantee_orders.update_many(
         {'orderId': orderId},
-        {'$set':{'status': 82}}
+        {'$set':{'status': 82,
+        'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d')}}
         )
     cursor.pending_orders.insert_one(rec)
     for i in range(len(rec['products'])):
@@ -1115,7 +1150,7 @@ def edit_orders(orderId):
             pTypeCode = int(request.form.get('payType'))
 
         temp_wage = utils.calculate_wage(edit_result['vendorName'], weight)
-        deliveryPriceResult = utils.GetDeliveryPrice(int(request.form.get('cityCode')), price, weight, int(request.form.get('serviceType')), int(request.form.get('payType')))
+        deliveryPriceResult = utils.GetDeliveryPrice(int(request.form.get('cityCode')), price, weight, int(request.form.get('serviceType')), pTypeCode)
         temp_delivery_costs = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
 
         if edit_result['vendorName'] == u'سفارش موردی':
@@ -2677,6 +2712,8 @@ def search(sub_item):
 
     result = []
     search_result = []
+    s_financial = None
+    s_v_financial = None
     if request.method == 'POST':
         rec = {}
         date_from = request.form.get('date_from').encode('utf-8')
@@ -2698,6 +2735,7 @@ def search(sub_item):
             rec['payType'] = request.form.get('payType')
             rec['status'] = request.form.get('status')
             rec['s_name'] = request.form.get('s-name')
+            rec['productId'] = request.form.get('product')
             rec['rad'] = []
             rec['cgd'] = []
             if rec['payType'] == 'rad':
@@ -2735,6 +2773,8 @@ def search(sub_item):
             result = utils.accounting_search(cursor, rec)
             for r in result:
                 print(r['orderId'])
+            s_financial = utils.search_financial(cursor, result)
+            s_v_financial = utils.search_v_financial(cursor, result)
         search_result = utils.search_result(cursor, result)
         if len(search_result):
             flash(u'تعداد '+str(len(search_result))+ u' رکورد یافت شد.', 'success')
@@ -2747,8 +2787,8 @@ def search(sub_item):
         states = utils.states(cursor),
         inventory = utils.inventory(cursor),
         case_inventory = utils.case_inventory(cursor),
-        s_financial = utils.search_financial(cursor, result),
-        s_v_financial = utils.search_v_financial(cursor, result),
+        s_financial = s_financial,
+        s_v_financial = s_v_financial,
         result = search_result
         )
 

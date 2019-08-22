@@ -199,7 +199,25 @@
 							<td>
 								<span><input type="checkbox" {{cgd}} /></span>
 							</td>
+							<td>
+								<span class="blue bold font14">کاربر:</span>
+							</td>
+							<td>
+								<span class="font14">{{details[29]}}</span>
+							</td>
 						</tr>
+						<tr>
+							<td>
+								<span class="blue bold">نشانی:</span>
+							</td>
+							<td colspan="7">
+								<span>{{details[8]}}</span>
+							</td>
+						</tr>
+					{% endif %}
+				{% else %}
+					{% if details[27] %}{% set grnt='checked' %}{% else %}{% set grnt='' %}{% endif %}
+					{% if session['role'] == 'vendor_admin' %}
 						<tr>
 							<td>
 								<span class="blue bold">نشانی:</span>
@@ -207,24 +225,43 @@
 							<td colspan="5">
 								<span>{{details[8]}}</span>
 							</td>
+							<td>
+								<span class="blue bold font14">کالای گارانتی:</span>
+							</td>
+							<td>
+								<span><input type="checkbox" {{grnt}} /></span>
+							</td>
+						</tr>
+					{% else %}
+						<tr>
+							<td>
+								<span class="blue bold font14">هزینه ارسال:</span>
+							</td>
+							<td>
+								<span>{{details[17]}} ریال</span>
+							</td>
+							<td>
+								<span class="blue bold font14">کالای گارانتی:</span>
+							</td>
+							<td>
+								<span><input type="checkbox" {{grnt}} /></span>
+							</td>
+							<td>
+								<span class="blue bold font14">کاربر:</span>
+							</td>
+							<td>
+								<span class="font14">{{details[29]}}</span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<span class="blue bold">نشانی:</span>
+							</td>
+							<td colspan="7">
+								<span>{{details[8]}}</span>
+							</td>
 						</tr>
 					{% endif %}
-				{% else %}
-					{% if details[27] %}{% set grnt='checked' %}{% else %}{% set grnt='' %}{% endif %}
-					<tr>
-						<td>
-							<span class="blue bold">نشانی:</span>
-						</td>
-						<td colspan="5">
-							<span>{{details[8]}}</span>
-						</td>
-						<td>
-							<span class="blue bold font14">کالای گارانتی:</span>
-						</td>
-						<td>
-							<span><input type="checkbox" {{grnt}} /></span>
-						</td>
-					</tr>
 				{% endif %}
 			</table>
 			<fieldset class="p-fieldset">

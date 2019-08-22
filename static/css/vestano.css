@@ -451,9 +451,9 @@ a.export {
 }
 
 .div1 {
-    background: linear-gradient(90deg,rgba(0,23,41,.8),rgba(35,96,147,.8)),url(/static/img/fast-truck.jpg);
+    background: linear-gradient(90deg,rgba(0,23,41,.6),rgba(35,96,147,.6)),url(/static/img/fp2.jpg);
     background-size: cover;
-    background-position: bottom;
+    background-position: center;
 }
 
 .navbar-link.fp-search.fp-st {
