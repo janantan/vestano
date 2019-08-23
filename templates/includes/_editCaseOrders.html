@@ -24,6 +24,7 @@
                       <input id="s_first_name" type="text" name="s_first_name" value="{{case_data['senderFirstName']}}" onchange="validator('s_first_name', 'name')" placeholder="نام" required />
                       <input id="s_last_name" type="text" name="s_last_name" value="{{case_data['senderLastName']}}" onchange="validator('s_last_name', 'name')" placeholder="نام خانوادگی" required />
                       <input id="s_cell_number" type="text" name="s_cell_number" value="{{case_data['senderCellNumber']}}" onchange="validator('s_cell_number', 'number')" placeholder="شماره موبایل" />
+                      <input id="s_phone_number" type="text" name="s_phone_number" value="{{case_data['senderPhoneNumber']}}" onchange="validator('s_phone_number', 'phone')" placeholder="تلفن ثابت" />
                     </div>
                     <div>
                       <label>آدرس فرستنده</label>
@@ -39,6 +40,7 @@
                       <input id="r_first_name" type="text" name="r_first_name" value="{{data['registerFirstName']}}" onchange="validator('r_first_name', 'name')" placeholder="نام" required />
                       <input id="r_last_name" type="text" name="r_last_name" value="{{data['registerLastName']}}" onchange="validator('r_last_name', 'name')" placeholder="نام خانوادگی" required />
                       <input id="r_cell_number" type="text" name="r_cell_number" value="{{data['registerCellNumber']}}" onchange="validator('r_cell_number', 'number')" placeholder="شماره موبایل" required />
+                      <input id="r_phone_number" type="text" name="r_phone_number" value="{{data['registerPhoneNumber']}}" onchange="validator('r_phone_number', 'phone')" placeholder="تلفن ثابت" />
                     </div>
                     <div>
                       <label>آدرس گیرنده</label>

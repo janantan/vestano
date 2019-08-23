@@ -2,7 +2,7 @@
 	<input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
 </div>
 <fieldset class="fieldset" style="margin-top: 2vh;">
-	<legend>سفارشات موردی پردازش نشده:</legend>
+	<legend>همه سفارشات فروشگاهی:</legend>
 	<table id="inventory">
 		<thead>
 			<tr style="background: yellow;">
@@ -13,10 +13,10 @@
 					<span>شناسه سفارش</span>
 				</th>
 				<th>
-					<span>نام فرستنده</span>
+					<span>شرکت فروشنده</span>
 				</th>
 				<th>
-					<span>نام گیرنده</span>
+					<span>نام خریدار</span>
 				</th>
 				<th>
 					<span>استان</span>
@@ -43,40 +43,40 @@
 			</tr>
 		</thead>
 		<tbody id="myDropdown" style="height: 74vh;">
-			{% for rec in caseTemp_orders %}
+			{% for i in range((all_orders|length)-1, -1, -1) %}
 				<tr class="rows">
 					<td style="width: 50px;">
 						<span>{{loop.index}}</span>
 					</td>
 					<td>
-						<a title="{{('\n'.join(rec[9]))}}"><span>{{rec[0]}}</span></a>
+						<a title="{{('\n'.join(all_orders[i][9]))}}"><span>{{all_orders[i][0]}}</span></a>
 					</td>
 					<td>
-						<span>{{rec[10]}}</span>
+						<span>{{all_orders[i][1]}}</span>
 					</td>
 					<td>
-						<span>{{rec[2]}}</span>
+						<span>{{all_orders[i][2]}}</span>
 					</td>
 					<td>
-						<span>{{rec[3]}}</span>
+						<span>{{all_orders[i][3]}}</span>
 					</td>
 					<td>
-						<span>{{rec[4]}}</span>
+						<span>{{all_orders[i][4]}}</span>
 					</td>
 					<td>
-						<span>{{rec[5]}}</span>
+						<span>{{all_orders[i][5]}}</span>
 					</td>
 					<td>
-						<span>{{rec[6]}}</span>
+						<span>{{all_orders[i][6]}}</span>
 					</td>
 					<td>
-						<span>{{rec[7]}}</span>
+						<span>{{all_orders[i][7]}}</span>
 					</td>
 					<td>
-						<span>{{rec[8]}}</span>
+						<span>{{all_orders[i][8]}}</span>
 					</td>
 					<td>
-						<a href="javascript:window.open('/orders-details/{{rec[0]}}/caseTemp', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+						<a href="javascript:window.open('/orders-details/{{all_orders[i][0]}}/all', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
 					</td>
 				</tr>
 			{% endfor %}

@@ -92,9 +92,15 @@
                           <td>
                             <input id="discount{{i+1}}" type="text" value="{{data['products'][i]['percentDiscount']}}" onchange="anyChange()" size="6" disabled required/>
                           </td>
-                          <td>
-                            <input id="weight{{i+1}}" type="text" value="{{data['products'][i]['weight']}}" onchange="anyChange()" size="6" disabled required/>
-                          </td>
+                          {% if session['role'] == 'vendor_admin' %}
+                            <td>
+                              <input id="weight{{i+1}}" type="text" value="{{data['products'][i]['weight']}}" onchange="anyChange()" size="6" disabled required/>
+                            </td>
+                          {% else %}
+                            <td>
+                              <input id="weight{{i+1}}" type="text" name="weight_{{i+1}}" value="{{data['products'][i]['weight']}}" onchange="anyChange()" size="6" required/>
+                            </td>
+                          {% endif %}
                           <td>
                             <a href="#" title="حذف" class="del-box"> - </a>
                             <a href="#" title="افزودن" class="add-box"> + </a>
@@ -121,9 +127,15 @@
                           <td>
                             <input id="discount{{i+1}}" type="text" name="discount_{{i+1}}" value="{{data['products'][i]['percentDiscount']}}" onchange="anyChange()" size="6" required/>
                           </td>
-                          <td>
-                            <input id="weight{{i+1}}" type="text" name="weight_{{i+1}}" value="{{data['products'][i]['weight']}}" onchange="anyChange()" size="6" required/>
-                          </td>
+                          {% if session['role'] == 'vendor_admin' %}
+                            <td>
+                              <input id="weight{{i+1}}" type="text" name="weight_{{i+1}}" value="{{data['products'][i]['weight']}}" onchange="anyChange()" size="6" required/>
+                            </td>
+                          {% else %}
+                            <td>
+                              <input id="weight{{i+1}}" type="text" value="{{data['products'][i]['weight']}}" onchange="anyChange()" size="6" required/>
+                            </td>
+                          {% endif %}
                           <td>
                             <a href="javascript:addrow('row{{i+1}}','del')" title="حذف" class="del-box"> - </a>
                             <a href="javascript:addrow('row{{i+1}}', 'add')" title="افزودن" class="add-box"> + </a>
@@ -200,8 +212,24 @@
                 {% if data['grntProduct'] %}{% set grntck = 'checked' %}{% else %}{% set grntck = '' %}{% endif %}
                 {% endif %}
                 <tr>
-                  <td>
-                    <label style="color: red; font-weight: bold; margin: 2vw 0;"><input type="checkbox" name="grnt" value="true" {{grntck}}/>کالای گارانتی</label>
+                  {% if session['role'] == 'vendor_admin' %}
+                    <td style="width: 30%; float: right;">
+                      <label style="color: red; font-weight: bold; margin: 1.8vw 0;">نام فروشگاه
+                      <select style="margin-right: 1vw;" id="vendor_name" name="vendor_name" required>
+                        <option value="{{session['vendor_name']}}">{{session['vendor_name']}}</option>
+                      </select></label>
+                    </td>
+                  {% else %}
+                    <td style="width: 30%; float: right;">
+                      <label style="color: red; font-weight: bold; margin: 1.8vw 0;">نام فروشگاه
+                      <select style="margin-right: 1vw;" id="vendor_name" name="vendor_name" required>
+                        <option value="{{data['vendorName']}}">{{data['vendorName']}}</option>
+                        <option value="روژیاپ">روژیاپ</option>
+                      </select></label>
+                    </td>
+                  {% endif %}
+                  <td style="width: 20%; float: right;">
+                    <label style="color: red; font-weight: bold; margin: 2vw 0;"><input type="checkbox" name="grnt" value="true" {{grntck}} />کالای گارانتی</label>
                   </td>
                 </tr>
               {% endif %}

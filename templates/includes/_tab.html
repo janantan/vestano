@@ -7,6 +7,7 @@
 {% set to = "color:#fafafa;" %}
 {% set cnl = "color:#fafafa;" %}
 {% set c_all = "color:#fafafa;" %}
+{% set v_all = "color:#fafafa;" %}
 {% set all = "color:#fafafa;" %}
 {% set ord = "color:#fafafa;" %}
 {% set case = "color:#fafafa;" %}
@@ -40,6 +41,8 @@
 	{% set cnl = "color:yellow;" %}
 {% elif "case-all-orders" in request.base_url %}
 	{% set c_all = "color:yellow;" %}
+{% elif "vendors-all-orders" in request.base_url %}
+	{% set v_all = "color:yellow;" %}
 {% elif "all-orders" in request.base_url %}
 	{% set all = "color:yellow;" %}
 {% elif "ordering" in request.base_url %}
@@ -131,11 +134,11 @@
 					</tr>
 				{% endif %}
 				{% if 'rtsOrders' in session['access'] %}
-					<!--<tr>
+					<tr>
 						<td>
 							<a style={{rts}} href="/user-pannel/ready-to-ship">سفارشات آماده ارسال ({{session['ready_to_ship']}})</a>
 						</td>
-					</tr>-->
+					</tr>
 				{% endif %}
 				{% if 'pndOrders' in session['access'] %}
 					<tr>
@@ -144,10 +147,17 @@
 						</td>
 					</tr>
 				{% endif %}
-				{% if 'caseProcessList' in session['access'] %}
+				{% if 'caseAllOrders' in session['access'] %}
 					<tr>
 						<td>
 							<a style={{c_all}} href="/user-pannel/case-all-orders">همه سفارشات موردی ({{session['case_all_orders']}})</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if ('vendorsAllOrders' in session['access']) and (session['role'] != 'vendor_admin') %}
+					<tr>
+						<td>
+							<a style={{v_all}} href="/user-pannel/vendors-all-orders">همه سفارشات فروشگاهی ({{session['vendors_all_orders']}})</a>
 						</td>
 					</tr>
 				{% endif %}

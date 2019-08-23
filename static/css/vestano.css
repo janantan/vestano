@@ -109,7 +109,7 @@ a {
 }
 
 #tab a:hover {
-    font-size: 19px;
+    font-size: 17px;
     text-decoration: none;
 }
 
@@ -451,9 +451,9 @@ a.export {
 }
 
 .div1 {
-    background: linear-gradient(90deg,rgba(0,23,41,.6),rgba(35,96,147,.6)),url(/static/img/fp2.jpg);
+    background: linear-gradient(90deg,rgba(0,23,41,.6),rgba(35,96,147,.6)),url(/static/img/fp5.jpg);
     background-size: cover;
-    background-position: center;
+    background-position: bottom;
 }
 
 .navbar-link.fp-search.fp-st {
@@ -689,13 +689,12 @@ a.export {
     padding: 5px;
     border-radius: 5px;
     border: 1px #e1e1e1;
-    margin-right: 2vh;
     padding-right: 1vw;
 }
 
 .fieldset-card a {
     color: #fafafa;
-    font-size: 17px;
+    font-size: 16px;
 }
 
 .fieldset-card td {

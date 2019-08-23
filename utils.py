@@ -72,17 +72,24 @@ def temp_orders(cursor):
 def caseTemp_orders(cursor):
     if session['role'] == 'vendor_admin':
         result = cursor.caseTemp_orders.find({'vendorName': session['vendor_name']})
-    else:
+    elif session['role'] == 'admin':
         result = cursor.caseTemp_orders.find()
+    else:
+        result = cursor.caseTemp_orders.find({'init_username': session['username']})
     temp = []
     for r in result:
+        case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
+        if case_result:
+            sender_name = case_result['senderFirstName']+' '+case_result['senderLastName']
+        else:
+            sender_name = '-'
         pNameList = []
         for i in range(len(r['products'])):
             pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         temp.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList))
+            statusToString(r['status']), pNameList, sender_name))
     return temp
 
 def today_orders(cursor):
@@ -251,6 +258,19 @@ def case_all_orders(cursor):
         all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
             statusToString(r['status']), pNameList, sender_name))
+    return all_list
+
+def vendors_all_orders(cursor):
+    result = cursor.orders.find({'vendorName': {'$ne': 'سفارش موردی'}})
+    all_list = []
+    for r in result:
+        pNameList = []
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
+        state_result = cursor.states.find_one({'Code': r['stateCode']})
+        all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            statusToString(r['status']), pNameList))
     return all_list
 
 def search_result(cursor, result):
@@ -1003,6 +1023,8 @@ def details(cursor, orderId, code):
 
     if 'username' not in r.keys():
         r['username'] = '-'
+    if 'init_username' not in r.keys():
+        r['init_username'] = '-'
 
     if r['vendorName'] == u'سفارش موردی':
         case_ord_res = cursor.case_orders.find_one({'orderId': orderId})
@@ -1016,6 +1038,10 @@ def details(cursor, orderId, code):
         senderName = case_ord_res['senderFirstName'] + ' ' + case_ord_res['senderLastName']
         senderCellNumber = case_ord_res['senderCellNumber']
         senderPostalCode = case_ord_res['senderPostalCode']
+        if 'senderPhoneNumber' in case_ord_res.keys():
+            senderPhoneNumber = case_ord_res['senderPhoneNumber']
+        else:
+            senderPhoneNumber = '-'
         grnt = None
         if 'rad' in case_ord_res.keys():
             if len(case_ord_res['rad']):
@@ -1037,6 +1063,7 @@ def details(cursor, orderId, code):
         senderName = ''
         senderCellNumber = ''
         senderPostalCode = ''
+        senderPhoneNumber = ''
         if 'grntProduct' in r.keys():
             grnt = r['grntProduct']
         else:
@@ -1091,7 +1118,7 @@ def details(cursor, orderId, code):
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
         r['products'],count, price, discount, orderId, status, temp_wage, parcelCode, deliveryPrice,
         senderName, senderCellNumber, senderPostalCode, Weight, packing, carton, gathering, rad,
-        cgd, grnt, r['registerPhoneNumber'], r['username'])
+        cgd, grnt, r['registerPhoneNumber'], r['username'], r['init_username'], senderPhoneNumber)
 
     return details
 
@@ -1320,7 +1347,7 @@ def accessToFarsi(access):
     if access == 'inventory':
         accessFarsi = u'انبارداری'
     if access == 'financialRep':
-        accessFarsi = u'گزارشات و تسویه مالی'
+        accessFarsi = u'صفحه مالی'
     if access == 'accounting':
         accessFarsi = u'حسابداری'
     if access == 'vendorCredit':
@@ -1330,7 +1357,7 @@ def accessToFarsi(access):
     if access == 'paidList':
         accessFarsi = u'مبالغ واریزی'
     if access == 'searchPage':
-        accessFarsi = u'مشاهده گزارشات (صفحه جستجو)'
+        accessFarsi = u'صفحه جستجو'
     if access == 'vendorTicket':
         accessFarsi = u'تیکت فروشگاه'
     if access == 'adminTicket':
@@ -1353,6 +1380,17 @@ def accessToFarsi(access):
         accessFarsi = u'ایجاد کاربری'
     if access == 'inventManagement':
         accessFarsi = u'مدیریت انبار'
+    if access == 'caseAllOrders':
+        accessFarsi = u'همه سفارشات موردی'
+    if access == 'vendorsAllOrders':
+        accessFarsi = u'همه سفارشات فروشگاهی'
+    if access == 'searchInCases':
+        accessFarsi = u'جستجو - سفارشات موردی'
+    if access == 'searchInVendors':
+        accessFarsi = u'جستجو - سفارشات فروشگاهی'
+    if access == 'searchInAccounting':
+        accessFarsi = u'جستجو - حسابداری'
+
     return accessFarsi
 
 def states(cursor):

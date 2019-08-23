@@ -117,8 +117,6 @@ class SomeSoapService(spyne.Service):
                     return 0
                 if not payType:
                     return 0
-                if not vendorName:
-                    return 0
                 if not registerFirstName:
                     return 0
                 if not registerLastName:
@@ -177,7 +175,7 @@ class SomeSoapService(spyne.Service):
                 order_id = str(random2.randint(1000000, 9999999))
 
                 input_data = {
-                'vendorName' : vendorName,
+                'vendorName' : user_result['vendor_name'],
                 'orderId' : order_id,
                 'registerFirstName' : registerFirstName,
                 'registerLastName' : registerLastName,
@@ -215,7 +213,7 @@ class SomeSoapService(spyne.Service):
                             {'productId': vinvent['productId']},
                             {'$set':{'status': vinvent['status']}}
                             )
-                    cursor.today_orders.insert_one(input_data)
+                    #cursor.today_orders.insert_one(input_data)
                     cursor.all_records.insert_one(input_data)
                     if guaranteeProduct:
                         cursor.guarantee_orders.insert_one(input_data)
@@ -301,7 +299,6 @@ def token_required(f):
                 if session['role'] == 'vendor_admin':
                     #utils.today_orders(cursor)
                     session['temp_orders'] = cursor.temp_orders.find({'vendorName': session['vendor_name']}).count()
-                    session['caseTemp_orders'] = cursor.caseTemp_orders.find({'vendorName': u'سفارش موردی'}).count()
                     session['canceled_orders'] = cursor.canceled_orders.find({'vendorName': session['vendor_name']}).count()
                     session['today_orders'] = cursor.today_orders.find({'vendorName': session['vendor_name']}).count()
                     session['pending_orders'] = cursor.pending_orders.find({'vendorName': session['vendor_name']}).count()
@@ -313,13 +310,20 @@ def token_required(f):
                 else:
                     #utils.today_orders(cursor)
                     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-                    session['caseTemp_orders'] = cursor.caseTemp_orders.find({'vendorName': u'سفارش موردی'}).count()
+                    if session['role'] == 'admin':
+                        session['caseTemp_orders'] = cursor.caseTemp_orders.find({'vendorName': u'سفارش موردی'}).count()
+                    else:
+                        session['caseTemp_orders'] = cursor.caseTemp_orders.find({
+                            'vendorName': u'سفارش موردی',
+                            'init_username': session['username']
+                            }).count()
                     session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
                     session['today_orders'] = cursor.today_orders.estimated_document_count()
                     session['pending_orders'] = cursor.pending_orders.estimated_document_count()
                     session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
                     session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
                     session['case_all_orders'] = cursor.orders.find({'vendorName': u'سفارش موردی'}).count()
+                    session['vendors_all_orders'] = cursor.orders.find({'vendorName': {'$ne': 'سفارش موردی'}}).count()
                     session['all_orders'] = cursor.orders.estimated_document_count()
                     if 'adminTicket' in session['access']:
                         session['unread_tickets'] = cursor.tickets.find({'sender_reply': True}).count()
@@ -351,7 +355,6 @@ def token_required(f):
                 session['jdatetime'] = jdatetime.datetime.today().strftime('%d / %m / %Y')
                 if session['role'] == 'vendor_admin':
                     session['temp_orders'] = cursor.temp_orders.find({'vendorName': session['vendor_name']}).count()
-                    session['caseTemp_orders'] = cursor.caseTemp_orders.find({'vendorName': u'سفارش موردی'}).count()
                     session['canceled_orders'] = cursor.canceled_orders.find({'vendorName': session['vendor_name']}).count()
                     session['today_orders'] = cursor.today_orders.find({'vendorName': session['vendor_name']}).count()
                     session['pending_orders'] = cursor.pending_orders.find({'vendorName': session['vendor_name']}).count()
@@ -362,13 +365,20 @@ def token_required(f):
                     session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False}).count()
                 else:
                     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
-                    session['caseTemp_orders'] = cursor.caseTemp_orders.find({'vendorName': u'سفارش موردی'}).count()
+                    if session['role'] == 'admin':
+                        session['caseTemp_orders'] = cursor.caseTemp_orders.find({'vendorName': u'سفارش موردی'}).count()
+                    else:
+                        session['caseTemp_orders'] = cursor.caseTemp_orders.find({
+                            'vendorName': u'سفارش موردی',
+                            'init_username': session['username']
+                            }).count()
                     session['canceled_orders'] = cursor.canceled_orders.estimated_document_count()
                     session['today_orders'] = cursor.today_orders.estimated_document_count()
                     session['pending_orders'] = cursor.pending_orders.estimated_document_count()
                     session['guarantee_orders'] = cursor.guarantee_orders.estimated_document_count()
                     session['ready_to_ship'] = cursor.ready_to_ship.estimated_document_count()
                     session['case_all_orders'] = cursor.orders.find({'vendorName': u'سفارش موردی'}).count()
+                    session['vendors_all_orders'] = cursor.orders.find({'vendorName': {'$ne': 'سفارش موردی'}}).count()
                     session['all_orders'] = cursor.orders.estimated_document_count()
                     if 'adminTicket' in session['access']:
                         session['unread_tickets'] = cursor.tickets.find({'sender_reply': True}).count()
@@ -467,10 +477,10 @@ def home():
 @app.route('/user-pannel/orderList', methods=['GET'])
 @token_required
 def temp_orders():
-    #result = cursor.orders.find()
+    #result = cursor.pending_orders.find()
     #for r in result:
         #if r['vendorName'] == u'روژیاب':
-            #cursor.orders.update_many(
+            #cursor.pending_orders.update_many(
                 #{'orderId': r['orderId']},
                 #{'$set':{'vendorName': u'روژیاپ'}}
                 #)
@@ -822,7 +832,7 @@ def all_orders():
 @app.route('/user-pannel/case-all-orders', methods=['GET'])
 @token_required
 def case_all_orders():
-    if 'caseProcessList' not in session['access']:
+    if 'caseAllOrders' not in session['access']:
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -830,6 +840,20 @@ def case_all_orders():
         item='caseAllOrders',
         inventory = utils.inventory(cursor),
         all_orders = utils.case_all_orders(cursor),
+        states = utils.states(cursor)
+        )
+
+@app.route('/user-pannel/vendors-all-orders', methods=['GET'])
+@token_required
+def vendors_all_orders():
+    if 'vendorsAllOrders' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    return render_template('user_pannel.html',
+        item='vendorsAllOrders',
+        inventory = utils.inventory(cursor),
+        all_orders = utils.vendors_all_orders(cursor),
         states = utils.states(cursor)
         )
 
@@ -907,22 +931,19 @@ def cancel_orders(orderId):
     rec = cursor.temp_orders.find_one({'orderId': orderId})
     if not rec:
         rec = cursor.caseTemp_orders.find_one({'orderId': orderId})
-    cursor.today_orders.update_many(
-        {'orderId': orderId},
-        {'$set':{
-        'status': 83,
-        'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d')
-        }
-        }
-        )
     cursor.guarantee_orders.update_many(
         {'orderId': orderId},
         {'$set':{
         'status': 83,
+        'username': session['username'],
         'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d')
         }
         }
         )
+    rec['status'] = 83
+    rec['username'] = session['username']
+    rec['datetime'] = jdatetime.datetime.today().strftime('%Y/%m/%d')
+    cursor.today_orders.insert_one(rec)
     cursor.canceled_orders.insert_one(rec)
     cursor.temp_orders.remove({'orderId': orderId})
     cursor.caseTemp_orders.remove({'orderId': orderId})
@@ -964,14 +985,13 @@ def pending_order(orderId):
     if not rec:
         rec = cursor.caseTemp_orders.find_one({'orderId': orderId})
     rec['status'] = 82
-    cursor.today_orders.update_many(
-        {'orderId': orderId},
-        {'$set':{'status': 82,
-        'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d')}}
-        )
+    rec['username'] = session['username']
+    rec['datetime'] = jdatetime.datetime.today().strftime('%Y/%m/%d')
+    cursor.today_orders.insert_one(rec)
     cursor.guarantee_orders.update_many(
         {'orderId': orderId},
         {'$set':{'status': 82,
+        'username': session['username'],
         'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d')}}
         )
     cursor.pending_orders.insert_one(rec)
@@ -1027,6 +1047,7 @@ def delete_order(orderId):
     cursor.canceled_orders.remove({'orderId': orderId})
     cursor.today_orders.remove({'orderId': orderId})
     cursor.guarantee_orders.remove({'orderId': orderId})
+    rec['deleted_username'] = session['username']
     cursor.deleted_orders.insert_one(rec)
     flash(u'سفارش حذف شد!', 'danger')
     return redirect(request.referrer)
@@ -1042,8 +1063,10 @@ def return_order(orderId):
     cursor.today_orders.remove({'orderId': orderId})
     cursor.guarantee_orders.remove({'orderId': orderId})
     rec['status'] = 80
+    rec['username'] = session['username']
     rec['record_date'] = jdatetime.datetime.now().strftime('%d / %m / %Y')
     rec['record_time'] = jdatetime.datetime.now().strftime('%M : %H')
+    rec['datetime'] = jdatetime.datetime.today().strftime('%Y/%m/%d')
     
     if rec['vendorName'] == u'سفارش موردی':
         cursor.caseTemp_orders.insert_one(rec)
@@ -1134,7 +1157,7 @@ def edit_orders(orderId):
                     temp_order_product['price'] = int(request.form.get('price_'+str(i)))
                     temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
                     temp_order_product['productName'] = p_details['productName']
-                    temp_order_product['weight'] = p_details['weight']
+                    temp_order_product['weight'] = int(request.form.get('weight_'+str(i)))
                     temp_order_product['description'] = p_details['description']
                     weight += temp_order_product['weight']*temp_order_product['count']
                     price += temp_order_product['price']*temp_order_product['count']
@@ -1162,6 +1185,7 @@ def edit_orders(orderId):
                 'registerFirstName' : request.form.get('r_first_name'),
                 'registerLastName' : request.form.get('r_last_name'),
                 'registerCellNumber' : request.form.get('r_cell_number'),
+                'registerPhoneNumber' : request.form.get('r_phone_number'),
                 'stateCode' : int(request.form.get('stateCode')),
                 'cityCode' : int(request.form.get('cityCode')),
                 'registerAddress' : request.form.get('address'),
@@ -1184,6 +1208,7 @@ def edit_orders(orderId):
                 'registerFirstName' : request.form.get('r_first_name'),
                 'registerLastName' : request.form.get('r_last_name'),
                 'registerCellNumber' : request.form.get('r_cell_number'),
+                'registerPhoneNumber' : request.form.get('r_phone_number'),
                 'stateCode' : int(request.form.get('stateCode')),
                 'cityCode' : int(request.form.get('cityCode')),
                 'registerAddress' : request.form.get('address'),
@@ -1206,11 +1231,13 @@ def edit_orders(orderId):
                 'senderFirstName' : request.form.get('s_first_name'),
                 'senderLastName' : request.form.get('s_last_name'),
                 'senderCellNumber' : request.form.get('s_cell_number'),
+                'senderPhoneNumber' : request.form.get('s_phone_number'),
                 'senderAddress' : request.form.get('s_address'),
                 'senderPostalCode' : request.form.get('s_postal_code'),
                 'receiverFirstName' : request.form.get('r_first_name'),
                 'receiverLastName' : request.form.get('r_last_name'),
                 'receiverCellNumber' : request.form.get('r_cell_number'),
+                'receiverPhoneNumber' : request.form.get('r_phone_number'),
                 'stateCode' : int(request.form.get('stateCode')),
                 'cityCode' : int(request.form.get('cityCode')),
                 'registerAddress' : request.form.get('address'),
@@ -1242,7 +1269,7 @@ def edit_orders(orderId):
             cursor.temp_orders.update_many(
                 {'orderId': orderId},
                 {'$set':{
-                'vendorName' : edit_result['vendorName'],
+                'vendorName' : request.form.get('vendor_name'),
                 'registerFirstName' : request.form.get('first_name'),
                 'registerLastName' : request.form.get('last_name'),
                 'registerCellNumber' : request.form.get('cell_number'),
@@ -1264,7 +1291,7 @@ def edit_orders(orderId):
             cursor.today_orders.update_many(
                 {'orderId': orderId},
                 {'$set':{
-                'vendorName' : edit_result['vendorName'],
+                'vendorName' : request.form.get('vendor_name'),
                 'registerFirstName' : request.form.get('first_name'),
                 'registerLastName' : request.form.get('last_name'),
                 'registerCellNumber' : request.form.get('cell_number'),
@@ -1287,7 +1314,7 @@ def edit_orders(orderId):
                 if grnt:
                     temp_order = {
                     'orderId': orderId,
-                    'vendorName' : edit_result['vendorName'],
+                    'vendorName' : request.form.get('vendor_name'),
                     'registerFirstName' : request.form.get('first_name'),
                     'registerLastName' : request.form.get('last_name'),
                     'registerCellNumber' : request.form.get('cell_number'),
@@ -1318,7 +1345,7 @@ def edit_orders(orderId):
                     cursor.guarantee_orders.update_many(
                         {'orderId': orderId},
                         {'$set':{
-                        'vendorName' : edit_result['vendorName'],
+                        'vendorName' : request.form.get('vendor_name'),
                         'registerFirstName' : request.form.get('first_name'),
                         'registerLastName' : request.form.get('last_name'),
                         'registerCellNumber' : request.form.get('cell_number'),
@@ -1385,10 +1412,14 @@ def ordering(item):
                 for i in range (1, 100):
                     if request.form.get('product_'+str(i)):
                         temp_order_product = {}
+                        p_details = cursor.vestano_inventory.find_one({'productId': request.form.get('product_'+str(i))})
                         temp_order_product['productId'] = request.form.get('product_'+str(i))
+                        temp_order_product['productName'] = p_details['productName']
                         temp_order_product['count'] = int(request.form.get('count_'+str(i)))
                         temp_order_product['price'] = int(request.form.get('price_'+str(i)))
+                        temp_order_product['weight'] = p_details['weight']
                         temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+                        temp_order_product['description'] = p_details['description']
 
                         temp_order_products.append(temp_order_product)
 
@@ -1399,14 +1430,38 @@ def ordering(item):
                     (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')),
                         int(request.form.get('payType')))
                     pTypeCode = int(request.form.get('payType'))
+                serviceType = int(request.form.get('serviceType'))
+                (sType, pType) = utils.typeOfServicesToString(serviceType, pTypeCode)
 
                 if request.form.getlist('grnt'):
                     grnt = request.form.getlist('grnt')[0]
                 else:
                     grnt = ''
 
-                temp_order = {
-                'vendorName' : u'روژیاپ',
+                #temp_order = {
+                #'vendorName' : u'روژیاپ',
+                #'registerFirstName' : request.form.get('first_name'),
+                #'registerLastName' : request.form.get('last_name'),
+                #'registerCellNumber' : request.form.get('cell_number'),
+                #'registerPhoneNumber' : request.form.get('phone_number'),
+                #'stateCode' : int(request.form.get('stateCode')),
+                #'cityCode' : int(request.form.get('cityCode')),
+                #'registerAddress' : request.form.get('address'),
+                #'registerPostalCode' : request.form.get('postal_code'),
+                #'guaranteeProduct' : grnt,
+                #'products' : temp_order_products,
+                #'serviceType' : int(request.form.get('serviceType')),
+                #'payType' : pTypeCode,
+                #'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
+                #'orderTime': jdatetime.datetime.now().strftime('%M : %H')
+                #}
+                #print(utils.test_temp_order(temp_order))
+
+                orderId = str(random2.randint(1000000, 9999999))
+
+                input_data = {
+                'vendorName' : request.form.get('vendor_name'),
+                'orderId' : orderId,
                 'registerFirstName' : request.form.get('first_name'),
                 'registerLastName' : request.form.get('last_name'),
                 'registerCellNumber' : request.form.get('cell_number'),
@@ -1415,18 +1470,35 @@ def ordering(item):
                 'cityCode' : int(request.form.get('cityCode')),
                 'registerAddress' : request.form.get('address'),
                 'registerPostalCode' : request.form.get('postal_code'),
-                'guaranteeProduct' : grnt,
                 'products' : temp_order_products,
-                'serviceType' : int(request.form.get('serviceType')),
-                'payType' : pTypeCode,
+                'serviceType' : sType,
+                'payType' : pType,
+                'grntProduct' : grnt,
                 'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
-                'orderTime': jdatetime.datetime.now().strftime('%M : %H')
+                'orderTime': jdatetime.datetime.now().strftime('%M : %H'),
+                'record_date': jdatetime.datetime.now().strftime('%d / %m / %Y'),
+                'record_time': jdatetime.datetime.now().strftime('%M : %H'),
+                'parcelCode': '-',
+                'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+                'init_username': session['username'],
+                'status' : 80
                 }
 
+                for i in range(len(input_data['products'])):
+                    vinvent = cursor.vestano_inventory.find_one({'productId':input_data['products'][i]['productId']})
+                    vinvent['status']['80']+= input_data['products'][i]['count']
+                    cursor.vestano_inventory.update_many(
+                        {'productId': vinvent['productId']},
+                        {'$set':{'status': vinvent['status']}}
+                        )
+
+                #cursor.today_orders.insert_one(input_data)
+                cursor.all_records.insert_one(input_data)
+                cursor.temp_orders.insert_one(input_data)
+                if grnt:
+                    cursor.guarantee_orders.insert_one(input_data)
+
                 flash(u'ثبت شد!', 'success')
-
-                print(utils.test_temp_order(temp_order))
-
                 return redirect(url_for('ordering', item='ordering'))
     else:
         flash(u'لطفا ابتدا وارد شوید', 'error')
@@ -1460,11 +1532,15 @@ def case_orders():
                         }
                         }
                         )
+                    p_details = cursor.case_inventory.find_one({'productId': request.form.get('product_'+str(i))})
                     temp_order_product = {}
                     temp_order_product['productId'] = request.form.get('product_'+str(i))
+                    temp_order_product['productName'] = p_details['productName']
                     temp_order_product['count'] = int(request.form.get('count_'+str(i)))
                     temp_order_product['price'] = int(request.form.get('price_'+str(i)))
+                    temp_order_product['weight'] = p_details['weight']
                     temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+                    temp_order_product['description'] = p_details['description']
 
                     temp_order_products.append(temp_order_product)
 
@@ -1475,35 +1551,48 @@ def case_orders():
                 (sType, pType) = utils.typeOfServicesToString(int(request.form.get('serviceType')),
                     int(request.form.get('payType')))
                 pTypeCode = int(request.form.get('payType'))
+            serviceType = int(request.form.get('serviceType'))
+            (sType, pType) = utils.typeOfServicesToString(serviceType, pTypeCode)
 
-            temp_order = {
+            orderId = str(random2.randint(1000000, 9999999))
+
+            input_data = {
             'vendorName' : u'سفارش موردی',
+            'orderId' : orderId,
             'registerFirstName' : request.form.get('r_first_name'),
             'registerLastName' : request.form.get('r_last_name'),
             'registerCellNumber' : request.form.get('r_cell_number'),
+            'registerPhoneNumber' : request.form.get('r_phone_number'),
             'stateCode' : int(request.form.get('stateCode')),
             'cityCode' : int(request.form.get('cityCode')),
             'registerAddress' : request.form.get('address'),
             'registerPostalCode' : request.form.get('postal_code'),
             'products' : temp_order_products,
-            'serviceType' : int(request.form.get('serviceType')),
-            'payType' : pTypeCode,
+            'serviceType' : sType,
+            'payType' : pType,
+            'grntProduct' : None,
             'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
-            'orderTime': jdatetime.datetime.now().strftime('%M : %H')
+            'orderTime': jdatetime.datetime.now().strftime('%M : %H'),
+            'record_date': jdatetime.datetime.now().strftime('%d / %m / %Y'),
+            'record_time': jdatetime.datetime.now().strftime('%M : %H'),
+            'parcelCode': '-',
+            'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+            'init_username': session['username'],
+            'status' : 80
             }
-
-            orderId = utils.test_temp_order(temp_order)
 
             case_order = {
             'vendorName' : u'سفارش موردی',
             'senderFirstName' : request.form.get('s_first_name'),
             'senderLastName' : request.form.get('s_last_name'),
             'senderCellNumber' : request.form.get('s_cell_number'),
+            'senderPhoneNumber' : request.form.get('s_phone_number'),
             'senderAddress' : request.form.get('s_address'),
             'senderPostalCode' : request.form.get('s_postal_code'),
             'receiverFirstName' : request.form.get('r_first_name'),
             'receiverLastName' : request.form.get('r_last_name'),
             'receiverCellNumber' : request.form.get('r_cell_number'),
+            'receiverPhoneNumber' : request.form.get('r_phone_number'),
             'stateCode' : int(request.form.get('stateCode')),
             'cityCode' : int(request.form.get('cityCode')),
             'registerAddress' : request.form.get('address'),
@@ -1524,7 +1613,10 @@ def case_orders():
             'orderTime': jdatetime.datetime.now().strftime('%M : %H')
             }
 
+            cursor.caseTemp_orders.insert_one(input_data)
             cursor.case_orders.insert_one(case_order)
+            cursor.today_orders.insert_one(input_data)
+            cursor.all_records.insert_one(input_data)
 
             flash(u'ثبت شد!', 'success')
 
@@ -2698,13 +2790,13 @@ def search(sub_item):
     if 'searchPage' not in session['access']:
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
-    if (sub_item=='cases') and ('caseProcessList' not in session['access']):
+    if (sub_item=='cases') and ('searchInCases' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
-    if (sub_item=='vendors') and ('processList' not in session['access']):
+    if (sub_item=='vendors') and ('searchInVendors' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
-    if (sub_item=='accounting') and (('financialRep' not in session['access']) or ('accounting' not in session['access'])):
+    if (sub_item=='accounting') and ('searchInAccounting' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 

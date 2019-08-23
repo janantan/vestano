@@ -191,7 +191,23 @@
         </tr>
         {% if (session['role'] == 'vendor_admin') or (session['role'] == 'admin') or (session['role'] == 'office') %}
           <tr>
-            <td>
+            {% if session['role'] == 'vendor_admin' %}
+              <td style="width: 30%; float: right;">
+                <label style="color: red; font-weight: bold; margin: 1.8vw 0;">نام فروشگاه
+                <select style="margin-right: 1vw;" id="vendor_name" name="vendor_name" required>
+                  <option value="{{session['vendor_name']}}">{{session['vendor_name']}}</option>
+                </select></label>
+              </td>
+            {% else %}
+              <td style="width: 30%; float: right;">
+                <label style="color: red; font-weight: bold; margin: 1.8vw 0;">نام فروشگاه
+                <select style="margin-right: 1vw;" id="vendor_name" name="vendor_name" required>
+                  <option value="" disabled selected>(انخاب کنید)</option>
+                  <option value="روژیاپ">روژیاپ</option>
+                </select></label>
+              </td>
+            {% endif %}
+            <td style="width: 10%; float: right;">
               <label style="color: red; font-weight: bold; margin: 2vw 0;"><input type="checkbox" name="grnt" value="true"/>کالای گارانتی</label>
             </td>
           </tr>
