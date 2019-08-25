@@ -4,7 +4,7 @@
   {% else %}
   <div class="dropdown-content-inventory mrg-vh4">
   {% endif %}
-    <input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
+    <input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter2()" size="25">
   </div>
 {% endif %}
 <fieldset class="fieldset transfer-fieldset" onclick="notShow()" style="background: #fafafa;">
@@ -56,9 +56,28 @@
   {% elif sub_item == 'incT' %}
     <fieldset class="fieldset mrg-vh2" style="height: 65vh; background: rgb(255,255,230);">
       <form method="POST" action="">
-        <div class="mrg-vh1">
+
+        <div class="dropdown mrg-vh4" id="inc-search">
+          <label>نام کالای مورد نظر را وارد کنید:</label>
+          <div id="myDropdown" class="dropdown-content" style="max-height: none;">
+            <input type="text" id="myInput" placeholder="جستجو .." autocomplete="off" onclick="show()" onkeyup="filter()" size="30" style="width: 15vw;">
+            <table id="inventory" style="display: none;">
+              <tbody style="height: 45vh; width: 15vw;">
+                {% for item in inventory %}
+                  <tr>
+                    <td style="width: unset;">
+                      <a href="#" style="width: unset;" onclick="searchFunction1('{{item[1]}}', '{{item[0]}}')">{{item[0]}}</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="mrg-vh1" style="display: none;">
           <label>کالای مورد نظر را انتخاب کنید:</label>
-          <select id="product" name="product" onchange="product1('product')" required>
+          <select id="product" name="product" onchange="product1('product')" oninput="product1('product')" required>
             <option value="" disabled selected>(انخاب کنید)</option>
             {% for item in inventory %}
               <option value="{{item[1]}}">{{item[0]}}</option>
@@ -66,6 +85,7 @@
             {% endfor %}
           </select>
         </div>
+
         <fieldset id="features" class="fieldset mrg-vh2" style="height: 50vh; border: none; background: rgb(255,255,230); display: none;">
           <div class="mrg-vh4">
             <label style="display:inline-block;">شناسه کالا</label>
@@ -113,7 +133,25 @@
   {% elif sub_item == 'editT' %}
     <fieldset class="fieldset mrg-vh2" style="height: 65vh; background: rgb(255,255,230);">
       <form method="POST" action="">
-        <div class="mrg-vh1">
+        <div class="dropdown mrg-vh4" id="inc-search">
+          <label>نام کالای مورد نظر را وارد کنید:</label>
+          <div id="myDropdown" class="dropdown-content" style="max-height: none;">
+            <input type="text" id="myInput" placeholder="جستجو .." autocomplete="off" onclick="show()" onkeyup="filter()" size="30" style="width: 15vw;">
+            <table id="inventory" style="display: none;">
+              <tbody style="height: 45vh; width: 15vw;">
+                {% for item in inventory %}
+                  <tr>
+                    <td style="width: unset;">
+                      <a href="#" style="width: unset;" onclick="searchFunction4('{{item[1]}}', '{{item[0]}}')">{{item[0]}}</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="mrg-vh1" style="display: none;">
           <label>کالای مورد نظر را انتخاب کنید:</label>
           <select id="product" name="product" onchange="product4('product')" required>
             <option value="" disabled selected>(انخاب کنید)</option>
@@ -123,6 +161,7 @@
             {% endfor %}
           </select>
         </div>
+
         <fieldset id="features" class="fieldset mrg-vh2" style="height: 50vh; border: none; background: rgb(255,255,230); display: none;">
           <div class="mrg-vh4">
             <label style="display:inline-block;">نام کالا</label>
@@ -157,7 +196,7 @@
     </fieldset>
 
   {% elif sub_item == 'packT' %}
-    <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230);">
+    <fieldset class="fieldset mrg-vh1" style="height: 68vh; background: rgb(255,255,230);">
       <form method="POST" action="" style="margin-block-end: 0;">
         <div>
           <label>نام بسته</label>
@@ -254,7 +293,25 @@
   {% elif sub_item == 'releaseT' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230); height: 65vh;">
       <form method="POST" action="">
-        <div class="mrg-vh1">
+        <div class="dropdown mrg-vh2" id="inc-search">
+          <label>نام کالای مورد نظر را وارد کنید:</label>
+          <div id="myDropdown" class="dropdown-content" style="max-height: none;">
+            <input type="text" id="myInput" placeholder="جستجو .." autocomplete="off" onclick="show()" onkeyup="filter()" size="30" style="width: 15vw;">
+            <table id="inventory" style="display: none;">
+              <tbody style="height: 45vh; width: 15vw;">
+                {% for item in inventory %}
+                  <tr>
+                    <td style="width: unset;">
+                      <a href="#" style="width: unset;" onclick="searchFunction2('{{item[1]}}', '{{item[0]}}')">{{item[0]}}</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="mrg-vh1" style="display: none;">
           <label>کالای مرجوعی را انتخاب کنید:</label>
           <select id="product" name="product" onchange="product2('product')" required>
             <option value="" disabled selected>(انخاب کنید)</option>
@@ -264,7 +321,8 @@
             {% endfor %}
           </select>
         </div>
-        <fieldset id="features" class="fieldset mrg-vh2" style="height: 50vh; border: none; background: rgb(255,255,230); display: none;">
+
+        <fieldset id="features" class="fieldset mrg-vh6" style="height: 50vh; border: none; background: rgb(255,255,230); display: none;">
           <div>
             <label>موجودی فعلی</label>
             <input id="exist_count" type="text" name="exist_count" placeholder="" size="20" disabled />
@@ -304,7 +362,7 @@
         <div class="dropdown mrg-vh4">
           <!--<button onclick="search()" class="dropbtn">جستجو</button>-->
           <div id="myDropdown" class="dropdown-content" style="max-height: none;">
-            <input type="text" placeholder="جستجو .." id="myInput" autocomplete="off" onclick="show()" onkeyup="filter()" size="30" style="width: 15vw;">
+            <input type="text" id="myInput" placeholder="جستجو .." autocomplete="off" onclick="show()" onkeyup="filter()" size="30" style="width: 15vw;">
             <table id="inventory" style="display: none;">
               <tbody style="height: 45vh; width: 15vw;">
                 {% for item in inventory %}
@@ -459,57 +517,57 @@
         {% else %}
         <tbody id="myDropdown" class="hgt-71" style="height: 67vh; font-family: 'B-Roya';" >
         {% endif %}
-          {% for rec in transfer_req %}
-          {% if (session['role'] == 'vendor_admin') and (not rec['read']) %}
-            <tr id="rows" style="font-weight: bold;" class="border-bottom" onclick="transferReqDetails('{{rec['number']}}')">
-          {% elif (session['role'] != 'vendor_admin') and (rec['req_status']=='بررسی نشده' or rec['req_status']=='ویرایش شده') %}
-            <tr id="rows" style="font-weight: bold;" class="border-bottom" onclick="transferReqDetails('{{rec['number']}}')">
+          {% for i in range((transfer_req|length)-1, -1, -1) %}
+          {% if (session['role'] == 'vendor_admin') and (not transfer_req[i]['read']) %}
+            <tr id="rows" style="font-weight: bold;" class="border-bottom" onclick="transferReqDetails('{{transfer_req[i]['number']}}')">
+          {% elif (session['role'] != 'vendor_admin') and (transfer_req[i]['req_status']=='بررسی نشده' or transfer_req[i]['req_status']=='ویرایش شده') %}
+            <tr id="rows" style="font-weight: bold;" class="border-bottom" onclick="transferReqDetails('{{transfer_req[i]['number']}}')">
           {% else %}
-            <tr id="rows" class="border-bottom" onclick="transferReqDetails('{{rec['number']}}')">
+            <tr id="rows" class="border-bottom" onclick="transferReqDetails('{{transfer_req[i]['number']}}')">
           {% endif %}
               <td style="width: 4vw;">
                 <span>{{loop.index}}</span>
               </td>
               <td>
-                <span id="req-number">{{rec['number']}}</span>
+                <span id="req-number">{{transfer_req[i]['number']}}</span>
               </td>
               <td>
-                <span>{{rec['vendor']}}</span>
+                <span>{{transfer_req[i]['vendor']}}</span>
               </td>
               <td class="vw14">
-                <span>{{rec['request_type']}}</span>
+                <span>{{transfer_req[i]['request_type']}}</span>
               </td>
               <td class="vw20">
-                <a title="شناسه کالا : {{rec['productId']}}"><span>{{rec['productName']}}</span></a>
+                <a title="شناسه کالا : {{transfer_req[i]['productId']}}"><span>{{transfer_req[i]['productName']}}</span></a>
               </td>
-              {% if 'count' in rec %}
+              {% if 'count' in transfer_req[i] %}
                 <td class="vw8">
-                  <span>{{rec['count']}}</span>
+                  <span>{{transfer_req[i]['count']}}</span>
                 </td>
               {% else %}
                 <td class="vw8">
                   <span>-</span>
                 </td>
               {% endif %}
-              {% if 'shipment' not in rec %}
+              {% if 'shipment' not in transfer_req[i] %}
                 <td>
-                  <span>{{rec['datetime']}}</span>
+                  <span>{{transfer_req[i]['datetime']}}</span>
                 </td>
-              {% elif rec['request_type'] == 'خروج از انبار' %}
+              {% elif transfer_req[i]['request_type'] == 'خروج از انبار' %}
                 <td>
-                  <a title="زمان تحویل از انبار: {{rec['shipment_date']}}"><span>{{rec['datetime']}}</span>
+                  <a title="زمان تحویل از انبار: {{transfer_req[i]['shipment_date']}}"><span>{{transfer_req[i]['datetime']}}</span>
                 </td>
               {% else %}
                 <td>
-                  <a title="زمان ارسال به انبار: {{rec['shipment_date']}}"><span>{{rec['datetime']}}</span>
+                  <a title="زمان ارسال به انبار: {{transfer_req[i]['shipment_date']}}"><span>{{transfer_req[i]['datetime']}}</span>
                 </td>
               {% endif %}
-              {% if rec['req_status']=='بررسی نشده' %}{% set color='orange' %}
-              {% elif rec['req_status']=='ویرایش شده' %}{% set color='blue' %}
-              {% elif rec['req_status']=='تایید شد' %}{% set color='green' %}
-              {% elif rec['req_status']=='رد درخواست' %}{% set color='red' %}{% endif %}
+              {% if transfer_req[i]['req_status']=='بررسی نشده' %}{% set color='orange' %}
+              {% elif transfer_req[i]['req_status']=='ویرایش شده' %}{% set color='blue' %}
+              {% elif transfer_req[i]['req_status']=='تایید شد' %}{% set color='green' %}
+              {% elif transfer_req[i]['req_status']=='رد درخواست' %}{% set color='red' %}{% endif %}
               <td class="vw8">
-                <a title="{{rec['refuse_reason']}}"><span class={{color}}>{{rec['req_status']}}</span></a>
+                <a title="{{transfer_req[i]['refuse_reason']}}"><span class={{color}}>{{transfer_req[i]['req_status']}}</span></a>
               </td>
               <td class="vw8">
                 <a href="" title="حذف حواله"><span style="float: unset; margin: auto;" id="delete"></span></a>
@@ -763,12 +821,30 @@
     xhr.send();
   }
 
+  function searchFunction1(product_id, product_name) {
+    document.getElementById('myInput').value = product_name;
+    document.getElementById('product').value = product_id;
+    product1('product');
+  }
+
+  function searchFunction4(product_id, product_name) {
+    document.getElementById('myInput').value = product_name;
+    document.getElementById('product').value = product_id;
+    product4('product');
+  }
+
+  function searchFunction2(product_id, product_name) {
+    document.getElementById('myInput').value = product_name;
+    document.getElementById('product').value = product_id;
+    product2('product');
+  }
+
   function transferReqDetails(number) {
     //var number = document.getElementById(id_name).innerHTML
     window.open("/user-pannel/inventory-transfer-details/"+number, "_self");
   }
 
-  function filter() {
+  function filter2() {
     var input, value, tr, div, i;
     input = document.getElementById("myInput-inventory");
     value = input.value.toUpperCase();

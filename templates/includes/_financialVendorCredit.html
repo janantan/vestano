@@ -21,7 +21,7 @@
 			{% if vendor_credit['totalCosts'][5] <= 0 %}
 				<a class="button" style="margin-top: 0;" title="مبلغ بستانکاری کافی نیست!" href="" onclick="denyRequest()"><span>درخواست واریز وجه</span></a>
 			{% else %}
-				<a class="button" style="margin-top: 0;" href="javascript:window.open('/req-credit/{{vendor_credit['totalCosts'][5]}}/{{vendor_credit['order_id_list']}}', 'Request Credit', 'width=950,height=500,top=100,left=300');"><span>درخواست واریز وجه</span></a>
+				<a class="button" style="margin-top: 0;" href="javascript:window.open('/req-credit?unique_id={{vendor_credit['unique_id']}}', 'Request Credit', 'width=950,height=500,top=100,left=300');"><span>درخواست واریز وجه</span></a>
 			{% endif %}
 		</div><br>
 	</div>

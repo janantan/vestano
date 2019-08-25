@@ -33,31 +33,31 @@
       </tr>
     </thead>
     <tbody id="myDropdown" style="height: 72vh; font-family: 'B-Roya';" >
-      {% for rec in paid_list %}
-        <tr id="rows" class="border-bottom" onclick="financialSettlement('{{rec['number']}}')">
+      {% for i in range((paid_list|length)-1, -1, -1) %}
+        <tr id="rows" class="border-bottom" onclick="financialSettlement('{{paid_list[i]['number']}}')">
           <td style="width: 4vw;">
             <span>{{loop.index}}</span>
           </td>
           <td class="vw10">
-            <span id="req-number">{{rec['number']}}</span>
+            <span id="req-number">{{paid_list[i]['number']}}</span>
           </td>
           <td class="vw8">
-            <span>{{rec['vendor']}}</span>
+            <span>{{paid_list[i]['vendor']}}</span>
           </td>
           <td class="vw10">
-            <span>{{rec['credit_price']}}</span>
+            <span>{{paid_list[i]['credit_price']}}</span>
           </td>
           <td class="vw10">
-            <span>{{rec['account_number']}}</span>
+            <span>{{paid_list[i]['account_number']}}</span>
           </td>
           <td class="vw10">
-            <span>{{rec['account_holder']}}</span>
+            <span>{{paid_list[i]['account_holder']}}</span>
           </td>
           <td class="vw10">
-            <span>{{rec['paid_datetime']}}</span>
+            <span>{{paid_list[i]['paid_datetime']}}</span>
           </td>
           <td class="vw8">
-            <span class={{color}}>{{rec['ref_number']}}</span>
+            <span class={{color}}>{{paid_list[i]['ref_number']}}</span>
           </td>
           <td>
             <a title="مجاز به حذف این درخواست نیستید!"><span style="float: unset; margin: auto;" id="delete"></span></a>

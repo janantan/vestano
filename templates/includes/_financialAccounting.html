@@ -40,7 +40,7 @@
 					</th>
 				</tr>
 			</thead>
-			<tbody style="height: 65vh;">
+			<tbody id="myDropdown" style="height: 65vh;">
 				{% for rec in v_financial['record'] %}
 					<tr class="rows">
 						<td>
@@ -83,18 +83,18 @@
 						<span>مجموع</span>
 					</td>
 					<td>
-						<span>{{v_financial['totalCosts'][0]}}</span>
+						<span id="sum3">{{v_financial['totalCosts'][0]}}</span>
 					</td>
 					<td>
-						<span >{{v_financial['totalCosts'][4]}}</span>
+						<span id="sum4">{{v_financial['totalCosts'][4]}}</span>
 					</td>
 					{% if v_financial['totalCosts'][5] < 0 %}
 						<td>
-							<span class="red">{{0 - v_financial['totalCosts'][5]}}</span>
+							<span id="sum5" class="red">{{0 - v_financial['totalCosts'][5]}}</span>
 						</td>
 					{% else %}
 						<td>
-							<span class="blue">{{v_financial['totalCosts'][5]}}</span>
+							<span id="sum5" class="blue">{{v_financial['totalCosts'][5]}}</span>
 						</td>
 					{% endif %}
 				</tr>
@@ -148,7 +148,7 @@
 					</th>
 				</tr>
 			</thead>
-			<tbody style="height: 65vh;">
+			<tbody id="myDropdown" style="height: 65vh;">
 				{% for rec in financial['record'] %}
 					<tr class="rows">
 						<td>
@@ -213,50 +213,50 @@
 						</td>
 					</tr>
 				{% endfor %}
-				<tr style="background: rgb(255,255,180);">
+				<tr id="sum" style="background: rgb(255,255,180);">
 					<td colspan="3">
 						<span>مجموع</span>
 					</td>
 					<td>
-						<span>{{financial['totalCosts'][0]}}</span>
+						<span id="sum3">{{financial['totalCosts'][0]}}</span>
 					</td>
 					<td>
-						<span>{{financial['totalCosts'][1]}}</span>
+						<span id="sum4">{{financial['totalCosts'][1]}}</span>
 					</td>
 					<td>
-						<span>{{financial['totalCosts'][2]}}</span>
+						<span id="sum5">{{financial['totalCosts'][2]}}</span>
 					</td>
 					<td>
-						<span>{{financial['totalCosts'][3]}}</span>
+						<span id="sum6">{{financial['totalCosts'][3]}}</span>
 					</td>
 					<td>
-						<span >{{financial['totalCosts'][4]}}</span>
+						<span id="sum7">{{financial['totalCosts'][4]}}</span>
 					</td>
 					{% if financial['totalCosts'][5] < 0 %}
 						<td>
-							<span class="red">{{0 - financial['totalCosts'][5]}}</span>
+							<span id="sum8" class="red">{{0 - financial['totalCosts'][5]}}</span>
 						</td>
 					{% else %}
 						<td>
-							<span class="blue">{{financial['totalCosts'][5]}}</span>
+							<span id="sum8" class="blue">{{financial['totalCosts'][5]}}</span>
 						</td>
 					{% endif %}
 					{% if financial['totalCosts'][6] < 0 %}
 						<td>
-							<span class="red">{{0 - financial['totalCosts'][6]}}</span>
+							<span id="sum9" class="red">{{0 - financial['totalCosts'][6]}}</span>
 						</td>
 					{% else %}
 						<td>
-							<span class="blue">{{financial['totalCosts'][6]}}</span>
+							<span id="sum9" class="blue">{{financial['totalCosts'][6]}}</span>
 						</td>
 					{% endif %}
 					{% if financial['totalCosts'][7] < 0 %}
 						<td>
-							<span class="red">{{0 - financial['totalCosts'][7]}}</span>
+							<span id="sum10" class="red">{{0 - financial['totalCosts'][7]}}</span>
 						</td>
 					{% else %}
 						<td>
-							<span class="blue">{{financial['totalCosts'][7]}}</span>
+							<span id="sum10" class="blue">{{financial['totalCosts'][7]}}</span>
 						</td>
 					{% endif %}
 				</tr>
@@ -266,6 +266,225 @@
 </fieldset>
 
 <script type="text/javascript">
+	function filter() {
+		var sum3=0; sum4=0; sum5=0; sum6=0; sum7=0; sum8=0; sum9=0; sum10=0;
+	    var input, value, tr, div, i;
+	    input = document.getElementById("myInput-inventory");
+	    value = input.value.toUpperCase();
+	    div = document.getElementById("myDropdown");
+	    tr = div.getElementsByTagName("tr");
+	    //alert(tr.length)
+	    if (isNaN(value)) {
+	    	if (tr[0].getElementsByTagName("span").length > 9) {
+	    		for (i = 0; i < (tr.length-1); i++) {
+	    			span = tr[i].getElementsByTagName("span");
+					txtValue = span[11].textContent;
+					if (txtValue.toUpperCase().indexOf(value) > -1) {
+						tr[i].style.display = "";
+						sum3 = sum3 + parseInt(span[3].textContent);
+						sum4 = sum4 + parseInt(span[4].textContent);
+						sum5 = sum5 + parseInt(span[5].textContent);
+						sum6 = sum6 + parseInt(span[6].textContent);
+						sum7 = sum7 + parseInt(span[7].textContent);
+						if (span[8].className === 'blue') {
+							sum8 = sum8 + parseInt(span[8].textContent);
+						} else {
+							sum8 = sum8 - parseInt(span[8].textContent);
+						}
+						if (span[9].className === 'blue') {
+							sum9 = sum9 + parseInt(span[9].textContent);
+						} else {
+							sum9 = sum9 - parseInt(span[9].textContent);
+						}
+						if (span[10].className === 'blue') {
+							sum10 = sum10 + parseInt(span[10].textContent);
+						} else {
+							sum10 = sum10 - parseInt(span[10].textContent);
+						}
+					} else {
+						txtValue = span[12].textContent;
+						if (txtValue.toUpperCase().indexOf(value) > -1) {
+							tr[i].style.display = "";
+							sum3 = sum3 + parseInt(span[3].textContent);
+							sum4 = sum4 + parseInt(span[4].textContent);
+							sum5 = sum5 + parseInt(span[5].textContent);
+							sum6 = sum6 + parseInt(span[6].textContent);
+							sum7 = sum7 + parseInt(span[7].textContent);
+							if (span[8].className === 'blue') {
+								sum8 = sum8 + parseInt(span[8].textContent);
+							} else {
+								sum8 = sum8 - parseInt(span[8].textContent);
+							}
+							if (span[9].className === 'blue') {
+								sum9 = sum9 + parseInt(span[9].textContent);
+							} else {
+								sum9 = sum9 - parseInt(span[9].textContent);
+							}
+							if (span[10].className === 'blue') {
+								sum10 = sum10 + parseInt(span[10].textContent);
+							} else {
+								sum10 = sum10 - parseInt(span[10].textContent);
+							}
+						} else {
+							txtValue = span[13].textContent;
+							if (txtValue.toUpperCase().indexOf(value) > -1) {
+								tr[i].style.display = "";
+								sum3 = sum3 + parseInt(span[3].textContent);
+								sum4 = sum4 + parseInt(span[4].textContent);
+								sum5 = sum5 + parseInt(span[5].textContent);
+								sum6 = sum6 + parseInt(span[6].textContent);
+								sum7 = sum7 + parseInt(span[7].textContent);
+								if (span[8].className === 'blue') {
+									sum8 = sum8 + parseInt(span[8].textContent);
+								} else {
+									sum8 = sum8 - parseInt(span[8].textContent);
+								}
+								if (span[9].className === 'blue') {
+									sum9 = sum9 + parseInt(span[9].textContent);
+								} else {
+									sum9 = sum9 - parseInt(span[9].textContent);
+								}
+								if (span[10].className === 'blue') {
+									sum10 = sum10 + parseInt(span[10].textContent);
+								} else {
+									sum10 = sum10 - parseInt(span[10].textContent);
+								}
+							} else {
+								tr[i].style.display = "none";
+							}
+						}
+					}
+				}
+				if (!value) {
+					sum3 = "{{financial['totalCosts'][0]}}";
+					sum4 = "{{financial['totalCosts'][1]}}";
+					sum5 = "{{financial['totalCosts'][2]}}";
+					sum6 = "{{financial['totalCosts'][3]}}";
+					sum7 = "{{financial['totalCosts'][4]}}";
+					sum8 = "{{financial['totalCosts'][5]}}";
+					sum9 = "{{financial['totalCosts'][6]}}";
+					sum10 = "{{financial['totalCosts'][7]}}";
+				}
+				showSum('sum3', sum3);
+				showSum('sum4', sum4);
+				showSum('sum5', sum5);
+				showSum('sum6', sum6);
+				showSum('sum7', sum7);
+				showSum('sum8', sum8);
+				showSum('sum9', sum9);
+				showSum('sum10', sum10);
+	    	} else {
+	    		for (i = 0; i < (tr.length-1); i++) {
+					span = tr[i].getElementsByTagName("span");
+					txtValue = span[6].textContent;
+					if (txtValue.toUpperCase().indexOf(value) > -1) {
+						tr[i].style.display = "";
+						sum3 = sum3 + parseInt(span[3].textContent);
+						sum4 = sum4 + parseInt(span[4].textContent);
+						if (span[5].className === 'blue') {
+							sum5 = sum5 + parseInt(span[5].textContent);
+						} else {
+							sum5 = sum5 - parseInt(span[5].textContent);
+						}
+					} else {
+						txtValue = span[7].textContent;
+						if (txtValue.toUpperCase().indexOf(value) > -1) {
+							tr[i].style.display = "";
+							sum3 = sum3 + parseInt(span[3].textContent);
+							sum4 = sum4 + parseInt(span[4].textContent);
+							if (span[5].className === 'blue') {
+								sum5 = sum5 + parseInt(span[5].textContent);
+							} else {
+								sum5 = sum5 - parseInt(span[5].textContent);
+							}
+						} else {
+							txtValue = span[8].textContent;
+							if (txtValue.toUpperCase().indexOf(value) > -1) {
+								tr[i].style.display = "";
+								sum3 = sum3 + parseInt(span[3].textContent);
+								sum4 = sum4 + parseInt(span[4].textContent);
+								if (span[5].className === 'blue') {
+									sum5 = sum5 + parseInt(span[5].textContent);
+								} else {
+									sum5 = sum5 - parseInt(span[5].textContent);
+								}
+							} else {
+								tr[i].style.display = "none";
+							}
+						}
+					}
+				if (!value) {
+					sum3 = "{{v_financial['totalCosts'][0]}}";
+					sum4 = "{{v_financial['totalCosts'][4]}}";
+					sum5 = "{{v_financial['totalCosts'][5]}}";
+				}
+				showSum('sum3', sum3);
+				showSum('sum4', sum4);
+				showSum('sum5', sum5);
+				}
+	    	}
+	    } else {
+			for (i = 0; i < (tr.length); i++) {
+				span = tr[i].getElementsByTagName("span");
+				txtValue = span[1].textContent;
+				if (txtValue.toUpperCase().indexOf(value) > -1) {
+					tr[i].style.display = "";
+				} else {
+					txtValue = span[2].textContent;
+					if (txtValue.toUpperCase().indexOf(value) > -1) {
+						tr[i].style.display = "";
+					}  else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+			if (tr[0].getElementsByTagName("span").length > 9) {
+				if (!value) {
+					sum3 = "{{financial['totalCosts'][0]}}";
+					sum4 = "{{financial['totalCosts'][1]}}";
+					sum5 = "{{financial['totalCosts'][2]}}";
+					sum6 = "{{financial['totalCosts'][3]}}";
+					sum7 = "{{financial['totalCosts'][4]}}";
+					sum8 = "{{financial['totalCosts'][5]}}";
+					sum9 = "{{financial['totalCosts'][6]}}";
+					sum10 = "{{financial['totalCosts'][7]}}";
+				}
+				showSum('sum3', sum3);
+				showSum('sum4', sum4);
+				showSum('sum5', sum5);
+				showSum('sum6', sum6);
+				showSum('sum7', sum7);
+				showSum('sum8', sum8);
+				showSum('sum9', sum9);
+				showSum('sum10', sum10);
+			} else {
+				if (!value) {
+					sum3 = "{{v_financial['totalCosts'][0]}}";
+					sum4 = "{{v_financial['totalCosts'][4]}}";
+					sum5 = "{{v_financial['totalCosts'][5]}}";
+				}
+				showSum('sum3', sum3);
+				showSum('sum4', sum4);
+				showSum('sum5', sum5);
+			}
+		}
+	}
+
+	function reverse_date_1(s) {
+		s = s.split("/").reverse().join("/");
+		return s;
+	}
+
+	function reverse_date_2(s) {
+		s = s.split(" / ").reverse().join(" / ");
+		return s;
+	} 
+
+	function reverse_time(s) {
+		s = s.split(":").reverse().join(":");
+		return s;
+	}
+
 	function ToRial(str) {
 
 		str = str.replace(/\,/g, '');
@@ -276,5 +495,15 @@
 		    }
 
 		return str;
+	}
+
+	function showSum(id_name, sum) {
+		sum = parseInt(sum);
+		document.getElementById(id_name).innerHTML = Math.abs(sum);
+		if (sum >= 0) {
+			document.getElementById(id_name).className = 'blue';
+		} else {
+			document.getElementById(id_name).className = 'red';
+		}
 	}
 </script>

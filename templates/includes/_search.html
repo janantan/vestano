@@ -1,5 +1,10 @@
 <fieldset class="fieldset" style="background: #fafafa">
 	<legend>لطفا یکی از فیلدهای زیر را جهت جستجو انتخاب کنید:</legend>
+	{% if session['role'] != 'vendor_admin' %}
+		<div class="dropdown-content-inventory" style="margin-left: 1vw; border: none; background: none; top: 16vh;">
+			<a href="/export-excel-lias/{{sub_item}}" title="تولید خروجی لیاس" class="export navbar-link xls"><span style="margin-right: 2vw;">خروجی  لیاس</span></a>
+		</div>
+	{% endif %}
 	{% include 'includes/_searchTab.html' %}
 	{% if not result|length %}
 		{% if sub_item == 'all' %}
@@ -22,9 +27,9 @@
 							<tr>
 								<th colspan="3" class="vw15">
 									<span style="margin-left: 1vw;">از</span>
-									<input style="margin-bottom: 4vh;" type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')" required>
+									<input style="margin-bottom: 4vh;" type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')">
 									<span style="margin-left: 1vw; margin-right: 3vw;">تا</span>
-									<input style="margin-bottom: 4vh;" type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')" required>
+									<input style="margin-bottom: 4vh;" type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')">
 								</th>
 								<th colspan="2" class="vw15">
 									<select style="margin-bottom: 4vh;" id="product" name="product" style="padding:10px 20px;">
@@ -156,9 +161,9 @@
 							<tr>
 								<th colspan="3" class="vw15">
 									<span style="margin-left: 1vw;">از</span>
-									<input style="margin-bottom: 4vh;" type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')" required>
+									<input style="margin-bottom: 4vh;" type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')">
 									<span style="margin-left: 1vw; margin-right: 3vw;">تا</span>
-									<input style="margin-bottom: 4vh;" type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')" required>
+									<input style="margin-bottom: 4vh;" type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')">
 								</th>
 								<th colspan="2" class="vw15">
 									<select style="margin-bottom: 4vh;" id="product" name="product" style="padding:10px 20px;">
@@ -308,9 +313,9 @@
 							<tr>
 								<th colspan="3" class="vw15">
 									<span style="margin-left: 1vw;">از</span>
-									<input style="margin-bottom: 4vh;" type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')" required>
+									<input style="margin-bottom: 4vh;" type="text" id="pcal1" class="pdate" name="date_from" onchange="validator('pcal1', 'date')">
 									<span style="margin-left: 1vw; margin-right: 3vw;">تا</span>
-									<input style="margin-bottom: 4vh;" type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')" required>
+									<input style="margin-bottom: 4vh;" type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')">
 								</th>
 								{% if session['role'] == 'vendor_admin' %}
 									<th colspan="2" class="vw15">
@@ -403,7 +408,7 @@
 								<span>نام گیرنده</span>
 							</th>
 							<th>
-								<span>استان</span>
+								<span>استان مقصد</span>
 							</th>
 							<th>
 								<span>تاریخ سفارش</span>
@@ -460,7 +465,7 @@
 									<span>{{rec[8]}}</span>
 								</td>
 								<td>
-									<a href="javascript:window.open('/orders-details/{{rec[0]}}/all', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+									<a href="javascript:window.open('/orders-details/{{rec[0]}}/search', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
 								</td>
 							</tr>
 						{% endfor %}
@@ -485,7 +490,7 @@
 								<span>نام خریدار</span>
 							</th>
 							<th>
-								<span>استان</span>
+								<span>استان مقصد</span>
 							</th>
 							<th>
 								<span>تاریخ سفارش</span>

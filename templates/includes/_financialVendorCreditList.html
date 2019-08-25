@@ -36,51 +36,51 @@
       </tr>
     </thead>
     <tbody id="myDropdown" style="height: 72vh; font-family: 'B-Roya';" >
-      {% for rec in requests_list %}
-      {% if (session['role'] == 'vendor_admin') and (not rec['read']) %}
-        <tr id="rows" class="border-bottom bold" onclick="financialSettlement('{{rec['number']}}')">
-      {% elif (session['role'] != 'vendor_admin') and (rec['req_status']=='در دست بررسی' ) %}
-        <tr id="rows" class="border-bottom bold" onclick="financialSettlement('{{rec['number']}}')">
+      {% for i in range((requests_list|length)-1, -1, -1) %}
+      {% if (session['role'] == 'vendor_admin') and (not requests_list[i]['read']) %}
+        <tr id="rows" class="border-bottom bold" onclick="financialSettlement('{{requests_list[i]['number']}}')">
+      {% elif (session['role'] != 'vendor_admin') and (requests_list[i]['req_status']=='در دست بررسی' ) %}
+        <tr id="rows" class="border-bottom bold" onclick="financialSettlement('{{requests_list[i]['number']}}')">
       {% else %}
-        <tr id="rows" class="border-bottom" onclick="financialSettlement('{{rec['number']}}')">
+        <tr id="rows" class="border-bottom" onclick="financialSettlement('{{requests_list[i]['number']}}')">
       {% endif %}
           <td style="width: 3.5vw;">
             <span>{{loop.index}}</span>
           </td>
           <td class="vw10">
-            <span id="req-number">{{rec['number']}}</span>
+            <span id="req-number">{{requests_list[i]['number']}}</span>
           </td>
           <td class="vw8">
-            <span>{{rec['vendor']}}</span>
+            <span>{{requests_list[i]['vendor']}}</span>
           </td>
           <td class="vw10">
-            <span>{{rec['credit_price']}}</span>
+            <span>{{requests_list[i]['credit_price']}}</span>
           </td>
           <td class="vw10">
-            <a title="نام صاحب حساب: {{rec['account_holder']}}"><span>{{rec['account_number']}}</span></a>
+            <a title="نام صاحب حساب: {{requests_list[i]['account_holder']}}"><span>{{requests_list[i]['account_number']}}</span></a>
           </td>
           <td>
-            <span>{{rec['orderId_list']|length}}</span>
+            <span>{{requests_list[i]['orderId_list']|length}}</span>
           </td>
           <td class="vw10">
-            <span>{{rec['datetime']}}</span>
+            <span>{{requests_list[i]['datetime']}}</span>
           </td>
           <td class="vw10">
-            <span>{{rec['ref_number']}}</span>
+            <span>{{requests_list[i]['ref_number']}}</span>
           </td>
-          {% if rec['req_status']=='در دست بررسی' %}{% set color='blue' %}
-          {% elif rec['req_status']=='واریز شد' %}{% set color='green' %}
-          {% elif rec['req_status']=='رد درخواست' %}{% set color='red' %}{% endif %}
+          {% if requests_list[i]['req_status']=='در دست بررسی' %}{% set color='blue' %}
+          {% elif requests_list[i]['req_status']=='واریز شد' %}{% set color='green' %}
+          {% elif requests_list[i]['req_status']=='رد درخواست' %}{% set color='red' %}{% endif %}
           <td>
-            <span class={{color}}>{{rec['req_status']}}</span>
+            <span class={{color}}>{{requests_list[i]['req_status']}}</span>
           </td>
-          {% if (session['role'] == 'vendor_admin') and (rec['req_status']=='در دست بررسی') %}
+          {% if (session['role'] == 'vendor_admin') and (requests_list[i]['req_status']=='در دست بررسی') %}
             <td id="no-action" onclick="tdOnclick()">
-              <a href="/delete-credit-request/{{rec['number']}}" title="حذف درخواست"><span style="float: unset; margin: auto;" id="delete"></span></a>
+              <a href="/delete-credit-request/{{requests_list[i]['number']}}" title="حذف درخواست"><span style="float: unset; margin: auto;" id="delete"></span></a>
             </td>
           {% else %}
             <td id="no-action" onclick="tdOnclick()">
-              <a href="/delete-credit-request/{{rec['number']}}" title="مجاز به حذف این درخواست نیستید!"><span style="float: unset; margin: auto;" id="delete"></span></a>
+              <a href="/delete-credit-request/{{requests_list[i]['number']}}" title="مجاز به حذف این درخواست نیستید!"><span style="float: unset; margin: auto;" id="delete"></span></a>
             </td>
           {% endif %}
         </tr>

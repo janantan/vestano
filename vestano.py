@@ -1417,7 +1417,7 @@ def ordering(item):
                         temp_order_product['productName'] = p_details['productName']
                         temp_order_product['count'] = int(request.form.get('count_'+str(i)))
                         temp_order_product['price'] = int(request.form.get('price_'+str(i)))
-                        temp_order_product['weight'] = p_details['weight']
+                        temp_order_product['weight'] = int(request.form.get('weight_'+str(i)))
                         temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
                         temp_order_product['description'] = p_details['description']
 
@@ -2453,14 +2453,19 @@ def financial(sub_item):
         paid_list = utils.paid_list(cursor)
         )
 
-@app.route('/req-credit/<price>/<orderId_list>', methods=['GET', 'POST'])
+@app.route('/req-credit', methods=['GET', 'POST'])
 @token_required
-def request_credit(price, orderId_list):
+def request_credit():
     if ('financialRep' and 'vendorCredit') not in session['access']:
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
-    orderId_list = orderId_list[1:-1].split(', ')
+    unique_id = request.args.get('unique_id')
+    qeury_result = cursor.credit_request_query.find_one({'unique_id':unique_id})
+    d = jdatetime.datetime.today() - jdatetime.timedelta(days=7)
+    cursor.credit_request_query.remove({'datetime': {'$lte': d.strftime('%Y/%m/%d')}})
+    price = qeury_result['total_price']
+    orderId_list = qeury_result['order_id_list']
 
     recent_request = cursor.credit_requests.find({'req_status':u'واریز شد'}).limit(1).sort("_id", -1)
     recent_data = {'account_number': "", 'account_holder': ""}
@@ -2808,14 +2813,24 @@ def search(sub_item):
     s_v_financial = None
     if request.method == 'POST':
         rec = {}
-        date_from = request.form.get('date_from').encode('utf-8')
-        date_to = request.form.get('date_to').encode('utf-8')
-        date_from = jdatetime.datetime.strptime(date_from, '%Y/%m/%d')
-        date_to = jdatetime.datetime.strptime(date_to, '%Y/%m/%d')
-        date_from = date_from.strftime('%Y/%m/%d')
-        date_to = date_to.strftime('%Y/%m/%d')
-        rec['date_from'] = date_from
-        rec['date_to'] = date_to
+        orderId_list = []
+        if request.form.get('date_from'):
+            date_from = request.form.get('date_from').encode('utf-8')
+            date_from = jdatetime.datetime.strptime(date_from, '%Y/%m/%d')
+            date_from = date_from.strftime('%Y/%m/%d')
+            rec['date_from'] = date_from
+        else:
+            date_from = jdatetime.datetime(1398, 3, 1)
+            date_from = date_from.strftime('%Y/%m/%d')
+            rec['date_from'] = date_from
+        if request.form.get('date_to'):
+            date_to = request.form.get('date_to').encode('utf-8')
+            date_to = jdatetime.datetime.strptime(date_to, '%Y/%m/%d')
+            date_to = date_to.strftime('%Y/%m/%d')
+            rec['date_to'] = date_to
+        else:
+            date_to = jdatetime.datetime.today().strftime('%Y/%m/%d')
+            rec['date_to'] = date_to
 
         if sub_item == 'cases':
             rec['orderId'] = request.form.get('orderId')
@@ -2835,8 +2850,6 @@ def search(sub_item):
             elif rec['payType'] == 'cgd':
                 rec['cgd'] = ['true']
             result = utils.case_search(cursor, rec)
-            for r in result:
-                print(r['orderId'])
         if sub_item == 'vendors':
             rec['orderId'] = request.form.get('orderId')
             rec['vendorName'] = request.form.get('vendor')
@@ -2853,8 +2866,6 @@ def search(sub_item):
             else:
                 rec['grntProduct'] = ''
             result = utils.vendor_search(cursor, rec)
-            for r in result:
-                print(r['orderId'])
         if sub_item == 'accounting':
             rec['orderId'] = request.form.get('orderId')
             rec['parcelCode'] = request.form.get('parcelCode')
@@ -2863,10 +2874,19 @@ def search(sub_item):
             rec['status'] = request.form.get('status')
             rec['payType'] = request.form.get('payType')
             result = utils.accounting_search(cursor, rec)
-            for r in result:
-                print(r['orderId'])
             s_financial = utils.search_financial(cursor, result)
             s_v_financial = utils.search_v_financial(cursor, result)
+
+        for r in result:
+            orderId_list.append(r['orderId'])
+        rec['search_item'] = sub_item
+        rec['query_result'] = orderId_list
+        rec['datetime'] = jdatetime.datetime.today().strftime('%Y/%m/%d')
+        rec['query_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
+        rec['unique_id'] = str(random2.randint(10000000, 99999999))
+        rec['username'] = session['username']
+        cursor.search_query.insert_one(rec)
+
         search_result = utils.search_result(cursor, result)
         if len(search_result):
             flash(u'تعداد '+str(len(search_result))+ u' رکورد یافت شد.', 'success')
@@ -2883,6 +2903,60 @@ def search(sub_item):
         s_v_financial = s_v_financial,
         result = search_result
         )
+
+@app.route('/export-excel-lias/<sub_item>', methods=['GET', 'POST'])
+@token_required
+def lias_export(sub_item):
+    if 'searchPage' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='cases') and ('searchInCases' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='vendors') and ('searchInVendors' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='accounting') and ('searchInAccounting' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if session['role'] == 'vendor_admin':
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    rec = {}
+    orderId_list = []
+    prev_lias = []
+    query_result = cursor.search_query.find({'search_item':'lias'}).limit(1).sort("_id", -1)
+    if query_result.count():
+        print(query_result[0]['unique_id'])
+        date_from = query_result[0]['datetime']
+        prev_lias = query_result[0]['query_result']
+    else:
+        date_from = jdatetime.datetime.today().strftime('%Y/%m/%d')
+    date_to = jdatetime.datetime.today().strftime('%Y/%m/%d')
+    rec['date_from'] = date_from
+    rec['date_to'] = date_to
+    result = utils.lias_search(cursor, rec, prev_lias)
+    if not len(result):
+        flash(u'رکورد جدیدی یافت نشد!', 'danger')
+        #utils.lias_write_excel(prev_lias)
+        return redirect(request.referrer)
+
+    for r in result:
+        orderId_list.append(r['orderId'])
+    rec['search_item'] = 'lias'
+    rec['query_result'] = orderId_list
+    rec['datetime'] = jdatetime.datetime.today().strftime('%Y/%m/%d')
+    rec['query_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
+    rec['unique_id'] = str(random2.randint(10000000, 99999999))
+    rec['username'] = session['username']
+    cursor.search_query.insert_one(rec)
+
+    #utils.lias_write_excel(result)
+    #filename = '/root/vestano/static/pdf/xls/lias.xls'
+    
+    #return send_file(filename, as_attachment=True)
+    return redirect(request.referrer)
 
 @app.route('/about')
 def about():

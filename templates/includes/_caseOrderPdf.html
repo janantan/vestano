@@ -96,7 +96,7 @@
     					<table style="border: 1px solid gray;">
     						<tr>
     							<td style="width: 150px; height: 40px;">
-    								<span>تاریخ:</span>
+    								<span>تاریخ ارسال:</span>
     							</td>
     							<td style="width: 150px; height: 40px; text-align: center;">
     								<span>{{datetime}}</span>
@@ -132,8 +132,8 @@
     		</tr>
     	</table>
     	<fieldset class="fieldset" style="margin: 10px 10px; border: none;">
-    		<legend>مشخصات مرسوله:</legend>
     		{% if cgd %}
+    			<legend>مشخصات مرسوله</legend>
     			<div style="margin-bottom: 2vh;">
     				<span class="bold">
     					پرداختی گیرنده:
@@ -174,6 +174,8 @@
     					پرداختی فرستنده:
     				</span>
     			</div>
+			{% else %}
+				<legend>مشخصات مرسوله:</legend>
 			{% endif %}
 			{% if (not rad) and (payType == 'پرداخت در محل') %}
 				<table style="text-align: center; border: 1px solid gray; margin-top: 3vh;">
@@ -294,12 +296,12 @@
 			{% endif %}
 		</fieldset>
 		<fieldset class="fieldset" style="margin: 20px 10px; padding: 0; border: none;">
-			<div>
+			<div style="padding-right: 10px;">
 				<p>
 					هموطن گرامی جهت رهگیری مرسوله خود با شماره پیگیری و یا بارکد پستی مرسوله به درگاه اینترنتی <span style="color: blue;">vestanops.com</span> مراجعه نمایید.
 				</p>
 			</div>
-			<div>
+			<div style="padding-right: 10px;">
 				<p>
 					در صورت هرگونه انتقاد یا شکایت از محصول و یا روند ارسال مرسوله به نشانی اینترنتی <span style="color: blue;">vestanops.com</span> قسمت ثبت شکایات مراجعه نمایید.
 				</p>

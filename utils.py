@@ -10,6 +10,7 @@ import re
 import json
 import collections
 import xlrd
+import random2
 import xlwt
 import datetime
 import jdatetime
@@ -20,8 +21,8 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
-VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+#VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
 
@@ -787,14 +788,25 @@ def financial_vendor_credit(cursor):
             protducts_list, status, r['credit_req_status']))
 
             credit_count += 1
-            order_id_list.append(int(r['orderId']))
+            order_id_list.append(r['orderId'])
+
+    credit_request_query = {
+    'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+    'jdatetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
+    'unique_id': str(random2.randint(10000000, 99999999)),
+    'order_id_list': order_id_list,
+    'username': session['username'],
+    'total_price': t_vendor_account
+    }
+    cursor.credit_request_query.insert_one(credit_request_query)
 
     totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage, t_vendor_account , t_post_account, t_vestano_account)
     financial = {
     'record': record,
     'totalCosts': totalCosts,
     'credit_count': credit_count,
-    'order_id_list': order_id_list
+    'order_id_list': order_id_list,
+    'unique_id': credit_request_query['unique_id']
     }
 
     return financial
@@ -867,11 +879,17 @@ def req_credit_orders(cursor, orderId_list):
 
 def credit_requests_list(cursor):
     result = cursor.credit_requests.find()
-    return result
+    credit_requests_list = []
+    for r in result:
+        credit_requests_list.append(r)
+    return credit_requests_list
 
 def paid_list(cursor):
     result = cursor.credit_requests.find({'req_status': u'واریز شد'})
-    return result
+    paid_list = []
+    for r in result:
+        paid_list.append(r)
+    return paid_list
 
 def accounting(cursor):
     if session['role'] == 'vendor_admin':
@@ -969,6 +987,8 @@ def details(cursor, orderId, code):
             r = cursor.orders.find_one({'orderId': orderId})
         elif cursor.temp_orders.find_one({'orderId': orderId}):
             r = cursor.temp_orders.find_one({'orderId': orderId})
+        elif cursor.caseTemp_orders.find_one({'orderId': orderId}):
+            r = cursor.caseTemp_orders.find_one({'orderId': orderId})
         elif cursor.pending_orders.find_one({'orderId': orderId}):
             r = cursor.pending_orders.find_one({'orderId': orderId})
         elif cursor.canceled_orders.find_one({'orderId': orderId}):
@@ -2243,8 +2263,6 @@ def case_search(cursor, rec):
                     query_list_1.append({key: value})
         if (value) and (key in ['rad', 'cgd']):
             query_list_2.append({key: value})
-    print(query_list_1)
-    print(query_list_2)
     result = case_query_result(cursor, rec, query_list_1, query_list_2)
     return result
 
@@ -2258,7 +2276,6 @@ def vendor_search(cursor, rec):
                 query_list.append({'products.productId': value})
             else:
                 query_list.append({key: value})
-    print(query_list)
     result = query_result(cursor, rec, query_list)
     return result
 
@@ -2270,6 +2287,42 @@ def accounting_search(cursor, rec):
                 query_list.append({key: int(value)})
             else:
                 query_list.append({key: value})
-    print(query_list)
     result = query_result(cursor, rec, query_list)
+    return result
+
+def lias_search(cursor, rec, prev_lias):
+    query = {
+    'datetime': {'$gte': rec['date_from'], '$lte': rec['date_to']}
+    }
+
+    result = []
+    res = cursor.orders.find(query)
+    for r in res:
+        if (r['orderId'] in prev_lias) or (r['status'] in [1, 3]):
+            continue
+
+        if r['status'] == 0:
+            status = GetStatus_one(cursor, r['parcelCode'])
+            if status != 0:
+                cursor.orders.update_many(
+                    {'parcelCode': r['parcelCode']},
+                    {'$set':{
+                    'status': status,
+                    'lastUpdate' : datetime.datetime.now(),
+                    'status_updated' : True
+                    }
+                    }
+                    )
+                cursor.status.update_many(
+                    {'parcelCode': r['parcelCode']},
+                    {'$set':{
+                    'status': status,
+                    'lastUpdate' : datetime.datetime.now(),
+                    'status_updated' : True
+                    }
+                    }
+                    )
+                result.append(r)
+        else:
+            result.append(r)
     return result
