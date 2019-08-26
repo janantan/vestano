@@ -387,9 +387,14 @@ def removeFromInventory(cursor, orderId):
 
 def financial(cursor):
     if session['role'] == 'vendor_admin':
-        result = cursor.orders.find({'vendorName': session['vendor_name']})
+        result = cursor.orders.find({
+            'datetime': {'$gte': '1398/06/05'},
+            'vendorName': session['vendor_name']
+            })
     else:
-        result = cursor.orders.find()
+        result = cursor.orders.find({
+            'datetime': {'$gte': '1398/06/05'}
+            })
     record = []
     price = 0
     PostDeliveryPrice = 0
@@ -469,9 +474,14 @@ def financial(cursor):
 
 def v_financial(cursor):
     if session['role'] == 'vendor_admin':
-        result = cursor.orders.find({'vendorName': session['vendor_name']})
+        result = cursor.orders.find({
+            'datetime': {'$gte': '1398/06/05'},
+            'vendorName': session['vendor_name']
+            })
     else:
-        result = cursor.orders.find()
+        result = cursor.orders.find({
+            'datetime': {'$gte': '1398/06/05'}
+            })
     record = []
     price = 0
     PostDeliveryPrice = 0
@@ -707,9 +717,14 @@ def search_v_financial(cursor, result):
 
 def financial_vendor_credit(cursor):
     if session['role'] == 'vendor_admin':
-        result = cursor.orders.find({'vendorName': session['vendor_name']})
+        result = cursor.orders.find({
+            'datetime': {'$gte': '1398/06/05'},
+            'vendorName': session['vendor_name']
+            })
     else:
-        result = cursor.orders.find()
+        result = cursor.orders.find({
+            'datetime': {'$gte': '1398/06/05'}
+            })
     record = []
     order_id_list = []
     credit_count = 0
@@ -1616,23 +1631,44 @@ def GetStatus(cursor):
 
         if orders_records['status'] != status:
             prev_status = orders_records['status']
-            cursor.orders.update_many(
-                {'parcelCode': rec['parcelCode']},
-                {'$set':{
-                'status': status,
-                'lastUpdate' : datetime.datetime.now(),
-                'status_updated' : True
-                }
-                }
-                )
-            cursor.status.update_many(
-                {'parcelCode': rec['parcelCode']},
-                {'$set':{
-                'status': status,
-                'lastUpdate' : datetime.datetime.now()
-                }
-                }
-                )
+            if status == 7:
+                cursor.orders.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': status,
+                    'lastUpdate' : datetime.datetime.now(),
+                    'status7Update': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+                    'status_updated' : True
+                    }
+                    }
+                    )
+                cursor.status.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': status,
+                    'lastUpdate' : datetime.datetime.now(),
+                    'status7Update': jdatetime.datetime.today().strftime('%Y/%m/%d')
+                    }
+                    }
+                    )
+            else:
+                cursor.orders.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': status,
+                    'lastUpdate' : datetime.datetime.now(),
+                    'status_updated' : True
+                    }
+                    }
+                    )
+                cursor.status.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': status,
+                    'lastUpdate' : datetime.datetime.now()
+                    }
+                    }
+                    )
             cursor.today_orders.update_many(
                 {'parcelCode': rec['parcelCode']},
                 {'$set':{
@@ -2111,6 +2147,39 @@ def write_excel_financial(cursor, role):
             sheet.write(row, col, value)
     excel_file.save(filename)
 
+def lias_write_excel(cursor, result):
+    #filename = "E:/projects/VESTANO/Vestano/static/pdf/lias.xls"
+    filename = "/root/vestano/static/pdf/xls/lias.xls"
+    excel_file = xlwt.Workbook()
+    today = jdatetime.datetime.today().strftime('%Y-%m-%d')
+    sheet = excel_file.add_sheet(today)
+    style0 = xlwt.easyxf('font: name Times New Roman, bold on;'
+        'pattern: pattern solid, fore_colour yellow;'
+        'align: horiz center;')
+    sheet.cols_right_to_left = 1
+    sheet.write(0, 0, u'بارکد پستی', style0)
+    sheet.write(0, 1, u'مقصد', style0)
+    sheet.write(0, 2, u'وزن', style0)
+    sheet.write(0, 3, u'فرستنده', style0)
+    sheet.write(0, 4, u'گیرنده', style0)
+    sheet.write(0, 5, u'هزینه پستی', style0)
+    sheet.write(0, 6, u'تاریخ', style0)
+    for i in range(len(result)):
+        state_result = cursor.states.find_one({'Code': result[i]['stateCode']})
+        weight = 0
+        for j in range(len(result[i]['products'])):
+            weight += (result[i]['products'][j]['weight'] * result[i]['products'][j]['count'])
+        ctype = 'string'
+        xf = 0
+        sheet.write(i+1, 0, result[i]['parcelCode'])
+        sheet.write(i+1, 1, state_result['Name'])
+        sheet.write(i+1, 2, weight)
+        sheet.write(i+1, 3, u'سامانه پستی وستانو')
+        sheet.write(i+1, 4, result[i]['registerFirstName']+' '+result[i]['registerLastName'])
+        sheet.write(i+1, 5, result[i]['costs']['PostDeliveryPrice']+result[i]['costs']['VatTax'])
+        sheet.write(i+1, 6, result[i]['datetime'])
+    excel_file.save(filename)
+
 def calculate_wage(vendor, weight):
     if vendor == u'سفارش موردی':
         if weight < 10000:
@@ -2285,6 +2354,8 @@ def accounting_search(cursor, rec):
         if (value) and (key not in ['date_from', 'date_to']):
             if key in ['status']:
                 query_list.append({key: int(value)})
+            elif key == 'productId':
+                query_list.append({'products.productId': value})
             else:
                 query_list.append({key: value})
     result = query_result(cursor, rec, query_list)
@@ -2303,7 +2374,7 @@ def lias_search(cursor, rec, prev_lias):
 
         if r['status'] == 0:
             status = GetStatus_one(cursor, r['parcelCode'])
-            if status != 0:
+            if status not in [0, 1, 3]:
                 cursor.orders.update_many(
                     {'parcelCode': r['parcelCode']},
                     {'$set':{

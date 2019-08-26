@@ -76,7 +76,7 @@
           </td>
           {% if (session['role'] == 'vendor_admin') and (requests_list[i]['req_status']=='در دست بررسی') %}
             <td id="no-action" onclick="tdOnclick()">
-              <a href="/delete-credit-request/{{requests_list[i]['number']}}" title="حذف درخواست"><span style="float: unset; margin: auto;" id="delete"></span></a>
+              <a href="/delete-credit-request/{{requests_list[i]['number']}}" onclick="return confirm('از حذف این درخواست مطمئن هستید؟')" title="حذف درخواست"><span style="float: unset; margin: auto;" id="delete"></span></a>
             </td>
           {% else %}
             <td id="no-action" onclick="tdOnclick()">

@@ -1,8 +1,8 @@
 <fieldset class="fieldset" style="background: #fafafa">
 	<legend>لطفا یکی از فیلدهای زیر را جهت جستجو انتخاب کنید:</legend>
-	{% if session['role'] != 'vendor_admin' %}
+	{% if (session['role'] != 'vendor_admin') and (sub_item in ['cases']) %}
 		<div class="dropdown-content-inventory" style="margin-left: 1vw; border: none; background: none; top: 16vh;">
-			<a href="/export-excel-lias/{{sub_item}}" title="تولید خروجی لیاس" class="export navbar-link xls"><span style="margin-right: 2vw;">خروجی  لیاس</span></a>
+			<a href="/export-excel-lias/{{sub_item}}" title="تولید خروجی گزارش ثبت" class="export navbar-link xls"><span style="margin-right: 2vw;">گزارش ثبت</span></a>
 		</div>
 	{% endif %}
 	{% include 'includes/_searchTab.html' %}
@@ -306,8 +306,11 @@
 								<th colspan="3" class="vw15">
 									<label>بازه زمانی جستجو<span class="red">*</span></label>
 								</th>
-								<th colspan="2" class="vw15">
+								<th class="vw15">
 									<label>فروشگاه</label>
+								</th>
+								<th class="vw15">
+									<label>محصول</label>
 								</th>
 							</tr>
 							<tr>
@@ -318,19 +321,27 @@
 									<input style="margin-bottom: 4vh;" type="text" id="pcal2" class="pdate" name="date_to" onchange="validator('pcal2', 'date')">
 								</th>
 								{% if session['role'] == 'vendor_admin' %}
-									<th colspan="2" class="vw15">
-										<select id="vendor" name="vendor" style="padding:10px 20px;">
+									<th class="vw15">
+										<select style="margin-bottom: 4vh;" id="vendor" name="vendor" style="padding:10px 20px;">
 											<option value="{{session['vendor_name']}}">{{session['vendor_name']}}</option>
 										</select>
 									</th>
 								{% else %}
-									<th colspan="2" class="vw15">
-										<select id="vendor" name="vendor" style="padding:10px 20px;">
+									<th class="vw15">
+										<select style="margin-bottom: 4vh;" id="vendor" name="vendor" style="padding:10px 20px;">
 											<option value="" disabled selected>(انتخاب کنید)</option>
 											<option value="روژیاپ">روژیاپ</option>
 										</select>
 									</th>
 								{% endif %}
+								<th class="vw15">
+									<select style="margin-bottom: 4vh;" id="product" name="product" style="padding:10px 20px;">
+										<option value="" disabled selected>(انتخاب کنید)</option>
+										{% for item in inventory %}
+											<option value="{{item[1]}}">{{item[0]}}</option>
+										{% endfor %}
+									</select>
+								</th>
 							</tr>
 							<tr style="background: #88b5b6;">
 								<th class="vw15">
@@ -560,7 +571,7 @@
 					<table id="inventory">
 						<thead>
 							<tr style="background: yellow;">
-								<th class="font12"">
+								<th class="font12">
 									<span>ردیف</span>
 								</th>
 								<th class="font12" style="width: 10vw;">
@@ -653,16 +664,16 @@
 					<table id="inventory">
 						<thead>
 							<tr style="background: yellow;">
-								<th class="font12"">
+								<th class="font12" style="width: 4vw;">
 									<span>ردیف</span>
 								</th>
 								<th class="font12">
 									<span>شناسه سفارش</span>
 								</th>
-								<th class="vw11 font12">
+								<th class="vw20 font12">
 									<span>کد رهگیری</span>
 								</th>
-								<th class="vw7 font12">
+								<th class="font12">
 									<span>مبلغ تمام شده کالا</span>
 								</th>
 								<th class="font12">
@@ -692,7 +703,7 @@
 								<th class="font12" style="width: 6vw;">
 									<span>وضعیت</span>
 								</th>
-								<th class="vw7 font12">
+								<th class="font12">
 									<span>پرداخت</span>
 								</th>
 							</tr>
@@ -700,7 +711,7 @@
 						<tbody style="height: 64vh;">
 							{% for rec in s_financial['record'] %}
 								<tr class="rows">
-									<td>
+									<td style="width: 4vw;">
 										<span>{{loop.index}}</span>
 									</td>
 									<td class="">

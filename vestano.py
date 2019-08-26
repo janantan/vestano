@@ -2873,6 +2873,7 @@ def search(sub_item):
             rec['credit_req_status'] = request.form.get('credit-req-status')
             rec['status'] = request.form.get('status')
             rec['payType'] = request.form.get('payType')
+            rec['productId'] = request.form.get('product')
             result = utils.accounting_search(cursor, rec)
             s_financial = utils.search_financial(cursor, result)
             s_v_financial = utils.search_v_financial(cursor, result)
@@ -2926,6 +2927,7 @@ def lias_export(sub_item):
     rec = {}
     orderId_list = []
     prev_lias = []
+    filename = '/root/vestano/static/pdf/xls/lias.xls'
     query_result = cursor.search_query.find({'search_item':'lias'}).limit(1).sort("_id", -1)
     if query_result.count():
         print(query_result[0]['unique_id'])
@@ -2938,9 +2940,12 @@ def lias_export(sub_item):
     rec['date_to'] = date_to
     result = utils.lias_search(cursor, rec, prev_lias)
     if not len(result):
-        flash(u'رکورد جدیدی یافت نشد!', 'danger')
-        #utils.lias_write_excel(prev_lias)
-        return redirect(request.referrer)
+        prev_rec = []
+        for order_id in prev_lias:
+            prev_rec.append(cursor.orders.find_one({'orderId': order_id}))
+        print(prev_rec)
+        utils.lias_write_excel(cursor, prev_rec)
+        return send_file(filename, as_attachment=True)
 
     for r in result:
         orderId_list.append(r['orderId'])
@@ -2952,11 +2957,9 @@ def lias_export(sub_item):
     rec['username'] = session['username']
     cursor.search_query.insert_one(rec)
 
-    #utils.lias_write_excel(result)
-    #filename = '/root/vestano/static/pdf/xls/lias.xls'
-    
-    #return send_file(filename, as_attachment=True)
-    return redirect(request.referrer)
+    utils.lias_write_excel(cursor, result)
+    return send_file(filename, as_attachment=True)
+    #return redirect(request.referrer)
 
 @app.route('/about')
 def about():
@@ -3399,9 +3402,19 @@ def shipmentTrack_ajax():
         r = cursor.case_orders.find_one({'orderId': orderId})
         senderName = r['senderFirstName'] +' '+ r['senderLastName']
         status = utils.statusToStringForCaseOrders(result['status'])
+        if result['status'] in [7, 70, 71]:
+            if 'status7Update' in result.keys():
+                status_datetime = ' - ' + result['status7Update']
+            else:
+                status_datetime = jdatetime.date.fromgregorian(date=result['lastUpdate']).strftime('%Y/%m/%d')
+                status_datetime = ' - ' + status_datetime
+        else:
+            status_datetime = ''
     else:
         senderName = u'سامانه پستی وستانو'
         status = utils.statusToString(result['status'])
+        status_datetime = jdatetime.date.fromgregorian(date=result['lastUpdate']).strftime('%Y/%m/%d')
+        status_datetime = ' - ' + status_datetime
 
     state_result = cursor.states.find_one({'Code': result['stateCode']})
     for rec in state_result['Cities']:
@@ -3429,7 +3442,7 @@ def shipmentTrack_ajax():
     'products': ('<br />'.join(pNameList)),
     'weight': str(weight_sum) + ' ' + u'گرم',
     'serviceType': result['serviceType'],
-    'status': status,
+    'status': status + status_datetime,
     'parcelCode': result['parcelCode']
     }
     return jsonify(ans)
