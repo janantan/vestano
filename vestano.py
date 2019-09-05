@@ -1615,7 +1615,7 @@ def case_orders():
 
             cursor.caseTemp_orders.insert_one(input_data)
             cursor.case_orders.insert_one(case_order)
-            cursor.today_orders.insert_one(input_data)
+            #cursor.today_orders.insert_one(input_data)
             cursor.all_records.insert_one(input_data)
 
             flash(u'ثبت شد!', 'success')
@@ -2927,18 +2927,22 @@ def lias_export(sub_item):
     rec = {}
     orderId_list = []
     prev_lias = []
+    same_date_lias = []
     filename = '/root/vestano/static/pdf/xls/lias.xls'
     query_result = cursor.search_query.find({'search_item':'lias'}).limit(1).sort("_id", -1)
     if query_result.count():
         print(query_result[0]['unique_id'])
         date_from = query_result[0]['datetime']
         prev_lias = query_result[0]['query_result']
+        query_results_in_same_date = cursor.search_query.find({'search_item':'lias', 'datetime':date_from})
+        for r in query_results_in_same_date:
+            same_date_lias = same_date_lias + r['query_result']
     else:
         date_from = jdatetime.datetime.today().strftime('%Y/%m/%d')
     date_to = jdatetime.datetime.today().strftime('%Y/%m/%d')
     rec['date_from'] = date_from
     rec['date_to'] = date_to
-    result = utils.lias_search(cursor, rec, prev_lias)
+    result = utils.lias_search(cursor, rec, same_date_lias)
     if not len(result):
         prev_rec = []
         for order_id in prev_lias:
@@ -3511,19 +3515,25 @@ def enterance_details(productId):
         productId = productId
         )
 
-@app.route('/update-status', methods=['GET'])
+@app.route('/update-status', methods=['GET', 'POST'])
 @token_required
 def update_status():
     if session['role'] == 'vendor_admin':
         flash(u'مجاز به حذف این درخواست نیستید!', 'error')
         return redirect(request.referrer)
 
-    update = utils.GetStatus(cursor)
-    if update:
-        flash(u"تغییرات بروزرسانی شد.", 'success')
-    else:
-        flash(u"تغییری مشاهده نشد.", 'success')
-    return redirect(request.referrer)
+    if request.method == 'POST':
+        status = request.form.get('status')
+
+        update = utils.GetStatus(cursor, status)
+        if update:
+            flash(u"تغییرات بروزرسانی شد.", 'success')
+        else:
+            flash(u"تغییری مشاهده نشد.", 'success')
+    #return redirect(request.referrer)
+    return render_template('user_pannel.html',
+        item = "statusUpdate",
+        )
 
 @app.route('/show-pdf/<orderId>', methods=['GET'])
 @token_required

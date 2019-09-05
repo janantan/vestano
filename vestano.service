@@ -1,0 +1,15 @@
+#masir: /etc/systemd/system
+
+[Unit]
+Description=Gunicorn instance to serve vestano
+After=network.target
+
+[Service]
+User=root
+Group=nginx
+WorkingDirectory=/root/vestano
+Environment="PATH=/usr/bin"
+ExecStart=/usr/bin/gunicorn --workers 3 --bind unix:vestano.sock -m 007 wsgi
+
+[Install]
+WantedBy=multi-user.target

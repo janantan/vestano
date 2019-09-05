@@ -1607,7 +1607,7 @@ def GetStates():
         #cursor.states.insert_one(state)
     return states_list
 
-def GetStatus(cursor):
+def GetStatus(cursor, s):
     client = Client(API_URI)
     #print(client)
     change_flag = 0
@@ -1619,6 +1619,20 @@ def GetStatus(cursor):
 
     status_records = cursor.status.find()
     for rec in status_records:
+
+        if s == '0':
+            if rec['status'] != 0:
+                continue
+        elif s == '1':
+            if rec['status'] not in [2, 5]:
+                continue
+        elif s == '2':
+            if rec['status'] not in [7, 70]:
+                continue
+        else:
+            if rec['status'] not in [3, 4, 6, 8, 9, 10, 81]:
+                continue
+
         orders_records = cursor.orders.find_one({'parcelCode': rec['parcelCode']})
         if not orders_records:
             continue
@@ -1631,44 +1645,24 @@ def GetStatus(cursor):
 
         if orders_records['status'] != status:
             prev_status = orders_records['status']
-            if status == 7:
-                cursor.orders.update_many(
-                    {'parcelCode': rec['parcelCode']},
-                    {'$set':{
-                    'status': status,
-                    'lastUpdate' : datetime.datetime.now(),
-                    'status7Update': jdatetime.datetime.today().strftime('%Y/%m/%d'),
-                    'status_updated' : True
-                    }
-                    }
-                    )
-                cursor.status.update_many(
-                    {'parcelCode': rec['parcelCode']},
-                    {'$set':{
-                    'status': status,
-                    'lastUpdate' : datetime.datetime.now(),
-                    'status7Update': jdatetime.datetime.today().strftime('%Y/%m/%d')
-                    }
-                    }
-                    )
-            else:
-                cursor.orders.update_many(
-                    {'parcelCode': rec['parcelCode']},
-                    {'$set':{
-                    'status': status,
-                    'lastUpdate' : datetime.datetime.now(),
-                    'status_updated' : True
-                    }
-                    }
-                    )
-                cursor.status.update_many(
-                    {'parcelCode': rec['parcelCode']},
-                    {'$set':{
-                    'status': status,
-                    'lastUpdate' : datetime.datetime.now()
-                    }
-                    }
-                    )
+
+            cursor.orders.update_many(
+                {'parcelCode': rec['parcelCode']},
+                {'$set':{
+                'status': status,
+                'lastUpdate' : datetime.datetime.now(),
+                'status_updated' : True
+                }
+                }
+                )
+            cursor.status.update_many(
+                {'parcelCode': rec['parcelCode']},
+                {'$set':{
+                'status': status,
+                'lastUpdate' : datetime.datetime.now()
+                }
+                }
+                )
             cursor.today_orders.update_many(
                 {'parcelCode': rec['parcelCode']},
                 {'$set':{
@@ -1690,6 +1684,16 @@ def GetStatus(cursor):
                 }
                 }
                 )
+            if status == 7:
+                cursor.orders.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{'status7Update': jdatetime.datetime.today().strftime('%Y/%m/%d')}}
+                    )
+                cursor.status.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{'status7Update': jdatetime.datetime.today().strftime('%Y/%m/%d')}}
+                    )
+                
             change_flag = 1
             for i in range(len(orders_records['products'])):
                 if orders_records['vendorName'] == u'سفارش موردی':
@@ -2157,13 +2161,14 @@ def lias_write_excel(cursor, result):
         'pattern: pattern solid, fore_colour yellow;'
         'align: horiz center;')
     sheet.cols_right_to_left = 1
-    sheet.write(0, 0, u'بارکد پستی', style0)
-    sheet.write(0, 1, u'مقصد', style0)
-    sheet.write(0, 2, u'وزن', style0)
-    sheet.write(0, 3, u'فرستنده', style0)
-    sheet.write(0, 4, u'گیرنده', style0)
-    sheet.write(0, 5, u'هزینه پستی', style0)
-    sheet.write(0, 6, u'تاریخ', style0)
+    sheet.write(0, 0, u'ردیف', style0)
+    sheet.write(0, 1, u'بارکد پستی', style0)
+    sheet.write(0, 2, u'مقصد', style0)
+    sheet.write(0, 3, u'وزن', style0)
+    sheet.write(0, 4, u'فرستنده', style0)
+    sheet.write(0, 5, u'گیرنده', style0)
+    sheet.write(0, 6, u'هزینه پستی', style0)
+    sheet.write(0, 7, u'تاریخ', style0)
     for i in range(len(result)):
         state_result = cursor.states.find_one({'Code': result[i]['stateCode']})
         weight = 0
@@ -2171,13 +2176,14 @@ def lias_write_excel(cursor, result):
             weight += (result[i]['products'][j]['weight'] * result[i]['products'][j]['count'])
         ctype = 'string'
         xf = 0
-        sheet.write(i+1, 0, result[i]['parcelCode'])
-        sheet.write(i+1, 1, state_result['Name'])
-        sheet.write(i+1, 2, weight)
-        sheet.write(i+1, 3, u'سامانه پستی وستانو')
-        sheet.write(i+1, 4, result[i]['registerFirstName']+' '+result[i]['registerLastName'])
-        sheet.write(i+1, 5, result[i]['costs']['PostDeliveryPrice']+result[i]['costs']['VatTax'])
-        sheet.write(i+1, 6, result[i]['datetime'])
+        sheet.write(i+1, 0, i+1)
+        sheet.write(i+1, 1, result[i]['parcelCode'])
+        sheet.write(i+1, 2, state_result['Name'])
+        sheet.write(i+1, 3, weight)
+        sheet.write(i+1, 4, u'سامانه پستی وستانو')
+        sheet.write(i+1, 5, result[i]['registerFirstName']+' '+result[i]['registerLastName'])
+        sheet.write(i+1, 6, result[i]['costs']['PostDeliveryPrice']+result[i]['costs']['VatTax'])
+        sheet.write(i+1, 7, result[i]['datetime'])
     excel_file.save(filename)
 
 def calculate_wage(vendor, weight):
@@ -2372,9 +2378,11 @@ def lias_search(cursor, rec, prev_lias):
         if (r['orderId'] in prev_lias) or (r['status'] in [1, 3]):
             continue
 
-        if r['status'] == 0:
+        if r['status'] in [0, 2]:
             status = GetStatus_one(cursor, r['parcelCode'])
             if status not in [0, 1, 3]:
+                result.append(r)
+                prev_status = r['status']
                 cursor.orders.update_many(
                     {'parcelCode': r['parcelCode']},
                     {'$set':{
@@ -2393,7 +2401,46 @@ def lias_search(cursor, rec, prev_lias):
                     }
                     }
                     )
-                result.append(r)
+                cursor.today_orders.update_many(
+                    {'parcelCode': r['parcelCode']},
+                    {'$set':{
+                    'status': status
+                    }
+                    }
+                    )
+                cursor.ready_to_ship.update_many(
+                    {'parcelCode': r['parcelCode']},
+                    {'$set':{
+                    'status': status
+                    }
+                    }
+                    )
+                cursor.guarantee_orders.update_many(
+                    {'parcelCode': r['parcelCode']},
+                    {'$set':{
+                    'status': status
+                    }
+                    }
+                    )
+                for i in range(len(r['products'])):
+                    if r['vendorName'] == u'سفارش موردی':
+                        vinvent = cursor.case_inventory.find_one({'productId':r['products'][i]['productId']})
+                        if vinvent:
+                            vinvent['status'][str(status)]+= r['products'][i]['count']
+                            vinvent['status'][str(prev_status)]-= r['products'][i]['count']
+                            cursor.case_inventory.update_many(
+                                {'productId': vinvent['productId']},
+                                {'$set':{'status': vinvent['status']}}
+                                )
+                    else:
+                        vinvent = cursor.vestano_inventory.find_one({'productId':r['products'][i]['productId']})
+                        if vinvent:
+                            vinvent['status'][str(status)]+= r['products'][i]['count']
+                            vinvent['status'][str(prev_status)]-= r['products'][i]['count']
+                            cursor.vestano_inventory.update_many(
+                                {'productId': vinvent['productId']},
+                                {'$set':{'status': vinvent['status']}}
+                                )
         else:
             result.append(r)
     return result
