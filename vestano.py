@@ -352,6 +352,7 @@ def token_required(f):
                 session['access'] = result['access']
                 session['account_number'] = result['account_number']
                 session['account_holder'] = result['account_holder']
+                session['accounting_search_result'] = []
                 session['jdatetime'] = jdatetime.datetime.today().strftime('%d / %m / %Y')
                 if session['role'] == 'vendor_admin':
                     session['temp_orders'] = cursor.temp_orders.find({'vendorName': session['vendor_name']}).count()
@@ -2875,6 +2876,10 @@ def search(sub_item):
             rec['payType'] = request.form.get('payType')
             rec['productId'] = request.form.get('product')
             result = utils.accounting_search(cursor, rec)
+            accounting_search_result = []
+            for r in result:
+                accounting_search_result.append(r['orderId'])
+            session['accounting_search_result'] = accounting_search_result
             s_financial = utils.search_financial(cursor, result)
             s_v_financial = utils.search_v_financial(cursor, result)
 
@@ -2962,6 +2967,22 @@ def lias_export(sub_item):
     cursor.search_query.insert_one(rec)
 
     utils.lias_write_excel(cursor, result)
+    return send_file(filename, as_attachment=True)
+    #return redirect(request.referrer)
+
+@app.route('/export-excel-sellsProducts', methods=['GET'])
+@token_required
+def sells_products():
+    if 'searchInAccounting' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if session['role'] != 'vendor_admin':
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    filename = '/root/vestano/static/pdf/xls/sellsProducts.xls'
+
+    utils.sellsProducts_write_excel(cursor, session['accounting_search_result'])
     return send_file(filename, as_attachment=True)
     #return redirect(request.referrer)
 
@@ -3268,6 +3289,7 @@ def logout():
     session.pop('jdatetime', None)
     session.pop('unread_tickets', None)
     session.pop('unread_inv_transfers', None)
+    session.pop('accounting_search_result', None)
     return redirect(url_for('home'))
 
 @app.route('/token-logout')
@@ -3289,6 +3311,7 @@ def token_logout():
     session.pop('jdatetime', None)
     session.pop('unread_tickets', None)
     session.pop('unread_inv_transfers', None)
+    session.pop('accounting_search_result', None)
     return redirect(url_for('login'))
 
 @app.route('/ajax', methods=['GET'])

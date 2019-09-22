@@ -430,7 +430,7 @@ def financial(cursor):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-            if pType == 2:
+            if (pType == 2) or (r['status'] == 11):
                 vendor_account = config.wage
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
@@ -517,7 +517,7 @@ def v_financial(cursor):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-            if pType == 2:
+            if (pType == 2) or (r['status'] == 11):
                 vendor_account = 0 - config.wage
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
@@ -595,7 +595,7 @@ def search_financial(cursor, result):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-            if pType == 2:
+            if (pType == 2) or (r['status'] == 11):
                 vendor_account = config.wage
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
@@ -673,7 +673,7 @@ def search_v_financial(cursor, result):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-            if pType == 2:
+            if (pType == 2) or (r['status'] == 11):
                 vendor_account = 0 - config.wage
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
@@ -770,7 +770,7 @@ def financial_vendor_credit(cursor):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-            if pType == 2:
+            if (pType == 2) or (r['status'] == 11):
                 vendor_account = 0 - config.wage
                 #post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
@@ -860,7 +860,7 @@ def req_credit_orders(cursor, orderId_list):
                 r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                 r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
-        if pType == 2:
+        if (pType == 2) or (r['status'] == 11):
             vendor_account = 0 - config.wage
         elif pType == 88:
             vendor_account = r['costs']['price']
@@ -1623,11 +1623,17 @@ def GetStatus(cursor, s):
         if s == '0':
             if rec['status'] != 0:
                 continue
-        elif s == '1':
-            if rec['status'] not in [2, 5]:
-                continue
         elif s == '2':
-            if rec['status'] not in [7, 70]:
+            if rec['status'] != 2:
+                continue
+        elif s == '5':
+            if rec['status'] != 5:
+                continue
+        elif s == '7':
+            if rec['status'] != 7:
+                continue
+        elif s == '70':
+            if rec['status'] != 70:
                 continue
         else:
             if rec['status'] not in [3, 4, 6, 8, 9, 10, 81]:
@@ -2184,6 +2190,39 @@ def lias_write_excel(cursor, result):
         sheet.write(i+1, 5, result[i]['registerFirstName']+' '+result[i]['registerLastName'])
         sheet.write(i+1, 6, result[i]['costs']['PostDeliveryPrice']+result[i]['costs']['VatTax'])
         sheet.write(i+1, 7, result[i]['datetime'])
+    excel_file.save(filename)
+
+def sellsProducts_write_excel(cursor, result):
+    #filename = "E:/projects/VESTANO/Vestano/static/pdf/sellsProducts.xls"
+    filename = "/root/vestano/static/pdf/xls/sellsProducts.xls"
+    excel_file = xlwt.Workbook()
+    today = jdatetime.datetime.today().strftime('%Y-%m-%d')
+    sheet = excel_file.add_sheet(today)
+    style0 = xlwt.easyxf('font: name Times New Roman, bold on;'
+        'pattern: pattern solid, fore_colour yellow;'
+        'align: horiz center;')
+    sheet.cols_right_to_left = 1
+    sheet.write(0, 0, u'ردیف', style0)
+    sheet.write(0, 1, u'شناسه محصول', style0)
+    sheet.write(0, 2, u'نام محصول', style0)
+    sheet.write(0, 3, u'تعداد', style0)
+    vendor_inventory = cursor.vestano_inventory.find({'vendor': session['vendor_name']})
+    products = []
+    for res in vendor_inventory:
+        count = 0
+        for orderId in result:
+            r = cursor.orders.find_one({'orderId': orderId})
+            for j in range(len(r['products'])):
+                if r['products'][j]['productId'] == res['productId']:
+                    count += r['products'][j]['count']
+        products.append((res['productId'], res['productName'], count))
+    for i in range(len(products)):
+        ctype = 'string'
+        xf = 0
+        sheet.write(i+1, 0, i+1)
+        sheet.write(i+1, 1, products[i][0])
+        sheet.write(i+1, 2, products[i][1])
+        sheet.write(i+1, 3, products[i][2])
     excel_file.save(filename)
 
 def calculate_wage(vendor, weight):

@@ -532,6 +532,10 @@ a.export {
     padding: 0;
 }
 
+.ul {
+    width: 14vw !important;
+}
+
 .div5 figure {
     display: flex;
     flex-direction: column;
@@ -615,7 +619,7 @@ a.export {
 }
 
 .footer p {
-    width: 90%;
+    width: 85%;
 }
 
 .footer {

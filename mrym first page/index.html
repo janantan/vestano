@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>slider</title>
+
+
+    <script src="js/jquery-3.4.1.min.js"></script>
+
+
+</head>
+<body  style="background-color: #eeecf7">
+
+
+<style>
+    img {
+        overflow: hidden;
+    }
+
+    @font-face {
+        font-family: 'yekan';
+        src: url('fonts/yekan.ttf') format('truetype'),
+        url('fonts/yekan.eot') format('embedded-opentype');
+    }
+
+    a, p, div, span, li, ul {
+        text-align: right;
+        direction: rtl;
+    }
+
+    .yekan {
+        font-family: yekan;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    .fontsm {
+        font-size: 10.3pt
+    }
+
+    .fontmd {
+        font-size: 11.3pt
+    }
+
+    .fontlg {
+        font-size: 12.3pt
+    }
+</style>
+
+<div class="yekan fontlg" style="width:100%;height: 60px; background-color:white;">
+    <a style="color: grey;padding-top:14px ;padding-right: 15px;display: block;float: right;" href="/login">ورود به پنل
+        کاربری</a>
+    <a style="color: grey;float: left;padding-top:14px ;padding-left: 15px;display: block;"> وستانو فراتر از یک
+        ارسال</a>
+</div>
+
+<div class="yekan fontlg" style="width: 100%;height: 370px;position: relative;">
+    <img src="images/pakat1.jpg">
+    <div style="position: absolute;right:620px;top:  100px;">
+        <a style="font-size: 18pt;color: white;">رهگیری مرسوله </a>
+    </div>
+    <input style="width: 386px;height: 36px;border-radius: 5px;background-color: white;box-shadow: 0 3px 4px #4a4f55 ;position: absolute;
+     right:500px;top: 160px;">
+    </input>
+</div>
+
+
+<div class="yekan "
+     style="background-color: #fef246; border-radius: 5px;text-align: center;margin-top: 10px;height: 50px;line-height: 45px;">
+    <a style="font-size: 18pt;">
+        محصولات ما
+    </a>
+</div>
+
+
+<style>
+
+    #navigators ul li {
+        list-style: none;
+        float: right;
+        cursor: pointer;
+
+    }
+
+    #navigators ul li a {
+        display: block;
+        width: 177px;
+        height: 100%;
+        /*float: right;*/
+        text-align: center;
+        line-height: 45px;
+        color: white;
+
+    }
+
+    #slider .item {
+        display: none;
+    }
+
+    #sliderANDnavigators #navigators .active>a{
+        background:#fff;
+        color: black;
+    }
+
+
+</style>
+
+<!--ghesmte slider va aksha-->
+<div style="margin-top: 10px">
+    <!--ghesmate aks right-->
+    <div style="float: right;border-radius: 5px;width: 300px;height: 240px ;background: url(images/h.gif);">
+
+    </div>
+
+    <!--ghesmate slider va navigation-->
+    <div id="sliderANDnavigators" style="width: 708px;height: 240px;float: right;margin-right:12px;top: 10px;">
+        <div id="slider" style="width: 708px;height: 195px;background-color: aqua;border-top-left-radius: 5px;
+        border-top-right-radius: 5px;position: relative;">
+
+            <span  id="prev"
+                   style="background: url(images/right-arrow.png);position: absolute;width: 24px;height: 24px;display: block;top: 90px;right: 10px;cursor: pointer;">
+                <img src="images/right-arrow.png" height="24" width="24"/> </span>
+
+            <span   id="next" style="background: url(images/left-arrow.png);position: absolute;width: 24px;height: 24px;display: block;
+            top: 90px;left: 10px;cursor: pointer;"> </span>
+
+            <a class="item">
+                <img src="images/11.jpg">
+            </a>
+            <a class="item">
+                <img src="images/22.jpg">
+            </a>
+            <a class="item">
+                <img src="images/33.jpg">
+            </a>
+            <a class="item">
+                <img src="images/44.jpg">
+            </a>
+
+        </div>
+        <div id="navigators"
+             style="width: 708px;height: 45px;background: gray;border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;">
+            <ul class="yekan fontmd" style="margin: 0; padding: 0;">
+                <li>
+                    <a>
+                        محصول 1
+                    </a>
+                </li>
+                <li>
+                    <a>
+                        محصول 2
+                    </a>
+                </li>
+                <li>
+                    <a>
+                        محصول 3
+                    </a>
+                </li>
+                <li>
+                    <a>
+                        محصول 4
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
+    <!--ghesmate aks left-->
+    <div style="float: left;border-radius: 5px;width: 300px;height: 240px ;background: url(images/mahsool2.jpg);">
+
+    </div>
+    <button >
+        start
+    </button>
+
+</div>
+
+
+<script>
+    var slidertag = $('#slider');
+    var slideritems = $('#slider').find('.item');
+    var numitems = slideritems.length;
+    var nextslide = 1;
+    var timeout=5000;
+    var sliderNavigators=$('#sliderANDnavigators').find("#navigators ul li");
+
+    function imgshownext() {
+        if (nextslide > numitems) {
+            nextslide = 1;
+        }
+
+        if (nextslide < 1) {
+            nextslide = numitems;
+        }
+
+        slideritems.hide();
+        slideritems.eq(nextslide - 1).fadeIn(100);
+        sliderNavigators.removeClass('active');
+        sliderNavigators.eq(nextslide-1).addClass('active');
+        nextslide++;
+    }
+    imgshownext();
+    var sliderInterval=setInterval(imgshownext,timeout);
+   $('#sliderANDnavigators').mouseleave(function () {
+       clearInterval(sliderInterval);
+        sliderInterval=setInterval(imgshownext,timeout);
+
+    })
+    function gotonext() {
+
+        imgshownext();
+    }
+
+    $('#slider #next').click(function () {
+        clearInterval(sliderInterval);
+        gotonext();
+
+    });
+
+    function gotoprev() {
+
+        nextslide = nextslide - 2;
+        imgshownext();
+    }
+
+    $('#slider #prev').click(function () {
+        clearInterval(sliderInterval);
+        gotoprev();
+
+    });
+    function gotoslide(index) {
+
+        nextslide=index;
+        imgshownext();
+    }
+
+    $('#sliderANDnavigators   #navigators li ').click(function () {
+        clearInterval(sliderInterval);
+        var index=$(this).index();
+        gotoslide(index+1);
+    })
+
+
+    $('button').click(function () {
+        imgshownext();
+    });
+
+</script>
+
+
+</body>
+
+
+</html>

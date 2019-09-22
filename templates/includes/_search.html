@@ -5,6 +5,11 @@
 			<a href="/export-excel-lias/{{sub_item}}" title="تولید خروجی گزارش ثبت" class="export navbar-link xls"><span style="margin-right: 2vw;">گزارش ثبت</span></a>
 		</div>
 	{% endif %}
+	{% if (session['role'] == 'vendor_admin') and (sub_item == 'accounting') %}
+		<div class="dropdown-content-inventory" style="margin-left: 1vw; border: none; background: none; top: 16vh;">
+			<a href="/export-excel-sellsProducts" title="تولید خروجی به تفکیک محصولات" class="export navbar-link xls"><span style="margin-right: 2vw;">آمار محصولات</span></a>
+		</div>
+	{% endif %}
 	{% include 'includes/_searchTab.html' %}
 	{% if not result|length %}
 		{% if sub_item == 'all' %}

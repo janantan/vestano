@@ -445,7 +445,9 @@
                 var cod = document.getElementById('payType1').checked;
                 var online = document.getElementById('payType2').checked;
                 if (online) {
-                  document.getElementById('wage').value = json.wage;
+                  if (wage_flag) {
+                    document.getElementById('wage').value = json.wage;
+                  }
                   document.getElementById('first-wage').value = json.wage;
                 } else if (cod) {
                   if (wage_flag) {
