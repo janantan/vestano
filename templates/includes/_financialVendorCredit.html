@@ -1,4 +1,23 @@
-<fieldset class="fieldset" style="height: 76vh;">
+{% if session['role'] != 'vendor_admin' %}
+	<div class="dropdown" style="float: left; left: 13vw; top: -8vh;">
+		<div id="myDropdown" class="dropdown-content" style="max-height: none;">
+			<input type="text" placeholder="شرکت فروشنده" id="myInput" autocomplete="off" onclick="show()" style="width: 12vw;">
+			<table id="vendors" style="display: none;">
+				<tbody style="height: 45vh; width: 12vw;">
+					{% for vendor in session['vendors_list'] %}
+					<tr>
+						<td style="width: unset;">
+							<a href="/user-pannel/financial/credit?vendorName={{vendor}}" style="width: 11.5vw;">{{vendor}}</a>
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+{% endif %}
+
+<fieldset class="fieldset" onclick="notShow()" style="height: 76vh;">
 	<legend>بستانکاری فروشگاه:</legend>
 	<div style="margin: 2vh 2vw;">
 		<div style="float: right; width: 28%;">
@@ -120,7 +139,33 @@
 </fieldset>
 
 <script type="text/javascript">
+	var show_flag = 0;
 	function denyRequest() {
 		alert('مبلغ بستانکاری کافی نیست!')
+	}
+
+	function selectVendor() {
+		var vendor_name = document.getElementById('vendor').value;
+
+		const xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				alert(vendor_name)
+			}
+		}
+		xhr.open('GET', '/user-pannel/financial/credit?vendorName=' + vendor_name, true);
+		xhr.send();
+	}
+
+	function show() {
+		show_flag = 1;
+		document.getElementById("vendors").style.display = 'block';
+	}
+
+	function notShow() {
+		if (!show_flag) {
+			document.getElementById("vendors").style.display = 'none';
+		}
+		show_flag = 0;
 	}
 </script>

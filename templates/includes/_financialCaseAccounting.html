@@ -1,0 +1,482 @@
+<div class="dropdown-content-inventory">
+	<input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
+</div>
+<div class="dropdown-content-inventory" style="margin-left: 13vw; border: none; background: none; top: 9vh;">
+	<a href="/export-financial-excel" title="تولید خروجی از حسابداری" class="export navbar-link xls"><span style="margin-right: 2vw;">خروجی </span></a>
+</div>
+
+<fieldset class="fieldset" style="height: 76vh;">
+	<legend>حسابداری:</legend>
+	{% if session['role'] == 'vendor_admin' %}
+		<table id="case-accounting">
+			<thead>
+				<tr style="background: yellow;">
+					<th class="font12"">
+						<span>ردیف</span>
+					</th>
+					<th class="font12" style="width: 10vw;">
+						<span>شناسه سفارش</span>
+					</th>
+					<th class="font12" style="width: 15vw;">
+						<span>کد رهگیری</span>
+					</th>
+					<th class="font12" style="width: 10vw;">
+						<span>مبلغ تمام شده کالا</span>
+					</th>
+					<th class="font12">
+						<span>کارمزد</span>
+					</th>
+					<th class="font12" style="width: 10vw;">
+						<span>بستانکار|بدهکارفروشگاه</span>
+					</th>
+					<th class="font12 vw8">
+						<span>وضعیت درخواست وجه</span>
+					</th>
+					<th class="font12 vw8">
+						<span>وضعیت</span>
+					</th>
+					<th class="font12 vw9">
+						<span>پرداخت</span>
+					</th>
+				</tr>
+			</thead>
+			<tbody id="myDropdown" style="height: 65vh;">
+				{% for rec in v_financial['record'] %}
+					<tr class="rows">
+						<td>
+							<span>{{loop.index}}</span>
+						</td>
+						<td class="" style="width: 10vw;">
+							<span>{{rec[0]}}</span>
+						</td>
+						<td class="" style="width: 15vw;">
+							<a href="javascript:window.open('/orders-details/{{rec[0]}}/v_financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
+						</td>
+						<td class="" style="width: 10vw;">
+							<span>{{rec[2]}}</span>
+						</td>
+						<td class="">
+							<span >{{rec[6]}}</span>
+						</td>
+						{% if rec[7] < 0 %}
+							<td style="width: 10vw;">
+								<span class="red">{{0-rec[7]}}</span>
+							</td>
+						{% else %}
+							<td style="width: 10vw;">
+								<span class="blue">{{rec[7]}}</span>
+							</td>
+						{% endif %}
+						<td class="vw8">
+							<a title="شماره پیگیری: {{rec[14]}}"><span class="font12">{{rec[13]}}</span></a>
+						</td>
+						<td class="vw8">
+							<span class="font12">{{rec[12]}}</span>
+						</td>
+						<td class="vw8">
+							<span class="font12">{{rec[10]}}</span>
+						</td>
+					</tr>
+				{% endfor %}
+				<tr style="background: rgb(255,255,180);">
+					<td colspan="3">
+						<span>مجموع</span>
+					</td>
+					<td>
+						<span id="sum3">{{v_financial['totalCosts'][0]}}</span>
+					</td>
+					<td>
+						<span id="sum4">{{v_financial['totalCosts'][4]}}</span>
+					</td>
+					{% if v_financial['totalCosts'][5] < 0 %}
+						<td>
+							<span id="sum5" class="red">{{0 - v_financial['totalCosts'][5]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span id="sum5" class="blue">{{v_financial['totalCosts'][5]}}</span>
+						</td>
+					{% endif %}
+				</tr>
+			</tbody>
+		</table>
+	{% else %}
+		<table id="case-accounting">
+			<thead>
+				<tr style="background: yellow;">
+					<th class="font12"">
+						<span>ردیف</span>
+					</th>
+					<th class="font12">
+						<span>شناسه سفارش</span>
+					</th>
+					<th class="vw10 font12">
+						<span>کد رهگیری</span>
+					</th>
+					<th class="vw7 font12">
+						<span>مبلغ تمام شده کالا</span>
+					</th>
+					<th class="font12">
+						<span>هزینه ارسال</span>
+					</th>
+					<th class="font12">
+						<span>ارزش افزوده</span>
+					</th>
+					<th class="font12">
+						<span>حق ثبت</span>
+					</th>
+					<th class="font12">
+						<span>کارمزد</span>
+					</th>
+					<th class="font12">
+						<span>بستانکار|بدهکار<br/>پست</span>
+					</th>
+					<th class="font12">
+						<span>بستانکار|بدهکار<br/>وستانو</span>
+					</th>
+					<th class="font12" style="width: 6vw;">
+						<span>وضعیت</span>
+					</th>
+					<th class="vw7 font12">
+						<span>پرداخت</span>
+					</th>
+				</tr>
+			</thead>
+			<tbody id="myDropdown" style="height: 65vh;">
+				{% for rec in case_financial['record'] %}
+					<tr class="rows">
+						<td>
+							<span>{{loop.index}}</span>
+						</td>
+						<td class="">
+							<span>{{rec[0]}}</span>
+						</td>
+						<td class="">
+							<a href="javascript:window.open('/orders-details/{{rec[0]}}/financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
+						</td>
+						<td class="">
+							<span>{{rec[2]}}</span>
+						</td>
+						<td class="">
+							<span>{{rec[3]}}</span>
+						</td>
+						<td class="">
+							<span >{{rec[4]}}</span>
+						</td>
+						<td class="">
+							<span >{{rec[5]}}</span>
+						</td>
+						<td class="">
+							<span >{{rec[6]}}</span>
+						</td>
+						{% if rec[8] < 0 %}
+							<td>
+								<span class="red">{{0-rec[8]}}</span>
+							</td>
+						{% else %}
+							<td>
+								<span class="blue">{{rec[8]}}</span>
+							</td>
+						{% endif %}
+						{% if rec[9] < 0 %}
+							<td>
+								<span class="red">{{0-rec[9]}}</span>
+							</td>
+						{% else %}
+							<td>
+								<span class="blue">{{rec[9]}}</span>
+							</td>
+						{% endif %}
+						<td class="">
+							<span class="font12">{{rec[12]}}</span>
+						</td>
+						<td class="">
+							<span class="font12">{{rec[10]}}</span>
+						</td>
+					</tr>
+				{% endfor %}
+				<tr id="sum" style="background: rgb(255,255,180);">
+					<td colspan="3">
+						<span>مجموع</span>
+					</td>
+					<td>
+						<span id="sum3">{{case_financial['totalCosts'][0]}}</span>
+					</td>
+					<td>
+						<span id="sum4">{{case_financial['totalCosts'][1]}}</span>
+					</td>
+					<td>
+						<span id="sum5">{{case_financial['totalCosts'][2]}}</span>
+					</td>
+					<td>
+						<span id="sum6">{{case_financial['totalCosts'][3]}}</span>
+					</td>
+					<td>
+						<span id="sum7">{{case_financial['totalCosts'][4]}}</span>
+					</td>
+					{% if case_financial['totalCosts'][6] < 0 %}
+						<td>
+							<span id="sum9" class="red">{{0 - case_financial['totalCosts'][6]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span id="sum9" class="blue">{{case_financial['totalCosts'][6]}}</span>
+						</td>
+					{% endif %}
+					{% if case_financial['totalCosts'][7] < 0 %}
+						<td>
+							<span id="sum10" class="red">{{0 - case_financial['totalCosts'][7]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span id="sum10" class="blue">{{case_financial['totalCosts'][7]}}</span>
+						</td>
+					{% endif %}
+				</tr>
+			</tbody>
+		</table>
+	{% endif %}
+</fieldset>
+
+<script type="text/javascript">
+	function filter() {
+		var sum3=0; sum4=0; sum5=0; sum6=0; sum7=0; sum8=0; sum9=0; sum10=0;
+	    var input, value, tr, div, i;
+	    input = document.getElementById("myInput-inventory");
+	    value = input.value.toUpperCase();
+	    div = document.getElementById("myDropdown");
+	    tr = div.getElementsByTagName("tr");
+	    //alert(tr.length)
+	    if (isNaN(value)) {
+	    	if (tr[0].getElementsByTagName("span").length > 9) {
+	    		for (i = 0; i < (tr.length-1); i++) {
+	    			span = tr[i].getElementsByTagName("span");
+					txtValue = span[11].textContent;
+					if (txtValue.toUpperCase().indexOf(value) > -1) {
+						tr[i].style.display = "";
+						sum3 = sum3 + parseInt(span[3].textContent);
+						sum4 = sum4 + parseInt(span[4].textContent);
+						sum5 = sum5 + parseInt(span[5].textContent);
+						sum6 = sum6 + parseInt(span[6].textContent);
+						sum7 = sum7 + parseInt(span[7].textContent);
+						if (span[8].className === 'blue') {
+							sum8 = sum8 + parseInt(span[8].textContent);
+						} else {
+							sum8 = sum8 - parseInt(span[8].textContent);
+						}
+						if (span[9].className === 'blue') {
+							sum9 = sum9 + parseInt(span[9].textContent);
+						} else {
+							sum9 = sum9 - parseInt(span[9].textContent);
+						}
+						if (span[10].className === 'blue') {
+							sum10 = sum10 + parseInt(span[10].textContent);
+						} else {
+							sum10 = sum10 - parseInt(span[10].textContent);
+						}
+					} else {
+						txtValue = span[12].textContent;
+						if (txtValue.toUpperCase().indexOf(value) > -1) {
+							tr[i].style.display = "";
+							sum3 = sum3 + parseInt(span[3].textContent);
+							sum4 = sum4 + parseInt(span[4].textContent);
+							sum5 = sum5 + parseInt(span[5].textContent);
+							sum6 = sum6 + parseInt(span[6].textContent);
+							sum7 = sum7 + parseInt(span[7].textContent);
+							if (span[8].className === 'blue') {
+								sum8 = sum8 + parseInt(span[8].textContent);
+							} else {
+								sum8 = sum8 - parseInt(span[8].textContent);
+							}
+							if (span[9].className === 'blue') {
+								sum9 = sum9 + parseInt(span[9].textContent);
+							} else {
+								sum9 = sum9 - parseInt(span[9].textContent);
+							}
+							if (span[10].className === 'blue') {
+								sum10 = sum10 + parseInt(span[10].textContent);
+							} else {
+								sum10 = sum10 - parseInt(span[10].textContent);
+							}
+						} else {
+							txtValue = span[13].textContent;
+							if (txtValue.toUpperCase().indexOf(value) > -1) {
+								tr[i].style.display = "";
+								sum3 = sum3 + parseInt(span[3].textContent);
+								sum4 = sum4 + parseInt(span[4].textContent);
+								sum5 = sum5 + parseInt(span[5].textContent);
+								sum6 = sum6 + parseInt(span[6].textContent);
+								sum7 = sum7 + parseInt(span[7].textContent);
+								if (span[8].className === 'blue') {
+									sum8 = sum8 + parseInt(span[8].textContent);
+								} else {
+									sum8 = sum8 - parseInt(span[8].textContent);
+								}
+								if (span[9].className === 'blue') {
+									sum9 = sum9 + parseInt(span[9].textContent);
+								} else {
+									sum9 = sum9 - parseInt(span[9].textContent);
+								}
+								if (span[10].className === 'blue') {
+									sum10 = sum10 + parseInt(span[10].textContent);
+								} else {
+									sum10 = sum10 - parseInt(span[10].textContent);
+								}
+							} else {
+								tr[i].style.display = "none";
+							}
+						}
+					}
+				}
+				if (!value) {
+					sum3 = "{{case_financial['totalCosts'][0]}}";
+					sum4 = "{{case_financial['totalCosts'][1]}}";
+					sum5 = "{{case_financial['totalCosts'][2]}}";
+					sum6 = "{{case_financial['totalCosts'][3]}}";
+					sum7 = "{{case_financial['totalCosts'][4]}}";
+					sum8 = "{{case_financial['totalCosts'][5]}}";
+					sum9 = "{{case_financial['totalCosts'][6]}}";
+					sum10 = "{{case_financial['totalCosts'][7]}}";
+				}
+				showSum('sum3', sum3);
+				showSum('sum4', sum4);
+				showSum('sum5', sum5);
+				showSum('sum6', sum6);
+				showSum('sum7', sum7);
+				showSum('sum8', sum8);
+				showSum('sum9', sum9);
+				showSum('sum10', sum10);
+	    	} else {
+	    		for (i = 0; i < (tr.length-1); i++) {
+					span = tr[i].getElementsByTagName("span");
+					txtValue = span[6].textContent;
+					if (txtValue.toUpperCase().indexOf(value) > -1) {
+						tr[i].style.display = "";
+						sum3 = sum3 + parseInt(span[3].textContent);
+						sum4 = sum4 + parseInt(span[4].textContent);
+						if (span[5].className === 'blue') {
+							sum5 = sum5 + parseInt(span[5].textContent);
+						} else {
+							sum5 = sum5 - parseInt(span[5].textContent);
+						}
+					} else {
+						txtValue = span[7].textContent;
+						if (txtValue.toUpperCase().indexOf(value) > -1) {
+							tr[i].style.display = "";
+							sum3 = sum3 + parseInt(span[3].textContent);
+							sum4 = sum4 + parseInt(span[4].textContent);
+							if (span[5].className === 'blue') {
+								sum5 = sum5 + parseInt(span[5].textContent);
+							} else {
+								sum5 = sum5 - parseInt(span[5].textContent);
+							}
+						} else {
+							txtValue = span[8].textContent;
+							if (txtValue.toUpperCase().indexOf(value) > -1) {
+								tr[i].style.display = "";
+								sum3 = sum3 + parseInt(span[3].textContent);
+								sum4 = sum4 + parseInt(span[4].textContent);
+								if (span[5].className === 'blue') {
+									sum5 = sum5 + parseInt(span[5].textContent);
+								} else {
+									sum5 = sum5 - parseInt(span[5].textContent);
+								}
+							} else {
+								tr[i].style.display = "none";
+							}
+						}
+					}
+				if (!value) {
+					sum3 = "{{v_financial['totalCosts'][0]}}";
+					sum4 = "{{v_financial['totalCosts'][4]}}";
+					sum5 = "{{v_financial['totalCosts'][5]}}";
+				}
+				showSum('sum3', sum3);
+				showSum('sum4', sum4);
+				showSum('sum5', sum5);
+				}
+	    	}
+	    } else {
+			for (i = 0; i < (tr.length); i++) {
+				span = tr[i].getElementsByTagName("span");
+				txtValue = span[1].textContent;
+				if (txtValue.toUpperCase().indexOf(value) > -1) {
+					tr[i].style.display = "";
+				} else {
+					txtValue = span[2].textContent;
+					if (txtValue.toUpperCase().indexOf(value) > -1) {
+						tr[i].style.display = "";
+					}  else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+			if (tr[0].getElementsByTagName("span").length > 9) {
+				if (!value) {
+					sum3 = "{{case_financial['totalCosts'][0]}}";
+					sum4 = "{{case_financial['totalCosts'][1]}}";
+					sum5 = "{{case_financial['totalCosts'][2]}}";
+					sum6 = "{{case_financial['totalCosts'][3]}}";
+					sum7 = "{{case_financial['totalCosts'][4]}}";
+					sum8 = "{{case_financial['totalCosts'][5]}}";
+					sum9 = "{{case_financial['totalCosts'][6]}}";
+					sum10 = "{{case_financial['totalCosts'][7]}}";
+				}
+				showSum('sum3', sum3);
+				showSum('sum4', sum4);
+				showSum('sum5', sum5);
+				showSum('sum6', sum6);
+				showSum('sum7', sum7);
+				showSum('sum8', sum8);
+				showSum('sum9', sum9);
+				showSum('sum10', sum10);
+			} else {
+				if (!value) {
+					sum3 = "{{v_financial['totalCosts'][0]}}";
+					sum4 = "{{v_financial['totalCosts'][4]}}";
+					sum5 = "{{v_financial['totalCosts'][5]}}";
+				}
+				showSum('sum3', sum3);
+				showSum('sum4', sum4);
+				showSum('sum5', sum5);
+			}
+		}
+	}
+
+	function reverse_date_1(s) {
+		s = s.split("/").reverse().join("/");
+		return s;
+	}
+
+	function reverse_date_2(s) {
+		s = s.split(" / ").reverse().join(" / ");
+		return s;
+	} 
+
+	function reverse_time(s) {
+		s = s.split(":").reverse().join(":");
+		return s;
+	}
+
+	function ToRial(str) {
+
+		str = str.replace(/\,/g, '');
+		    var objRegex = new RegExp('(-?[0-9]+)([0-9]{3})');
+
+		    while (objRegex.test(str)) {
+		        str = str.replace(objRegex, '$1,$2');
+		    }
+
+		return str;
+	}
+
+	function showSum(id_name, sum) {
+		sum = parseInt(sum);
+		document.getElementById(id_name).innerHTML = Math.abs(sum);
+		if (sum >= 0) {
+			document.getElementById(id_name).className = 'blue';
+		} else {
+			document.getElementById(id_name).className = 'red';
+		}
+	}
+</script>

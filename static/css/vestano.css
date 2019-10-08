@@ -253,6 +253,47 @@ a.export {
     width: 3vw;
 }
 
+#case-accounting a {
+    text-decoration: none;
+}
+
+#case-accounting {
+    width: 80vw;
+}
+
+#case-accounting thead tr {
+    display:block;
+}
+
+#case-accounting thead tr th {
+    width: 6vw;
+    text-align: center;
+}
+
+#case-accounting tbody {
+    display:block;
+    height:74vh;
+    overflow:auto;
+}
+
+#case-accounting tbody td {
+    width: 7vw;
+    height: 5vh;
+    text-align: center;
+}
+
+#case-accounting th:first-child {
+    width: 3vw;
+}
+
+#case-accounting th:last-child {
+    width: 8vw;
+}
+
+#case-accounting td:first-child {
+    width: 3vw;
+}
+
 #registering thead tr {
     display:block;
 }
@@ -1296,6 +1337,11 @@ a.export {
   overflow: auto;
   border: 1px solid #e1e1e1;
   z-index: 1;
+}
+
+#myInput::placeholder {
+    text-align: right;
+    font-family: "B-Roya";
 }
 
 .new-ticket-fieldset {

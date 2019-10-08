@@ -439,7 +439,11 @@ def financial(cursor):
             else:
                 vendor_account = 0 - (r['costs']['price'])
                 post_account = (r['costs']['price']+config.wage)
-            vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+            if pType == 1:
+                vestano_account = config.wage
+            else:
+                vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             t_post_account += post_account
@@ -471,6 +475,91 @@ def financial(cursor):
     financial = {'record': record, 'totalCosts': totalCosts}
 
     return financial
+
+def case_financial(cursor):
+    result = cursor.orders.find({
+        'vendorName': 'سفارش موردی'
+        })
+
+    record = []
+    price = 0
+    PostDeliveryPrice = 0
+    VatTax = 0
+    registerCost = 0
+    wage = 0
+    t_post_account = 0
+    t_vestano_account = 0
+    for r in result:
+        #filter just three status
+        if (r['status'] in [11, 70, 71]) :
+
+            (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+            #recalulate post delivery costs for returned orders
+            if (r['status'] == 11) and (pType != 2):
+                if 'for_accounting_recalculated_delivery_costs' not in r.keys():
+                    weight = 0
+                    for p in r['products']:
+                        weight += p['weight'] * p['count']
+                    deliveryPriceResult = GetDeliveryPrice(r['cityCode'], r['costs']['price'], weight, sType, 2)
+                    for_accounting_delivery_costs = {
+                    'PostDeliveryPrice': deliveryPriceResult['DeliveryPrice'],
+                    'VatTax': deliveryPriceResult['VatTax']
+                    }
+                    cursor.orders.update_many(
+                        {'orderId': r['orderId']},
+                        {'$set':{'for_accounting_recalculated_delivery_costs': for_accounting_delivery_costs}})
+                    r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
+                    r['costs']['VatTax'] = deliveryPriceResult['VatTax']
+                else:
+                    r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
+                    r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
+
+            if (pType == 2) or (r['status'] == 11):
+                #vendor_account = config.wage
+                post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            elif pType == 88:
+                #vendor_account = 0 - (r['costs']['price'])
+                post_account = (r['costs']['price']+r['costs']['wage']) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            else:
+                #vendor_account = 0 - (r['costs']['price'])
+                post_account = (r['costs']['price']+r['costs']['wage'])
+
+            if pType == 1:
+                vestano_account = r['costs']['wage']
+            else:
+                vestano_account = r['costs']['wage'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+            #t_vendor_account += vendor_account
+            t_post_account += post_account
+            t_vestano_account += vestano_account
+
+            price += r['costs']['price']
+            PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+            VatTax += r['costs']['VatTax']
+            registerCost += r['costs']['registerCost']
+            wage += r['costs']['wage']
+
+            status = statusToString(r['status'])
+
+            if 'credit_req_status' not in r.keys():
+                r['credit_req_status'] = '-'
+            if 'settlement_ref_number' not in r.keys():
+                r['settlement_ref_number'] = ''
+
+            protducts_list = []
+            for p in r['products']:
+                protducts_list.append(p['productName']+' - '+str(p['count']) + u' عدد ')
+
+            record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+            r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+            r['costs']['wage'], 0, post_account, vestano_account , r['payType'],
+            protducts_list, status, r['credit_req_status'], r['settlement_ref_number']))
+
+    totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage, 0, t_post_account, t_vestano_account)
+    case_financial = {'record': record, 'totalCosts': totalCosts}
+
+    return case_financial
 
 def v_financial(cursor):
     if session['role'] == 'vendor_admin':
@@ -526,7 +615,11 @@ def v_financial(cursor):
             else:
                 vendor_account = r['costs']['price']
                 post_account = (r['costs']['price']+config.wage)
-            vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+            if pType == 1:
+                vestano_account = config.wage
+            else:
+                vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             t_post_account += post_account
@@ -604,7 +697,11 @@ def search_financial(cursor, result):
             else:
                 vendor_account = 0 - (r['costs']['price'])
                 post_account = (r['costs']['price']+config.wage)
-            vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+            if pType == 1:
+                vestano_account = config.wage
+            else:
+                vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             t_post_account += post_account
@@ -682,7 +779,11 @@ def search_v_financial(cursor, result):
             else:
                 vendor_account = r['costs']['price']
                 post_account = (r['costs']['price']+config.wage)
-            vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+            if pType == 1:
+                vestano_account = config.wage
+            else:
+                vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             t_post_account += post_account
@@ -715,16 +816,22 @@ def search_v_financial(cursor, result):
 
     return s_v_financial
 
-def financial_vendor_credit(cursor):
+def financial_vendor_credit(cursor, vendorName):
     if session['role'] == 'vendor_admin':
         result = cursor.orders.find({
             'datetime': {'$gte': '1398/06/05'},
             'vendorName': session['vendor_name']
             })
     else:
-        result = cursor.orders.find({
-            'datetime': {'$gte': '1398/06/05'}
-            })
+        if vendorName:
+            result = cursor.orders.find({
+                'datetime': {'$gte': '1398/06/05'},
+                'vendorName': vendorName
+                })
+        else:
+            result = cursor.orders.find({
+                'datetime': {'$gte': '1398/06/05'}
+                })
     record = []
     order_id_list = []
     credit_count = 0
@@ -893,14 +1000,23 @@ def req_credit_orders(cursor, orderId_list):
     return financial
 
 def credit_requests_list(cursor):
-    result = cursor.credit_requests.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.credit_requests.find({'vendor': session['vendor_name']})
+    else:
+        result = cursor.credit_requests.find()
     credit_requests_list = []
     for r in result:
         credit_requests_list.append(r)
     return credit_requests_list
 
 def paid_list(cursor):
-    result = cursor.credit_requests.find({'req_status': u'واریز شد'})
+    if session['role'] == 'vendor_admin':
+        result = cursor.credit_requests.find({
+            'req_status': u'واریز شد',
+            'vendor': session['vendor_name']
+            })
+    else:
+        result = cursor.credit_requests.find({'req_status': u'واریز شد'})
     paid_list = []
     for r in result:
         paid_list.append(r)
@@ -937,7 +1053,11 @@ def accounting(cursor):
             else:
                 vendor_account = 0 - (r['costs']['price'] - config.wage)
                 post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
-            vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+            
+            if pType == 1:
+                vestano_account = config.wage
+            else:
+                vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             t_post_account += post_account
@@ -1544,7 +1664,10 @@ def transfer_req_type(req_type):
     return req
 
 def transfer_req(cursor):
-    result = cursor.inventory_transfer.find()
+    if session['role'] == 'vendor_admin':
+        result = cursor.inventory_transfer.find({'vendor': session['vendor_name']})
+    else:
+        result = cursor.inventory_transfer.find()
     transfer_list = []
     for r in result:
         r['request_type'] = transfer_req_type(r['request_type'])
@@ -2201,28 +2324,36 @@ def sellsProducts_write_excel(cursor, result):
     style0 = xlwt.easyxf('font: name Times New Roman, bold on;'
         'pattern: pattern solid, fore_colour yellow;'
         'align: horiz center;')
+    style1 = xlwt.easyxf('font: name Times New Roman, bold on;'
+        'pattern: pattern solid, fore_colour white;'
+        'align: horiz center;')
     sheet.cols_right_to_left = 1
     sheet.write(0, 0, u'ردیف', style0)
     sheet.write(0, 1, u'شناسه محصول', style0)
     sheet.write(0, 2, u'نام محصول', style0)
     sheet.write(0, 3, u'تعداد', style0)
     vendor_inventory = cursor.vestano_inventory.find({'vendor': session['vendor_name']})
-    products = []
-    for res in vendor_inventory:
-        count = 0
-        for orderId in result:
-            r = cursor.orders.find_one({'orderId': orderId})
-            for j in range(len(r['products'])):
-                if r['products'][j]['productId'] == res['productId']:
-                    count += r['products'][j]['count']
-        products.append((res['productId'], res['productName'], count))
-    for i in range(len(products)):
+    products = {}
+    #for res in vendor_inventory:
+    #count = 0
+    for orderId in result:
+        r = cursor.orders.find_one({'orderId': orderId})
+        for j in range(len(r['products'])):
+            if r['products'][j]['productId'] in products.keys():
+                products[r['products'][j]['productId']][0] += r['products'][j]['count']
+            else:
+                products[r['products'][j]['productId']] = []
+                products[r['products'][j]['productId']].append(r['products'][j]['count'])
+                products[r['products'][j]['productId']].append(r['products'][j]['productName'])
+    #print(products)
+    #products.append((res['productId'], res['productName'], count))
+    for i in range(len(products.keys())):
         ctype = 'string'
-        xf = 0
-        sheet.write(i+1, 0, i+1)
-        sheet.write(i+1, 1, products[i][0])
-        sheet.write(i+1, 2, products[i][1])
-        sheet.write(i+1, 3, products[i][2])
+        xf = 0#
+        sheet.write(i+1, 0, i+1, style1)
+        sheet.write(i+1, 1, products.keys()[i], style1)
+        sheet.write(i+1, 2, products[products.keys()[i]][1], style1)
+        sheet.write(i+1, 3, products[products.keys()[i]][0], style1)
     excel_file.save(filename)
 
 def calculate_wage(vendor, weight):

@@ -306,7 +306,7 @@ def token_required(f):
                     session['ready_to_ship'] = cursor.ready_to_ship.find({'vendorName': session['vendor_name']}).count()
                     session['all_orders'] = cursor.orders.find({'vendorName': session['vendor_name']}).count()
                     session['unread_tickets'] = cursor.tickets.find({'read': False, 'sender_username': True, 'sender_departement':None}).count()
-                    session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False}).count()
+                    session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False, 'vendor':session['vendor_name']}).count()
                 else:
                     #utils.today_orders(cursor)
                     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
@@ -363,7 +363,7 @@ def token_required(f):
                     session['ready_to_ship'] = cursor.ready_to_ship.find({'vendorName': session['vendor_name']}).count()
                     session['all_orders'] = cursor.orders.find({'vendorName': session['vendor_name']}).count()
                     session['unread_tickets'] = cursor.tickets.find({'read': False, 'sender_username': True, 'sender_departement':None}).count()
-                    session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False}).count()
+                    session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False, 'vendor':session['vendor_name']}).count()
                 else:
                     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
                     if session['role'] == 'admin':
@@ -445,11 +445,21 @@ def login():
 
                 session['loged_in'] = True
                 TOKEN = jwt.encode({'user_id':result['user_id'],
-                    'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60)},
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=120)},
                     app.secret_key)
                 token = TOKEN.decode('UTF-8')
                 session['role'] = result['role']
                 session['access'] = result['access']
+
+                api_users = cursor.api_users.find()
+                vendors_list = []
+                for u in api_users:
+                    if u['vendor_name']:
+                        vendors_list.append(u['vendor_name'])
+
+                session['vendors_list'] = vendors_list
+                #print(vendors_list)
+
                 if (session['role'] == 'office') or (session['role'] == 'admin'):
                     if 'processList' in session['access']:
                         return redirect(url_for('temp_orders'))
@@ -2428,6 +2438,9 @@ def financial(sub_item):
     if (sub_item=='accounting') and ('accounting' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
+    if ((sub_item=='case-accounting') and ('accounting' not in session['access'])) or (session['role'] == 'vendor_admin'):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
     if (sub_item=='credit') and ('vendorCredit' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
@@ -2438,7 +2451,15 @@ def financial(sub_item):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
-    recent_request = cursor.credit_requests.find({'req_status':u'واریز شد'}).limit(1).sort("_id", -1)
+    vendorName = request.args.get('vendorName')
+
+    if vendorName:
+        recent_request = cursor.credit_requests.find({'req_status':u'واریز شد', 'vendor':vendorName}).limit(1).sort("_id", -1)
+    else:
+        if session['role'] != 'vendor_admin':
+            recent_request = cursor.credit_requests.find({'req_status':u'واریز شد'}).limit(1).sort("_id", -1)
+        else:
+            recent_request = cursor.credit_requests.find({'req_status':u'واریز شد', 'vendor':session['vendor_name']}).limit(1).sort("_id", -1)
     recent_data = {'paid_datetime': "", 'ref_number': ""}
     for r in recent_request:
         recent_data = {'paid_datetime': r['paid_datetime'], 'ref_number': r['ref_number']}
@@ -2448,8 +2469,9 @@ def financial(sub_item):
         sub_item = sub_item,
         recent_data = recent_data,
         financial = utils.financial(cursor),
+        case_financial = utils.case_financial(cursor),
         v_financial = utils.v_financial(cursor),
-        vendor_credit = utils.financial_vendor_credit(cursor),
+        vendor_credit = utils.financial_vendor_credit(cursor, vendorName),
         requests_list = utils.credit_requests_list(cursor),
         paid_list = utils.paid_list(cursor)
         )
@@ -3020,6 +3042,14 @@ def register():
                     if new_password == confirm:
                         users['user_id'] = str(uuid.uuid4())
                         cursor.api_users.insert_one(users)
+                        #update vendors list in session
+                        api_users = cursor.api_users.find()
+                        vendors_list = []
+                        for u in api_users:
+                            if u['vendor_name']:
+                                vendors_list.append(u['vendor_name'])
+
+                        session['vendors_list'] = vendors_list
                         flash(u'ثبت نام با موفقیت انجام شد!', 'success')
                     else:
                         flash(u'کلمه عبور مطابقت ندارد', 'error')
@@ -3290,6 +3320,7 @@ def logout():
     session.pop('unread_tickets', None)
     session.pop('unread_inv_transfers', None)
     session.pop('accounting_search_result', None)
+    session.pop('vendors_list', None)
     return redirect(url_for('home'))
 
 @app.route('/token-logout')
@@ -3312,6 +3343,7 @@ def token_logout():
     session.pop('unread_tickets', None)
     session.pop('unread_inv_transfers', None)
     session.pop('accounting_search_result', None)
+    session.pop('vendors_list', None)
     return redirect(url_for('login'))
 
 @app.route('/ajax', methods=['GET'])
@@ -3496,11 +3528,8 @@ def fetch_stuff():
 def wage_calculator():
     if 'username' in session:
         weight = int(request.args.get('weight'))
-        print(weight)
         wage = utils.calculate_wage(u'سفارش موردی', weight)
-        print(wage)
         ans = {'wage': wage}
-        print(ans)
     else:
         flash(u'لطفا ابتدا وارد شوید', 'error')
         return False

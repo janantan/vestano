@@ -36,7 +36,6 @@
             <option value="" disabled selected>(انخاب کنید)</option>
             {% for item in for_edit_case_inventory %}
               <option value="{{item[1]}}">{{item[0]}}</option>
-              }
             {% endfor %}
           </select>
         </div>
@@ -81,7 +80,9 @@
           <input id="productName" type="text" name="productName" placeholder="" size="50" required />
           <select id="vendor" name="vendor" class="mrg-vw2" required>
             <option value="" disabled selected>شرکت فروشنده</option>
-            <option value="روژیاپ">روژیاپ</option>
+            {% for vendor in session['vendors_list'] %}
+              <option value="{{vendor}}">{{vendor}}</option>
+            {% endfor %}
           </select>
         </div>
         <div class="mrg-vh2">
@@ -109,7 +110,6 @@
             <option value="" disabled selected>(انخاب کنید)</option>
             {% for item in inventory %}
               <option value="{{item[1]}}">{{item[0]}}</option>
-              }
             {% endfor %}
           </select>
         </div>
@@ -120,7 +120,9 @@
             <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
             <select style="margin:0 4vw;" id="vendor" name="vendor" disabled style="margin-right: 2vw;" required>
               <option value="" disabled selected>شرکت فروشنده</option>
-              <option value="روژیاپ">روژیاپ</option>
+              {% for vendor in session['vendors_list'] %}
+                <option value="{{vendor}}">{{vendor}}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="mrg-vh4">
@@ -156,7 +158,6 @@
             <option value="" disabled selected>(انخاب کنید)</option>
             {% for item in inventory %}
               <option value="{{item[1]}}">{{item[0]}}</option>
-              }
             {% endfor %}
           </select>
         </div>
@@ -171,7 +172,9 @@
             <label style="display:inline-block; margin-right: 4vw;">شرکت فروشنده</label>
             <select style="margin:0 4vw;" id="vendor" name="vendor" style="margin-right: 2vw;" required>
               <option value="" disabled selected>شرکت فروشنده</option>
-              <option value="روژیاپ">روژیاپ</option>
+              {% for vendor in session['vendors_list'] %}
+                <option value="{{vendor}}">{{vendor}}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="mrg-vh4">
@@ -197,12 +200,14 @@
   {% elif sub_item == 'pack' %}
     <fieldset class="fieldset mrg-vh2" style="background: rgb(255,255,230);">
       <form method="POST" action="" style="margin-block-end: 0;">
-        <div class="mrg-vh1">
+        <div>
           <label>نام بسته</label>
           <input id="packName" type="text" name="packName" placeholder="" size="50" required />
           <select id="vendor" name="vendor" class="mrg-vw2" required>
             <option value="" disabled selected>شرکت فروشنده</option>
-            <option value="روژیاپ">روژیاپ</option>
+            {% for vendor in session['vendors_list'] %}
+              <option value="{{vendor}}">{{vendor}}</option>
+            {% endfor %}
           </select>
         </div>
         <div>
@@ -236,7 +241,6 @@
                       <option value="" disabled selected>(انخاب کنید)</option>
                       {% for item in inventory %}
                         <option value="{{item[1]}}">{{item[0]}}</option>
-                        }
                       {% endfor %}
                     </select>
                   </td>                  
@@ -286,7 +290,6 @@
             <option value="" disabled selected>(انخاب کنید)</option>
             {% for item in inventory %}
               <option value="{{item[1]}}">{{item[0]}}</option>
-              }
             {% endfor %}
           </select>
         </div>
@@ -296,7 +299,9 @@
             <input id="exist_count" type="text" name="exist_count" placeholder="" size="20" disabled />
             <select id="vendor" name="vendor" class="mrg-vw2" disabled>
               <option value="" disabled selected>شرکت فروشنده</option>
-              <option value="روژیاپ">روژیاپ</option>
+              {% for vendor in session['vendors_list'] %}
+                <option value="{{vendor}}">{{vendor}}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="mrg-vh8">

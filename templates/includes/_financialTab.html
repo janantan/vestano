@@ -1,10 +1,13 @@
 {% set accnt = "background:#eee;" %}
+{% set case_accnt = "background:#eee;" %}
 {% set credit = "background:#eee;" %}
 {% set paid = "background:#eee;" %}
 {% set req = "background:#eee;" %}
 
 {% if "financial/accounting" in request.base_url %}
 	{% set accnt = "background:yellow;" %}
+{% elif "financial/case-accounting" in request.base_url %}
+	{% set case_accnt = "background:yellow;" %}
 {% elif "credit" in request.base_url %}
 	{% set credit = "background:yellow;" %}
 {% elif "paid-list" in request.base_url %}
@@ -15,6 +18,9 @@
 <div id="tab">
 	{% if 'accounting' in session['access'] %}
 		<a href="/user-pannel/financial/accounting" style={{accnt}} class="button">حسابداری</a>
+	{% endif %}
+	{% if ('accounting' in session['access']) and (session['role'] != 'vendor_admin') %}
+		<a href="/user-pannel/financial/case-accounting" style={{case_accnt}} class="button">حسابداری سفارشات موردی</a>
 	{% endif %}
 	{% if (session['role'] == 'vendor_admin' or  session['role'] == 'admin') and ('vendorCredit' in session['access']) %}
 		<a href="/user-pannel/financial/credit" style={{credit}} class="button">بستانکاری فروشگاه</a>

@@ -224,7 +224,9 @@
                       <label style="color: red; font-weight: bold; margin: 1.8vw 0;">نام فروشگاه
                       <select style="margin-right: 1vw;" id="vendor_name" name="vendor_name" required>
                         <option value="{{data['vendorName']}}">{{data['vendorName']}}</option>
-                        <option value="روژیاپ">روژیاپ</option>
+                        {% for vendor in session['vendors_list'] %}
+                          <option value="{{vendor}}">{{vendor}}</option>
+                        {% endfor %}
                       </select></label>
                     </td>
                   {% endif %}
