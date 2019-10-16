@@ -49,7 +49,7 @@
 								<th style="width: 1vw;"></th>
 							</tr>
 						</thead>
-						<tbody id="myDropdown" style="height: 71vh;">
+						<tbody id="myDropdown" style="height: 68vh;">
 							{% for rec in data %}
 							{% if session['role'] != 'vendor_admin' %}
 								{% if session['username'] == rec['username'] %}
@@ -150,7 +150,7 @@
 								<th style="width: 1vw;"></th>
 							</tr>
 						</thead>
-						<tbody id="myDropdown" style="height: 71vh;">
+						<tbody id="myDropdown" style="height: 68vh;">
 							{% for rec in data %}
 								<tr id="rows" class="border-bottom" onclick="usersDetail('{{rec['username']}}')">
 									<td style="width: 4vw;">
@@ -193,6 +193,132 @@
 							{% endfor %}
 						</tbody>
 					</table>
+				</fieldset>
+			{% elif sub_item == 'wage' %}
+				<fieldset class="fieldset" style="margin-top: 1vh; height: 75vh;">
+					<legend>مدیریت کارمزدها:</legend>
+					<form method="POST" action="">
+						<table class="wage-table">
+							<tr style="background: yellow; height: 7vh;">
+								<th style="text-align: center; width: 10vw;">
+									<span>وزن (کیلوگرم)</span>
+								</th>
+								<th>
+									<span>کمتر از 10</span>
+								</th>
+								<th>
+									<span>10 تا 15</span>
+								</th>
+								<th>
+									<span>15 تا 20</span>
+								</th>
+								<th>
+									<span>20 تا 25</span>
+								</th>
+								<th>
+									<span>25 تا 30</span>
+								</th>
+								<th>
+									<span>بیشتر از 30</span>
+								</th>
+							</tr>
+							<tr>
+								<th style="text-align: center; width: 10vw; background: #ffff9e;">
+									<span>پرداخت آنلاین (ریال)</span>
+								</th>
+								<td>
+									<input style="text-align: center;" id="onlineLT10" type="number" name="onlineLT10" value="{{wage_result['online']['LT10']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="online10_15" type="number" name="online10_15" value="{{wage_result['online']['10-15']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="online15_20" type="number" name="online15_20" value="{{wage_result['online']['15-20']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="online20_25" type="number" name="online20_25" value="{{wage_result['online']['20-25']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="online25_30" type="number" name="online25_30" value="{{wage_result['online']['25-30']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="onlineGT30" type="number" name="onlineGT30" value="{{wage_result['online']['GT30']}}" required />
+								</td>
+							</tr>
+							<tr>
+								<th style="text-align: center; width: 10vw; background: #ffff9e;">
+									<span>پرداخت در محل (ریال)</span>
+								</th>
+								<td>
+									<input style="text-align: center;" id="codLT10" type="number" name="codLT10" value="{{wage_result['cod']['LT10']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="cod10_15" type="number" name="cod10_15" value="{{wage_result['cod']['10-15']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="cod15_20" type="number" name="cod15_20" value="{{wage_result['cod']['15-20']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="cod20_25" type="number" name="cod20_25" value="{{wage_result['cod']['20-25']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="cod25_30" type="number" name="cod25_30" value="{{wage_result['cod']['25-30']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="codGT30" type="number" name="codGT30" value="{{wage_result['cod']['GT30']}}" required />
+								</td>
+							</tr>
+							<tr>
+								<th style="text-align: center; width: 10vw; background: #ffff9e;">
+									<span>هزینه کالا در مقصد (ریال)</span>
+								</th>
+								<td>
+									<input style="text-align: center;" id="cgdLT10" type="number" name="cgdLT10" value="{{wage_result['cgd']['LT10']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="cgd10_15" type="number" name="cgd10_15" value="{{wage_result['cgd']['10-15']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="cgd15_20" type="number" name="cgd15_20" value="{{wage_result['cgd']['15-20']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="cgd20_25" type="number" name="cgd20_25" value="{{wage_result['cgd']['20-25']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="cgd25_30" type="number" name="cgd25_30" value="{{wage_result['cgd']['25-30']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="cgdGT30" type="number" name="cgdGT30" value="{{wage_result['cgd']['GT30']}}" required />
+								</td>
+							</tr>
+							<tr>
+								<th style="text-align: center; width: 10vw; background: #ffff9e;">
+									<span>کرایه در مقصد (ریال)</span>
+								</th>
+								<td>
+									<input style="text-align: center;" id="radLT10" type="number" name="radLT10" value="{{wage_result['rad']['LT10']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="rad10_15" type="number" name="rad10_15" value="{{wage_result['rad']['10-15']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="rad15_20" type="number" name="rad15_20" value="{{wage_result['rad']['15-20']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="rad20_25" type="number" name="rad20_25" value="{{wage_result['rad']['20-25']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="rad25_30" type="number" name="rad25_30" value="{{wage_result['rad']['25-30']}}" required />
+								</td>
+								<td>
+									<input style="text-align: center;" id="radGT30" type="number" name="radGT30" value="{{wage_result['rad']['GT30']}}" required />
+								</td>
+							</tr>
+						</table>
+						<div style="margin: 6vh 1.5vw;">
+							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت کنید" /> 
+						</div>
+					</form>
 				</fieldset>
 			{% endif %}
 		</main>

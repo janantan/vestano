@@ -165,7 +165,7 @@
                     <label><input id="radio2" type="radio" name="serviceType" value="1" required/>پیشتاز <span id="pishtaz" style="color: green;"></span></label>
                   </td>
                   <td>
-                    <label><input type="checkbox" name="free" value="88"/>ارسال رایگان</label>
+                    <label><input id="selectFree" type="checkbox" name="free" onchange="selectFreePost()" value="88"/>ارسال رایگان</label>
                   </td>
                 </tr>
               </table>
@@ -345,6 +345,18 @@
     }
     xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+Price+'&city='+c+'&pType='+pType, true);
     xhr2.send();
+  }
+
+  function selectFreePost() {
+    var ck = document.getElementById('selectFree').checked;
+    if (ck) {
+      document.getElementById('payType1').checked = true;
+      document.getElementById('payType2').checked = false;
+      document.getElementById('payType2').disabled = true;
+    } else {
+      document.getElementById('payType2').disabled = false;
+    }
+    getDeliveryPrice();
   }
 
   function refreshWeightPrice() {

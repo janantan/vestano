@@ -1557,6 +1557,13 @@ tr#rows:hover {
     display: none;
 }
 
+.wage-table tr td {
+    border: 1px solid #dddddd;
+    text-align: center;
+    width: 7vw;
+    padding: 8px;
+}
+
 body > footer span {
     margin-right: 2vw;
 }

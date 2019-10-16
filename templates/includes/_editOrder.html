@@ -90,7 +90,7 @@
                             <input id="price{{i+1}}" type="text" value="{{data['products'][i]['price']}}" onchange="anyChange()" size="6" disabled required/>
                           </td>
                           <td>
-                            <input id="discount{{i+1}}" type="text" value="{{data['products'][i]['percentDiscount']}}" onchange="anyChange()" size="6" disabled required/>
+                            <input id="discount{{i+1}}" type="text" name="discount_{{i+1}}" value="{{data['products'][i]['percentDiscount']}}" onchange="anyChange()" size="6" required/>
                           </td>
                           {% if session['role'] == 'vendor_admin' %}
                             <td>
@@ -181,7 +181,7 @@
                         <td>
                           <label><input type="radio" name="serviceType" value="1" {{ck1}} required/>پیشتاز <span id="pishtaz" style="color: green;"></span></label>
                         <td>
-                          <label><input type="checkbox" name="free" value="88" {{ck88}}/>ارسال رایگان</label>
+                          <label><input id="selectFree" type="checkbox" name="free" value="88" onchange="selectFreePost()" {{ck88}}/>ارسال رایگان</label>
                         </td>
                       </tr>
                     </table>
@@ -362,6 +362,18 @@
           }
           xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+Price+'&city='+c+'&pType='+pType, true);
           xhr2.send();
+        }
+
+        function selectFreePost() {
+          var ck = document.getElementById('selectFree').checked;
+          if (ck) {
+            document.getElementById('payType1').checked = true;
+            document.getElementById('payType2').checked = false;
+            document.getElementById('payType2').disabled = true;
+          } else {
+            document.getElementById('payType2').disabled = false;
+          }
+          getDeliveryPrice();
         }
 
         function refreshWeightPrice() {

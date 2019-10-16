@@ -39,7 +39,7 @@
 					</tr>
 				</thead>
 				<tbody>
-				{% for i in range(details|length) %}
+				{% for i in range((details|length)-1, -1, -1) %}
 					<tr class="rows">
 						<td style="width: 4vw;">
 							<span>{{loop.index}}</span>

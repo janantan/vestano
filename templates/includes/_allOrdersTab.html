@@ -1,0 +1,42 @@
+{% set one = "background:#eee;" %}
+{% set two = "background:#eee;" %}
+{% set three = "background:#eee;" %}
+{% set four = "background:#eee;" %}
+{% set five = "background:#eee;" %}
+{% set six = "background:#eee;" %}
+{% set seven = "background:#eee;" %}
+{% set eight = "background:#eee;" %}
+{% set nine = "background:#eee;" %}
+
+{% if "all-orders/one" in request.base_url %}
+	{% set one = "background:yellow;" %}
+{% elif "all-orders/two" in request.base_url %}
+	{% set two = "background:yellow;" %}
+{% elif "all-orders/three" in request.base_url %}
+	{% set three = "background:yellow;" %}
+{% elif "all-orders/four" in request.base_url %}
+	{% set four = "background:yellow;" %}
+{% elif "all-orders/five" in request.base_url %}
+	{% set five = "background:yellow;" %}
+{% elif "all-orders/six" in request.base_url %}
+	{% set six = "background:yellow;" %}
+{% elif "all-orders/seven" in request.base_url %}
+	{% set seven = "background:yellow;" %}
+{% elif "all-orders/eight" in request.base_url %}
+	{% set eight = "background:yellow;" %}
+{% elif "all-orders/nine" in request.base_url %}
+	{% set nine = "background:yellow;" %}
+{% endif %}
+<div id="tab">
+	{% if 'allOrders' in session['access'] %}
+		<a href="/user-pannel/all-orders/one" style={{one}} class="button">1</a>
+		<a href="/user-pannel/all-orders/two" style={{two}} class="button">2</a>
+		<a href="/user-pannel/all-orders/three" style={{three}} class="button">3</a>
+		<a href="/user-pannel/all-orders/four" style={{four}} class="button">4</a>
+		<a href="/user-pannel/all-orders/five" style={{five}} class="button">5</a>
+		<a href="/user-pannel/all-orders/six" style={{six}} class="button">6</a>
+		<a href="/user-pannel/all-orders/seven" style={{seven}} class="button">7</a>
+		<a href="/user-pannel/all-orders/eight" style={{eight}} class="button">8</a>
+		<a href="/user-pannel/all-orders/nine" style={{nine}} class="button">9</a>
+	{% endif %}
+</div>

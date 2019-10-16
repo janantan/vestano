@@ -252,10 +252,11 @@
         for (var jj = 1; jj < "{{data['products']|length + 1}}"; jj++) {
           i_list.push("row"+ jj);
         }
-        var Weight = 0
-        var Price = 0
-        var Count = 0
-        var Discount = 0
+        var Weight = 0;
+        var Price = 0;
+        var Count = 0;
+        var Discount = 0;
+        var wage_flag = 1;
         function addrow(id_name, action) {
           var original = document.getElementById(id_name);
           var clone = original.cloneNode(true); // "deep" clone
@@ -437,27 +438,55 @@
           xhr.send();
         }
 
+        //function wageCalculator(weight) {
+          //const xhr = new XMLHttpRequest();
+          //xhr.onreadystatechange = function() {
+              //if (this.readyState == 4 && this.status == 200) {
+                //var json = JSON.parse(this.responseText);
+                //var cod = document.getElementById('payType1').checked;
+                //var online = document.getElementById('payType2').checked;
+                //if (online) {
+                  //if (wage_flag) {
+                    //document.getElementById('wage').value = json.wage;
+                  //}
+                  //document.getElementById('first-wage').value = json.wage;
+                //} else if (cod) {
+                  //if (wage_flag) {
+                    //document.getElementById('wage').value = json.wage + 5000;
+                  //}
+                  //document.getElementById('first-wage').value = json.wage + 5000;
+                //}
+             //}
+          //}
+          //xhr.open('GET', '/wage-calculator?weight='+weight, true);
+          //xhr.send();
+        //}
+
         function wageCalculator(weight) {
+          var cod = document.getElementById('payType1').checked;
+          var online = document.getElementById('payType2').checked;
+          var cgd = document.getElementById('cgd').checked;
+          var rad = document.getElementById('rad').checked;
+          if (cgd) {
+            var service = 'cgd';
+          } else if (rad) {
+            var service = 'rad';
+          } else if (online) {
+            var service = 'online';
+          } else if (cod) {
+            var service = 'cod';
+          }
           const xhr = new XMLHttpRequest();
           xhr.onreadystatechange = function() {
               if (this.readyState == 4 && this.status == 200) {
                 var json = JSON.parse(this.responseText);
-                var cod = document.getElementById('payType1').checked;
-                var online = document.getElementById('payType2').checked;
-                if (online) {
-                  if (wage_flag) {
-                    document.getElementById('wage').value = json.wage;
-                  }
-                  document.getElementById('first-wage').value = json.wage;
-                } else if (cod) {
-                  if (wage_flag) {
-                    document.getElementById('wage').value = json.wage + 5000;
-                  }
-                  document.getElementById('first-wage').value = json.wage + 5000;
+                if (wage_flag) {
+                  document.getElementById('wage').value = json.wage;
                 }
+                document.getElementById('first-wage').value = json.wage;
              }
           }
-          xhr.open('GET', '/wage-calculator?weight='+weight, true);
+          xhr.open('GET', '/wage-calculator?weight='+weight+'&service='+service, true);
           xhr.send();
         }
 
@@ -471,15 +500,15 @@
           if (rad) {
             document.getElementById('price1').value = sum;
             document.getElementById('price-sum').value = sum;
-            anyChange();
             document.getElementById('free').checked = false;
             document.getElementById('free').disabled = true;
             document.getElementById('cgd').checked = false;
+            anyChange();
           } else {
             document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
             document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
-            anyChange();
             document.getElementById('free').disabled = false;
+            anyChange();
           }
         }
 

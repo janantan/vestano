@@ -348,6 +348,12 @@ def token_required(f):
                 session['username'] = username
                 session['message'] = result['name']
                 session['vendor_name'] = result['vendor_name']
+                session['constant_wage_flag'] = 0
+                if result['vendor_name']:
+                    api_users_result = cursor.api_users.find_one({"vendor_name": result['vendor_name']})
+                    if 'if_constant_wage' in api_users_result.keys():
+                        if len(api_users_result['if_constant_wage']):
+                            session['constant_wage_flag'] = 1
                 session['role'] = result['role']
                 session['access'] = result['access']
                 session['account_number'] = result['account_number']
@@ -488,6 +494,14 @@ def home():
 @app.route('/user-pannel/orderList', methods=['GET'])
 @token_required
 def temp_orders():
+    #result = cursor.vestano_inventory.find({'vendor': u'روژیاپ'})
+    #for r in result:
+        #edit_result = utils.editStuff(
+            #r['productId'],
+            #r['weight'],
+            #r['price'] + config.defaultWageForDefineStuff
+            #)
+        #print (edit_result)
     #result = cursor.pending_orders.find()
     #for r in result:
         #if r['vendorName'] == u'روژیاب':
@@ -541,6 +555,7 @@ def confirm_orders(code):
 
         (sType, pType) = utils.typeOfServicesToCode(result['serviceType'], result['payType'])
         new_rec = copy.deepcopy(result)
+        constant_wage_flag = 0
         price = 0
         count = 0
         weight = 0
@@ -554,26 +569,64 @@ def confirm_orders(code):
             result['products'].append(new_list)
             result['products'][-1]['count'] = new_count
 
+        api_users_result = cursor.api_users.find_one({"vendor_name": result['vendorName']})
+        if api_users_result:
+            if 'if_constant_wage' in api_users_result.keys():
+                if len(api_users_result['if_constant_wage']):
+                    constant_wage_flag = 1
+
         for i in range(len(result['products'])):
             if result['vendorName'] == u'سفارش موردی':
-                edit_result = utils.editStuff(
-                    result['products'][i]['productId'],
-                    result['products'][i]['weight'],
-                    result['products'][i]['price']
-                    )
+
+                #define a new stuff for every case orders:
+
                 inv = cursor.case_inventory.find_one({'productId':result['products'][i]['productId']})
+                record = {}
+                record['productName'] = inv['productName']
+                record['price'] = result['products'][i]['price']
+                record['weight'] = result['products'][i]['weight']
+                record['count'] = result['products'][i]['count']
+                record['percentDiscount'] = result['products'][i]['percentDiscount']
+                record['description'] = inv['percentDiscount']
+                new_productId = str(utils.AddStuff(record))
+                result['products'][i]['productId'] = new_productId
+
+                #edit the stuff for every case orders:
+                #edit_result = utils.editStuff(
+                    #result['products'][i]['productId'],
+                    #result['products'][i]['weight'],
+                    #result['products'][i]['price']
+                    #)
+                #inv = cursor.case_inventory.find_one({'productId':result['products'][i]['productId']})
+
+            elif not constant_wage_flag:
+                inv = cursor.vestano_inventory.find_one({'productId':result['products'][i]['productId']})
+                record = {}
+                record['productName'] = inv['productName']
+                #if i > 0:
+                    #record['price'] = result['products'][i]['price']
+                #else:
+                    #record['price'] = result['products'][i]['price'] + result['temp_wage'] + result['temp_delivery_costs']
+                record['price'] = result['products'][i]['price']
+                record['weight'] = result['products'][i]['weight']
+                record['count'] = result['products'][i]['count']
+                record['percentDiscount'] = result['products'][i]['percentDiscount']
+                record['description'] = inv['percentDiscount']
+                new_productId = str(utils.AddStuff(record))
+                result['products'][i]['productId'] = new_productId
+
             else:
                 inv = cursor.vestano_inventory.find_one({'productId':result['products'][i]['productId']})
                 #check if product price + vestano post wage is equal to inventory price or not?
-                #if not a new product should be define.
-                if ((result['products'][i]['price']+config.defaultWageForDefineStuff) != inv['price']) or (result['products'][i]['weight'] != inv['weight']) or (len(result['products'])>1):
+                #if not, a new product should be define.
+                if ((result['products'][i]['price']+api_users_result['constant_wage']['distributive']) != inv['price']) or (result['products'][i]['weight'] != inv['weight']) or (result['products'][i]['percentDiscount'] != inv['percentDiscount']) or (len(result['products'])>1):
                     record = {}
                     record['productName'] = inv['productName']
                     if i > 0:
                         record['price'] = result['products'][i]['price']
                     else:
                         #if result['products'][i]['count'] > 1:
-                        record['price'] = result['products'][i]['price'] + config.defaultWageForDefineStuff
+                        record['price'] = result['products'][i]['price'] + api_users_result['constant_wage']['distributive']
                     record['weight'] = result['products'][i]['weight']
                     record['count'] = result['products'][i]['count']
                     record['percentDiscount'] = result['products'][i]['percentDiscount']
@@ -628,7 +681,7 @@ def confirm_orders(code):
         try:
             soap_result = utils.SoapClient(order)
             #print('errorcode: ', soap_result['ErrorCode'])
-            #soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011931436408', 'PostDeliveryPrice':50000, 'VatTax':9000}
+            #soap_result = {'ErrorCode' :0, 'ParcelCode': '21868000011963095856', 'PostDeliveryPrice':50000, 'VatTax':9000}
             if soap_result['ErrorCode'] == -10:
                 flash(u'پاسخی از گیت وی دریافت نشد!', 'error')
                 return redirect(request.referrer)
@@ -671,7 +724,9 @@ def confirm_orders(code):
                     case_result = cursor.case_orders.find_one({'orderId': new_rec['orderId']})
                     vestano_wage = case_result['wage']
                 else:
-                    vestano_wage = utils.calculate_wage(new_rec['vendorName'], weight)
+                    #vestano_wage = utils.calculate_wage(new_rec['vendorName'], weight)
+                    service = utils.servicesForWageCalculation(pType)
+                    vestano_wage = utils.calculateWage(cursor, new_rec['vendorName'], weight, service)
 
                 costs = {
                 'price': price,
@@ -1183,7 +1238,10 @@ def edit_orders(orderId):
                 int(request.form.get('payType')))
             pTypeCode = int(request.form.get('payType'))
 
-        temp_wage = utils.calculate_wage(edit_result['vendorName'], weight)
+        service = utils.servicesForWageCalculation(pTypeCode)
+        temp_wage = utils.calculateWage(cursor, edit_result['vendorName'], weight, service)
+        print(service, temp_wage)
+        #temp_wage = utils.calculate_wage(edit_result['vendorName'], weight)
         deliveryPriceResult = utils.GetDeliveryPrice(int(request.form.get('cityCode')), price, weight, int(request.form.get('serviceType')), pTypeCode)
         temp_delivery_costs = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
 
@@ -1682,6 +1740,13 @@ def inventory_management(sub_item):
 
     productId_result = ""
     if request.method == 'POST':
+        constant_wage_flag = 0
+        api_users_result = cursor.api_users.find_one({"vendor_name": request.form.get('vendor')})
+        if api_users_result:
+            if 'if_constant_wage' in api_users_result.keys():
+                if len(api_users_result['if_constant_wage']):
+                    constant_wage_flag = 1
+
         if sub_item == 'case':
             record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             record['productName'] = request.form.get('productName')
@@ -1731,9 +1796,10 @@ def inventory_management(sub_item):
             flash(u'ثبت شد!', 'success')
 
         elif sub_item == 'new':
+            defaultWageForDefineStuff = utils.defaultWage(cursor, request.form.get('vendor'))
             record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             record['productName'] = request.form.get('productName')
-            record['price'] = int(request.form.get('price')) + config.defaultWageForDefineStuff
+            record['price'] = int(request.form.get('price')) + defaultWageForDefineStuff
             record['weight'] = int(request.form.get('weight'))
             record['count'] = int(request.form.get('count'))
             if request.form.get('percentDiscount'):
@@ -1788,12 +1854,13 @@ def inventory_management(sub_item):
             flash(u'ثبت شد!', 'success')
 
         elif sub_item == 'edit':
+            defaultWageForDefineStuff = utils.defaultWage(cursor, request.form.get('vendor'))
             cursor.vestano_inventory.update_many(
                 {'productId': request.form.get('product')},
                 {'$set':{
                 'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
                 'productName': request.form.get('productName'),
-                'price': int(request.form.get('price')) + config.defaultWageForDefineStuff,
+                'price': int(request.form.get('price')) + defaultWageForDefineStuff,
                 'percentDiscount': int(request.form.get('percentDiscount')),
                 'weight': int(request.form.get('weight')),
                 'vendor': request.form.get('vendor')
@@ -1803,14 +1870,16 @@ def inventory_management(sub_item):
             edit_result = utils.editStuff(
                 request.form.get('product'),
                 int(request.form.get('weight')),
-                int(request.form.get('price')) + config.defaultWageForDefineStuff
+                int(request.form.get('price')) + defaultWageForDefineStuff
                 )
+            print(edit_result)
             flash(u'ثبت شد!', 'success')
 
         elif sub_item == 'pack':
+            defaultWageForDefineStuff = utils.defaultWage(cursor, request.form.get('vendor'))
             record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
             record['productName'] = request.form.get('packName')
-            record['price'] = int(request.form.get('price')) + config.defaultWageForDefineStuff
+            record['price'] = int(request.form.get('price')) + defaultWageForDefineStuff
             #record['weight'] = int(request.form.get('weight'))
             record['count'] = int(request.form.get('count'))
             record['weight'] = int(request.form.get('weight'))
@@ -2212,10 +2281,11 @@ def inventory_transfer_accept(number):
     if result['req_status'] == u'رد درخواست':
             flash(u'درخواست قبلا رد شده است!', 'danger')
             return redirect(request.referrer)
+    defaultWageForDefineStuff = utils.defaultWage(cursor, result['vendor'])
     if result['request_type'] == 'new':
         record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
         record['productName'] = result['productName']
-        record['price'] = result['price'] + config.defaultWageForDefineStuff
+        record['price'] = result['price'] + defaultWageForDefineStuff
         record['weight'] = result['weight']
         record['count'] = result['count']
         record['percentDiscount'] = result['percentDiscount']
@@ -2276,7 +2346,7 @@ def inventory_transfer_accept(number):
             {'$set':{
             'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
             'productName': result['productName'],
-            'price': result['price'] + config.defaultWageForDefineStuff,
+            'price': result['price'] + defaultWageForDefineStuff,
             'percentDiscount': result['percentDiscount'],
             'weight': result['weight'],
             'vendor': result['vendor']
@@ -2286,14 +2356,14 @@ def inventory_transfer_accept(number):
         edit_result = utils.editStuff(
             result['productId'],
             result['weight'],
-            result['price'] + config.defaultWageForDefineStuff
+            result['price'] + defaultWageForDefineStuff
             )
         flash(u'درخواست با موفقیت ثبت شد!', 'success')
 
     elif result['request_type'] == 'pack':
         record = {'datetime' : jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
         record['productName'] = result['productName']
-        record['price'] = result['price'] + config.defaultWageForDefineStuff
+        record['price'] = result['price'] + defaultWageForDefineStuff
         #record['weight'] = int(request.form.get('weight'))
         record['count'] = result['count']
         record['percentDiscount'] = result['percentDiscount']
@@ -2438,7 +2508,7 @@ def financial(sub_item):
     if (sub_item=='accounting') and ('accounting' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
-    if ((sub_item=='case-accounting') and ('accounting' not in session['access'])) or (session['role'] == 'vendor_admin'):
+    if (sub_item=='case-accounting') and (('accounting' not in session['access']) or (session['role'] == 'vendor_admin')):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
     if (sub_item=='credit') and ('vendorCredit' not in session['access']):
@@ -3033,6 +3103,11 @@ def register():
 
             if len(request.form.getlist('api_user')):
                 users['role'] = 'api'
+                users['if_constant_wage'] = request.form.getlist('if_constant_wage')
+                users['constant_wage'] = {'distributive':None, 'returned':None}
+                if len(request.form.getlist('if_constant_wage')):
+                    users['constant_wage']['distributive'] = int(request.form.get('distributive'))
+                    users['constant_wage']['returned'] = int(request.form.get('returned'))
                 users['acces'] = []
                 result = cursor.api_users.find_one({"username": users['username']})
                 result2 = cursor.users.find_one({"username": users['username']})
@@ -3077,7 +3152,7 @@ def register():
 
     return render_template('register.html')
 
-@app.route('/users-management/<sub_item>', methods=['GET'])
+@app.route('/users-management/<sub_item>', methods=['GET', 'POST'])
 @token_required
 def users_management(sub_item):
     if ((session['role'] == 'admin') or (session['role'] == 'vendor_admin')) and ('defineUser' in session['access']):
@@ -3124,10 +3199,53 @@ def users_management(sub_item):
             if (r['role'] == 'office') or (r['role'] == 'support'):
                 r['role'] = utils.RolesToFarsi(r['role'])
                 data.append(r)
+    elif (sub_item == 'wage') and (session['role'] == 'admin'):
+        online = {}
+        cod = {}
+        cgd = {}
+        rad = {}
+        if request.method == 'POST':
+            online['LT10'] = request.form.get('onlineLT10')
+            online['10-15'] = request.form.get('online10_15')
+            online['15-20'] = request.form.get('online15_20')
+            online['20-25'] = request.form.get('online20_25')
+            online['25-30'] = request.form.get('online25_30')
+            online['GT30'] = request.form.get('onlineGT30')
+
+            cod['LT10'] = request.form.get('codLT10')
+            cod['10-15'] = request.form.get('cod10_15')
+            cod['15-20'] = request.form.get('cod15_20')
+            cod['20-25'] = request.form.get('cod20_25')
+            cod['25-30'] = request.form.get('cod25_30')
+            cod['GT30'] = request.form.get('codGT30')
+
+            cgd['LT10'] = request.form.get('cgdLT10')
+            cgd['10-15'] = request.form.get('cgd10_15')
+            cgd['15-20'] = request.form.get('cgd15_20')
+            cgd['20-25'] = request.form.get('cgd20_25')
+            cgd['25-30'] = request.form.get('cgd25_30')
+            cgd['GT30'] = request.form.get('cgdGT30')
+
+            rad['LT10'] = request.form.get('radLT10')
+            rad['10-15'] = request.form.get('rad10_15')
+            rad['15-20'] = request.form.get('rad15_20')
+            rad['20-25'] = request.form.get('rad20_25')
+            rad['25-30'] = request.form.get('rad25_30')
+            rad['GT30'] = request.form.get('radGT30')
+
+            number = cursor.wage_setting.estimated_document_count() + 1
+            wage = {'number':number ,'online':online ,'cod':cod ,'cgd':cgd , 'rad':rad}
+            cursor.wage_setting.insert_one(wage)
+            flash(u'تغییرات با موفقیت اعمال شد!', 'success')
+
+    num = cursor.wage_setting.estimated_document_count()
+    wage_result = cursor.wage_setting.find_one({'number':num})
+
 
     return render_template('usersManagement.html',
         sub_item = sub_item,
-        data = data
+        data = data,
+        wage_result = wage_result
         )
 
 @app.route('/users-detail/<username>', methods=['GET', 'POST'])
@@ -3153,11 +3271,18 @@ def users_detail(username):
 
     if request.method == 'POST':
         if api_user:
+            if_constant_wage = request.form.getlist('if_constant_wage')
+            constant_wage = {'distributive':None, 'returned':None}
+            if len(if_constant_wage):
+                constant_wage['distributive'] = int(request.form.get('distributive'))
+                constant_wage['returned'] = int(request.form.get('returned'))
             cursor.api_users.update_many(
                 {"username": username},
                 {'$set': {
                 'edit_date': jdatetime.datetime.now().strftime('%Y/%m/%d - %H:%M'),
                 'editor_username': session['username'],
+                'if_constant_wage': if_constant_wage,
+                'constant_wage': constant_wage,
                 'name': request.form.get('name'),
                 'vendor_name': request.form.get('vendor-name'),
                 'email': request.form.get('email'),
@@ -3368,14 +3493,18 @@ def price_ajax():
         price = int(request.args.get('price'))
         city = int(request.args.get('city'))
         pType = int(request.args.get('pType'))
-        print(weight, price, city, pType)
+        wage = 0
+        if session['vendor_name']:
+            if (session['vendor_name'] != u'سفارش موردی') and (not session['constant_wage_flag']):
+                service = utils.servicesForWageCalculation(pType)
+                wage = utils.calculateWage(cursor, session['vendor_name'], weight, service)
+        #price = int(request.args.get('price')) + int(wage)
         sefareshi = utils.GetDeliveryPrice(city, price, weight, 2, pType)
         pishtaz = utils.GetDeliveryPrice(city, price, weight, 1, pType)
         result = {
-        'sefareshi': sefareshi['DeliveryPrice'] + sefareshi['VatTax'],
-        'pishtaz': pishtaz['DeliveryPrice'] + pishtaz['VatTax']
+        'sefareshi': sefareshi['DeliveryPrice'] + sefareshi['VatTax'] + int(wage),
+        'pishtaz': pishtaz['DeliveryPrice'] + pishtaz['VatTax'] + int(wage)
         }
-        print(result)
     else:
         flash(u'لطفا ابتدا وارد شوید', 'error')
         return redirect(request.referrer)
@@ -3528,7 +3657,9 @@ def fetch_stuff():
 def wage_calculator():
     if 'username' in session:
         weight = int(request.args.get('weight'))
-        wage = utils.calculate_wage(u'سفارش موردی', weight)
+        service = request.args.get('service')
+        #wage = utils.calculate_wage(u'سفارش موردی', weight)
+        wage = utils.calculateWage(cursor, u'سفارش موردی', weight, service)
         ans = {'wage': wage}
     else:
         flash(u'لطفا ابتدا وارد شوید', 'error')

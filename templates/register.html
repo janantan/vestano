@@ -25,7 +25,10 @@
 											<input id="vendor-name" type="text" name="vendor-name" onkeyup="enableAccontData()" oncontextmenu="enableAccontData()" />
 										</td>
 										<td>
-											<label><input id="api_user" type="checkbox" name="api_user" value="api" onchange="apiUser('api_user')">کاربر وب سرویس</label>
+											<label style="margin-right: 2vw;"><input id="api_user" type="checkbox" name="api_user" value="api" onchange="apiUser('api_user')">کاربر وب سرویس</label>
+										</td>
+										<td>
+											<label style="margin-right: 2vw;"><input id="if_constant_wage" type="checkbox" name="if_constant_wage" value="yes" disabled onchange="constantWage('if_constant_wage')"> کارمزد ثابت</label>
 										</td>
 									</tr>
 									<tr id="account-number-tr" style="display: none;">
@@ -33,11 +36,19 @@
 											<label class="right" for="account-number">شماره حساب فروشگاه (بانک ملی)</label>
 											<input id="account-number" type="text" name="account-number" />
 										</td>
-									</tr>
-									<tr id="account-holder-tr" style="display: none;">
 					                    <td>					
-											<label class="right" for="account-holder">نام صاحب حساب</label>
-											<input id="account-holder" type="text" name="account-holder" />
+											<label style="margin-right: 2vw;" class="right" for="account-holder">نام صاحب حساب</label>
+											<input style="margin-right: 2vw;" id="account-holder" type="text" name="account-holder" />
+										</td>
+									</tr>
+									<tr id="constant_wage" style="display: none;">
+					                    <td>					
+											<label class="right" for="distributive">کارمزد توزیعی</label>
+											<input id="distributive" type="number" placeholder="ریال" name="distributive" />
+										</td>
+					                    <td>					
+											<label style="margin-right: 2vw;" class="right" for="returned">کارمزد برگشتی</label>
+											<input style="margin-right: 2vw;" id="returned" type="number" placeholder="ریال" name="returned" />
 										</td>
 									</tr>
 								{% endif %}
@@ -46,11 +57,9 @@
 										<label class="right" for="email">پست الکترونیکی</label>
 										<input id="email" type="email" name="email" />
 									</td>
-								</tr>
-								<tr>
 									<td>
-										<label class="right" for="phone">تلفن</label>
-										<input id="phone" type="text" name="phone" />
+										<label style="margin-right: 2vw;" class="right" for="phone">تلفن</label>
+										<input style="margin-right: 2vw;" id="phone" type="text" name="phone" />
 									</td>
 								</tr>
 								<tr>				                    
@@ -289,6 +298,9 @@
 											<label><input id="access37" type="checkbox" name="access" value="defineUser">ایجاد کاربری</label>
 										</td>
 										<td>
+											<label><input id="access42" type="checkbox" name="access" value="wageManagement">مدیریت کارمزدها</label>
+										</td>
+										<td>
 											<label><input id="access38" type="checkbox" name="access" value="searchPage">صفحه جستجو</label>
 										</td>
 										<td>
@@ -320,21 +332,25 @@
 		function apiUser(id_name) {
 			var check = document.getElementById(id_name).checked;
 			if (check == true) {
+				document.getElementById('if_constant_wage').disabled = false;
 				document.getElementById('role').disabled = true;
 				document.getElementById('account-number').disabled = true;
 				document.getElementById('account-holder').disabled = true;
 				document.getElementById('role').value = "";
 				document.getElementById('account-number').value = "";
 				document.getElementById('account-holder').value = "";
-				for (i = 1; i < 42; i++) {
+				for (i = 1; i < 43; i++) {
 					document.getElementById('access'+i).disabled = true;
 					document.getElementById('access'+i).checked = false;
 				}
 			} else {
+				document.getElementById('if_constant_wage').disabled = true;
+				document.getElementById('if_constant_wage').checked = false;
+				document.getElementById('constant_wage').style.display = 'none';
 				document.getElementById('role').disabled = false;
 				document.getElementById('account-number').disabled = false;
 				document.getElementById('account-holder').disabled = false;
-				for (i = 1; i < 42; i++) {
+				for (i = 1; i < 43; i++) {
 					document.getElementById('access'+i).disabled = false;
 				}
 			}
@@ -344,11 +360,11 @@
 		function defaultAccess() {
 			var role = document.getElementById('role').value;
 			if (role == 'admin') {
-				for (i = 1; i < 42; i++) {
+				for (i = 1; i < 43; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
 			} else if (role == 'office') {
-				for (i = 1; i < 42; i++) {
+				for (i = 1; i < 43; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
 				for (i = 24; i <= 37; i++) {
@@ -356,8 +372,9 @@
 				}
 				document.getElementById('access14').checked = false;
 				document.getElementById('access41').checked = false;
+				document.getElementById('access42').checked = false;
 			} else if (role == 'vendor_admin') {
-				for (i = 1; i < 42; i++) {
+				for (i = 1; i < 43; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
 				for (i = 30; i <= 34; i++) {
@@ -372,8 +389,9 @@
 				document.getElementById('access15').checked = false;
 				document.getElementById('access16').checked = false;
 				document.getElementById('access39').checked = false;
+				document.getElementById('access42').checked = false;
 			} else if (role == 'support') {
-				for (i = 1; i < 42; i++) {
+				for (i = 1; i < 43; i++) {
 					document.getElementById('access'+i).checked = false;
 				}
 				for (i = 38; i < 42; i++) {
@@ -393,6 +411,15 @@
 			document.getElementById('account-number').required = true;
 			document.getElementById('account-holder-tr').style.display = 'block';
 			document.getElementById('account-holder').required = true;
+		}
+
+		function constantWage(id_name) {
+			var check = document.getElementById(id_name).checked;
+			if (check == true) {
+				document.getElementById('constant_wage').style.display = 'block';
+			} else {
+				document.getElementById('constant_wage').style.display = 'none';
+			}
 		}
 	</script>
 {% endblock %}

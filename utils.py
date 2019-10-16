@@ -404,6 +404,7 @@ def financial(cursor):
     t_vendor_account = 0
     t_post_account = 0
     t_vestano_account = 0
+    constant_wage_flag = False
     for r in result:
         #filter just three status
         if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
@@ -430,20 +431,29 @@ def financial(cursor):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
+            api_users_result = cursor.api_users.find_one({'vendor_name':r['vendorName']})
+            if 'if_constant_wage' in api_users_result.keys():
+                if len(api_users_result['if_constant_wage']):
+                    constant_wage_flag = True
+                    returned_account = int(api_users_result['constant_wage']['returned'])
+
             if (pType == 2) or (r['status'] == 11):
-                vendor_account = config.wage
+                vendor_account = r['costs']['wage']
+                if r['status'] == 11:
+                    if constant_wage_flag:
+                        vendor_account = returned_account
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
                 vendor_account = 0 - (r['costs']['price'])
-                post_account = (r['costs']['price']+config.wage) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                post_account = (r['costs']['price']+r['costs']['wage']) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
                 vendor_account = 0 - (r['costs']['price'])
-                post_account = (r['costs']['price']+config.wage)
+                post_account = (r['costs']['price']+r['costs']['wage'])
 
             if pType == 1:
-                vestano_account = config.wage
+                vestano_account = r['costs']['wage']
             else:
-                vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                vestano_account = r['costs']['wage'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             t_post_account += post_account
@@ -516,7 +526,7 @@ def case_financial(cursor):
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
             if (pType == 2) or (r['status'] == 11):
-                #vendor_account = config.wage
+                #vendor_account = r['costs']['wage']
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
                 #vendor_account = 0 - (r['costs']['price'])
@@ -580,6 +590,8 @@ def v_financial(cursor):
     t_vendor_account = 0
     t_post_account = 0
     t_vestano_account = 0
+    constant_wage_flag = False
+
     for r in result:
         #filter just three status
         if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
@@ -606,20 +618,29 @@ def v_financial(cursor):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
+            api_users_result = cursor.api_users.find_one({'vendor_name':r['vendorName']})
+            if 'if_constant_wage' in api_users_result.keys():
+                if len(api_users_result['if_constant_wage']):
+                    constant_wage_flag = True
+                    returned_account = int(api_users_result['constant_wage']['returned'])
+
             if (pType == 2) or (r['status'] == 11):
-                vendor_account = 0 - config.wage
+                vendor_account = 0 - r['costs']['wage']
+                if r['status'] == 11:
+                    if constant_wage_flag:
+                        vendor_account =0 - returned_account
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
                 vendor_account = r['costs']['price']
-                post_account = (r['costs']['price']+config.wage) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                post_account = (r['costs']['price']+r['costs']['wage']) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
                 vendor_account = r['costs']['price']
-                post_account = (r['costs']['price']+config.wage)
+                post_account = (r['costs']['price']+r['costs']['wage'])
 
             if pType == 1:
-                vestano_account = config.wage
+                vestano_account = r['costs']['wage']
             else:
-                vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                vestano_account = r['costs']['wage'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             t_post_account += post_account
@@ -662,6 +683,7 @@ def search_financial(cursor, result):
     t_vendor_account = 0
     t_post_account = 0
     t_vestano_account = 0
+    constant_wage_flag = False
     for r in result:
         #filter just three status
         if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
@@ -688,20 +710,29 @@ def search_financial(cursor, result):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
+            api_users_result = cursor.api_users.find_one({'vendor_name':r['vendorName']})
+            if 'if_constant_wage' in api_users_result.keys():
+                if len(api_users_result['if_constant_wage']):
+                    constant_wage_flag = True
+                    returned_account = int(api_users_result['constant_wage']['returned'])
+
             if (pType == 2) or (r['status'] == 11):
-                vendor_account = config.wage
+                vendor_account = r['costs']['wage']
+                if r['status'] == 11:
+                    if constant_wage_flag:
+                        vendor_account = returned_account
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
                 vendor_account = 0 - (r['costs']['price'])
-                post_account = (r['costs']['price']+config.wage) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                post_account = (r['costs']['price']+r['costs']['wage']) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
                 vendor_account = 0 - (r['costs']['price'])
-                post_account = (r['costs']['price']+config.wage)
+                post_account = (r['costs']['price']+r['costs']['wage'])
 
             if pType == 1:
-                vestano_account = config.wage
+                vestano_account = r['costs']['wage']
             else:
-                vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                vestano_account = r['costs']['wage'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             t_post_account += post_account
@@ -744,6 +775,7 @@ def search_v_financial(cursor, result):
     t_vendor_account = 0
     t_post_account = 0
     t_vestano_account = 0
+    constant_wage_flag = False
     for r in result:
         #filter just three status
         if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
@@ -770,20 +802,29 @@ def search_v_financial(cursor, result):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
+            api_users_result = cursor.api_users.find_one({'vendor_name':r['vendorName']})
+            if 'if_constant_wage' in api_users_result.keys():
+                if len(api_users_result['if_constant_wage']):
+                    constant_wage_flag = True
+                    returned_account = int(api_users_result['constant_wage']['returned'])
+
             if (pType == 2) or (r['status'] == 11):
-                vendor_account = 0 - config.wage
+                vendor_account = 0 - r['costs']['wage']
+                if r['status'] == 11:
+                    if constant_wage_flag:
+                        vendor_account =0 - returned_account
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
                 vendor_account = r['costs']['price']
-                post_account = (r['costs']['price']+config.wage) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                post_account = (r['costs']['price']+r['costs']['wage']) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
                 vendor_account = r['costs']['price']
-                post_account = (r['costs']['price']+config.wage)
+                post_account = (r['costs']['price']+r['costs']['wage'])
 
             if pType == 1:
-                vestano_account = config.wage
+                vestano_account = r['costs']['wage']
             else:
-                vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                vestano_account = r['costs']['wage'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             t_post_account += post_account
@@ -845,6 +886,7 @@ def financial_vendor_credit(cursor, vendorName):
     t_vestano_account = 0
     post_account = 0
     vestano_account = 0
+    constant_wage_flag = False
     for r in result:
 
         if 'credit_req_status' in r.keys():
@@ -877,16 +919,25 @@ def financial_vendor_credit(cursor, vendorName):
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
+            api_users_result = cursor.api_users.find_one({'vendor_name':r['vendorName']})
+            if 'if_constant_wage' in api_users_result.keys():
+                if len(api_users_result['if_constant_wage']):
+                    constant_wage_flag = True
+                    returned_account = int(api_users_result['constant_wage']['returned'])
+
             if (pType == 2) or (r['status'] == 11):
-                vendor_account = 0 - config.wage
+                vendor_account = 0 - r['costs']['wage']
+                if r['status'] == 11:
+                    if constant_wage_flag:
+                        vendor_account =0 - returned_account
                 #post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             elif pType == 88:
                 vendor_account = r['costs']['price']
-                #post_account = (r['costs']['price']+config.wage) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                #post_account = (r['costs']['price']+r['costs']['wage']) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
                 vendor_account = r['costs']['price']
-                #post_account = (r['costs']['price']+config.wage)
-            #vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                #post_account = (r['costs']['price']+r['costs']['wage'])
+            #vestano_account = r['costs']['wage'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             #t_post_account += post_account
@@ -943,6 +994,7 @@ def req_credit_orders(cursor, orderId_list):
     t_vendor_account = 0
     post_account = 0
     vestano_account = 0
+    constant_wage_flag = False
     for Id in orderId_list:
         r = cursor.orders.find_one({'orderId':Id})
         (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
@@ -967,8 +1019,17 @@ def req_credit_orders(cursor, orderId_list):
                 r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                 r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
+        api_users_result = cursor.api_users.find_one({'vendor_name':r['vendorName']})
+        if 'if_constant_wage' in api_users_result.keys():
+            if len(api_users_result['if_constant_wage']):
+                constant_wage_flag = True
+                returned_account = int(api_users_result['constant_wage']['returned'])
+
         if (pType == 2) or (r['status'] == 11):
-            vendor_account = 0 - config.wage
+            vendor_account = 0 - r['costs']['wage']
+            if r['status'] == 11:
+                if constant_wage_flag:
+                    vendor_account = 0 - returned_account
         elif pType == 88:
             vendor_account = r['costs']['price']
         else:
@@ -1048,16 +1109,16 @@ def accounting(cursor):
             (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
 
             if pType == 2:
-                vendor_account = config.wage
+                vendor_account = r['costs']['wage']
                 post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             else:
-                vendor_account = 0 - (r['costs']['price'] - config.wage)
+                vendor_account = 0 - (r['costs']['price'] - r['costs']['wage'])
                 post_account = r['costs']['price'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
             
             if pType == 1:
-                vestano_account = config.wage
+                vestano_account = r['costs']['wage']
             else:
-                vestano_account = config.wage - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+                vestano_account = r['costs']['wage'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
 
             t_vendor_account += vendor_account
             t_post_account += post_account
@@ -1184,7 +1245,17 @@ def details(cursor, orderId, code):
     if r['vendorName'] == u'سفارش موردی':
         case_ord_res = cursor.case_orders.find_one({'orderId': orderId})
         if 'wage' not in case_ord_res.keys():
-            wage = calculate_wage(r['vendorName'], Weight)
+            if 'rad' in case_ord_res.keys():
+                if len(case_ord_res['rad']):
+                    service = 'rad'
+                elif len(case_ord_res['cgd']):
+                    service = 'cgd'
+                else:
+                    service = servicesForWageCalculation(pType)
+            else:
+                service = servicesForWageCalculation(pType)
+            wage = calculateWage(cursor, r['vendorName'], Weight, service)
+            #wage = calculate_wage(r['vendorName'], Weight)
         else:
             wage = case_ord_res['wage']
         packing = case_ord_res['packing']
@@ -1211,7 +1282,9 @@ def details(cursor, orderId, code):
             rad = None
             cgd = None
     else:
-        wage = config.wage
+        service = servicesForWageCalculation(pType)
+        wage = calculateWage(cursor, r['vendorName'], Weight, service)
+        #wage = config.wage
         packing = 0
         carton = 0
         gathering = 0
@@ -1389,6 +1462,18 @@ def typeOfServicesToCode(serviceType, payType):
 
     return (sType, pType)
 
+def servicesForWageCalculation(pType):
+    if pType == 10:
+        service = 'rad'
+    elif pType == 20:
+        service = 'cgd'
+    elif (pType == 1) or (pType == 88):
+        service = 'cod'
+    elif pType == 2:
+        service = 'online'
+
+    return service
+
 def statusToString(statusCode):
     if statusCode==0:
         statusString = u'تحت بررسی'
@@ -1533,6 +1618,8 @@ def accessToFarsi(access):
         accessFarsi = u'داشبورد'
     if access == 'defineUser':
         accessFarsi = u'ایجاد کاربری'
+    if access == 'wageManagement':
+        accessFarsi = u'مدیریت کارمزدها'
     if access == 'inventManagement':
         accessFarsi = u'مدیریت انبار'
     if access == 'caseAllOrders':
@@ -1570,12 +1657,13 @@ def Products(cursor, product):
     if 'pack_products' not in result.keys():
         result['pack_products'] = []
 
+    defaultWageForDefineStuff = defaultWage(cursor, result['vendor'])
     ans = {
     'productName': result['productName'],
     'productId': product,
     'count': result['count'],
     'vendor': result['vendor'],
-    'price': result['price'] - config.defaultWageForDefineStuff,
+    'price': result['price'] - defaultWageForDefineStuff,
     'weight': result['weight'],
     'discount': result['percentDiscount'],
     'pack_products': result['pack_products']
@@ -2374,6 +2462,70 @@ def calculate_wage(vendor, weight):
         vestano_wage = config.wage
     return vestano_wage
 
+def calculateWage(cursor, vendor, weight, service):
+    constant_wage = False
+    number = cursor.wage_setting.estimated_document_count()
+    wage_result = cursor.wage_setting.find_one({'number':number})
+    vendor_wage_status = cursor.api_users.find_one({'vendor_name':vendor})
+    if vendor_wage_status:
+        if 'if_constant_wage' in vendor_wage_status.keys():
+            if len(vendor_wage_status['if_constant_wage']):
+                constant_wage = True
+
+    if (vendor == u'سفارش موردی') or (not constant_wage):
+        if weight < 10000:
+            if service == 'online':
+                vestano_wage = wage_result['online']['LT10']
+            elif service == 'cod':
+                vestano_wage = wage_result['cod']['LT10']
+            elif service == 'cgd':
+                vestano_wage = wage_result['cgd']['LT10']
+            elif service == 'rad':
+                vestano_wage = wage_result['rad']['LT10']
+        elif 10000 <= weight < 15000:
+            if service == 'online':
+                vestano_wage = wage_result['online']['10-15']
+            elif service == 'cod':
+                vestano_wage = wage_result['cod']['10-15']
+            elif service == 'cgd':
+                vestano_wage = wage_result['cgd']['10-15']
+            elif service == 'rad':
+                vestano_wage = wage_result['rad']['10-15']            
+        elif 15000 <= weight < 20000:
+            if service == 'online':
+                vestano_wage = wage_result['online']['15-20']
+            elif service == 'cod':
+                vestano_wage = wage_result['cod']['15-20']
+            elif service == 'cgd':
+                vestano_wage = wage_result['cgd']['15-20']
+            elif service == 'rad':
+                vestano_wage = wage_result['rad']['15-20']
+        elif 20000 <= weight < 25000:
+            if service == 'online':
+                vestano_wage = wage_result['online']['20-25']
+            elif service == 'cod':
+                vestano_wage = wage_result['cod']['20-25']
+            elif service == 'cgd':
+                vestano_wage = wage_result['cgd']['20-25']
+            elif service == 'rad':
+                vestano_wage = wage_result['rad']['20-25']
+        elif 25000 <= weight < 30000:
+            vestano_wage = wage_result['online']['25-30']
+        elif weight >= 30000:
+            if service == 'online':
+                vestano_wage = wage_result['online']['GT30']
+            elif service == 'cod':
+                vestano_wage = wage_result['cod']['GT30']
+            elif service == 'cgd':
+                vestano_wage = wage_result['cgd']['GT30']
+            elif service == 'rad':
+                vestano_wage = wage_result['rad']['GT30']
+    
+    else:
+        vestano_wage = vendor_wage_status['constant_wage']['distributive']
+
+    return int(vestano_wage)
+
 def case_query_result(cursor, rec, query_list_1, query_list_2):
     if len(query_list_1):
         query_1 = {
@@ -2614,3 +2766,11 @@ def lias_search(cursor, rec, prev_lias):
         else:
             result.append(r)
     return result
+
+def defaultWage(cursor, vendor_name):
+    defaultWage = 0
+    api_users_result = cursor.api_users.find_one({'vendor_name': vendor_name})
+    if 'if_constant_wage' in api_users_result.keys():
+        if len(api_users_result['if_constant_wage']):
+            defaultWage = api_users_result['constant_wage']['distributive']
+    return defaultWage

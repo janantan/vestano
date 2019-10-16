@@ -149,12 +149,21 @@
 					<td>
 						<span>{{details[7]}}</span>
 					</td>
-					<td>
-						<span class="blue bold">کارمزد:</span>
-					</td>
-					<td>
-						<span> {{details[15]}} ریال </span>
-					</td>
+					{% if (details[1] != 'سفارش موردی') and (session['vendor_name']) and (not session['constant_wage_flag']) %}
+						<td>
+							<span class="blue bold">هزینه ارسال:</span>
+						</td>
+						<td>
+							<span> {{details[15] + details[17]}} ریال </span>
+						</td>
+					{% else %}
+						<td>
+							<span class="blue bold">کارمزد:</span>
+						</td>
+						<td>
+							<span> {{details[15]}} ریال </span>
+						</td>
+					{% endif %}
 				</tr>
 				{% if details[1] == 'سفارش موردی' %}
 					<tr>
@@ -443,9 +452,15 @@
 									{% endif %}
 								{% endif %}
 							{% else %}
+								{% if (details[1] != 'سفارش موردی') and (not session['constant_wage_flag']) %}
+								<td class="vw18 bg-green">
+									<span>{{details[11] + details[15] + details[17]}} ریال</span>
+								</td>
+								{% else %}
 								<td class="vw18 bg-green">
 									<span>{{details[11] + details[15]}} ریال</span>
 								</td>
+								{% endif %}
 							{% endif %}
 						{% endif %}
 					</tr>

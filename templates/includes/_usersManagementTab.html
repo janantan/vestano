@@ -2,6 +2,7 @@
 {% set vendors = "background:#eee;" %}
 {% set office = "background:#eee;" %}
 {% set api = "background:#eee;" %}
+{% set wage = "background:#eee;" %}
 
 {% if "Users" in request.base_url %}
 	{% set users = "background:yellow;" %}
@@ -11,6 +12,8 @@
 	{% set office = "background:yellow;" %}
 {% elif "api" in request.base_url %}
 	{% set api = "background:yellow;" %}
+{% elif "wage" in request.base_url %}
+	{% set wage = "background:yellow;" %}
 {% endif %}
 <div id="tab">
 	{% if 'defineUser' in session['access'] %}
@@ -24,5 +27,8 @@
 	{% endif %}
 	{% if 'defineUser' in session['access'] %}
 		<a href="/users-management/api" style={{api}} class="button">کاربران وب سرویس</a>
+	{% endif %}
+	{% if ('defineUser' in session['access']) and ('wageManagement' in session['access']) %}
+		<a href="/users-management/wage" style={{wage}} class="button">مدیریت کارمزدها</a>
 	{% endif %}
 </div>

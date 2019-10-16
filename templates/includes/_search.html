@@ -210,7 +210,9 @@
 									<th class="vw15">
 										<select style="margin-bottom: 4vh;" id="vendor" name="vendor" style="padding:10px 20px;">
 											<option value="" disabled selected>(انتخاب کنید)</option>
-											<option value="روژیاپ">روژیاپ</option>
+											{% for vendor in session['vendors_list'] %}
+												<option value="{{vendor}}">{{vendor}}</option>
+											{% endfor %}
 										</select>
 									</th>
 								{% endif %}
@@ -335,7 +337,9 @@
 									<th class="vw15">
 										<select style="margin-bottom: 4vh;" id="vendor" name="vendor" style="padding:10px 20px;">
 											<option value="" disabled selected>(انتخاب کنید)</option>
-											<option value="روژیاپ">روژیاپ</option>
+											{% for vendor in session['vendors_list'] %}
+												<option value="{{vendor}}">{{vendor}}</option>
+											{% endfor %}
 										</select>
 									</th>
 								{% endif %}
@@ -448,40 +452,40 @@
 						</tr>
 					</thead>
 					<tbody id="myDropdown" style="height: 64vh;">
-						{% for rec in result %}
+						{% for i in range((result|length)-1, -1, -1) %}
 							<tr class="rows">
 								<td style="width: 50px;">
 									<span>{{loop.index}}</span>
 								</td>
 								<td>
-									<a title="{{('\n'.join(rec[9]))}}"><span>{{rec[0]}}</span></a>
+									<a title="{{('\n'.join(result[i][9]))}}"><span>{{result[i][0]}}</span></a>
 								</td>
 								<td>
-									<span>{{rec[10]}}</span>
+									<span>{{result[i][10]}}</span>
 								</td>
 								<td>
-									<span>{{rec[2]}}</span>
+									<span>{{result[i][2]}}</span>
 								</td>
 								<td>
-									<span>{{rec[3]}}</span>
+									<span>{{result[i][3]}}</span>
 								</td>
 								<td>
-									<span>{{rec[4]}}</span>
+									<span>{{result[i][4]}}</span>
 								</td>
 								<td>
-									<span>{{rec[5]}}</span>
+									<span>{{result[i][5]}}</span>
 								</td>
 								<td>
-									<span>{{rec[6]}}</span>
+									<span>{{result[i][6]}}</span>
 								</td>
 								<td>
-									<span>{{rec[7]}}</span>
+									<span>{{result[i][7]}}</span>
 								</td>
 								<td>
-									<span>{{rec[8]}}</span>
+									<span>{{result[i][8]}}</span>
 								</td>
 								<td>
-									<a href="javascript:window.open('/orders-details/{{rec[0]}}/search', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+									<a href="javascript:window.open('/orders-details/{{result[i][0]}}/search', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
 								</td>
 							</tr>
 						{% endfor %}

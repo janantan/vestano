@@ -28,6 +28,12 @@
 											<label class="right" for="vendor-name">نام فروشگاه</label>
 											<input id="vendor-name" type="text" name="vendor-name" value="{{data['vendor_name']}}" />
 										</td>
+										{% if api_user %}
+										{% if 'yes' in data['if_constant_wage'] %}{% set cw='checked' %}{% set cwdisplay='block' %}{% else %}{% set cw='' %}{% set cwdisplay='none' %}{% endif %}
+										<td>
+											<label style="margin-right: 2vw;"><input id="if_constant_wage" type="checkbox" name="if_constant_wage" value="yes" {{cw}} onchange="constantWage('if_constant_wage')"> کارمزد ثابت</label>
+										</td>
+										{% endif %}
 									</tr>
 									{% if not api_user %}
 									<tr id="account-number-tr">
@@ -40,6 +46,18 @@
 					                    <td>					
 											<label class="right" for="account-holder">نام صاحب حساب</label>
 											<input id="account-holder" type="text" name="account-holder" value="{{data['account_holder']}}" />
+										</td>
+									</tr>
+									{% else %}
+									<tr id="constant_wage" style="display: {{cwdisplay}};">
+										{% if 'constant_wage' in data.keys() %}{% set val1=data['constant_wage']['distributive'] %}{% set val2=data['constant_wage']['returned'] %}{% else %}{% set val1='' %}{% set val2='' %}{% endif %}
+					                    <td>					
+											<label class="right" for="distributive">کارمزد توزیعی</label>
+											<input id="distributive" type="number" placeholder="ریال" name="distributive" value="{{val1}}" />
+										</td>
+					                    <td>					
+											<label style="margin-right: 2vw;" class="right" for="returned">کارمزد برگشتی</label>
+											<input style="margin-right: 2vw;" id="returned" type="number" placeholder="ریال" name="returned" value="{{val2}}" />
 										</td>
 									</tr>
 									{% endif %}
@@ -101,6 +119,7 @@
 									{% if 'incCredit' in data['access'] %}{% set ck35='checked' %}{% else %}{% set ck35='' %}{% endif %}
 									{% if 'dashboard' in data['access'] %}{% set ck36='checked' %}{% else %}{% set ck36='' %}{% endif %}
 									{% if 'defineUser' in data['access'] %}{% set ck37='checked' %}{% else %}{% set ck37='' %}{% endif %}
+									{% if 'wageManagement' in data['access'] %}{% set ck42='checked' %}{% else %}{% set ck42='' %}{% endif %}
 									{% if 'searchPage' in data['access'] %}{% set ck38='checked' %}{% else %}{% set ck38='' %}{% endif %}
 									{% if 'searchInCases' in data['access'] %}{% set ck39='checked' %}{% else %}{% set ck39='' %}{% endif %}
 									{% if 'searchInVendors' in data['access'] %}{% set ck40='checked' %}{% else %}{% set ck40='' %}{% endif %}
@@ -327,6 +346,9 @@
 												<label><input id="access37" type="checkbox" {{ck37}}  name="access" value="defineUser">ایجاد کاربری</label>
 											</td>
 											<td>
+												<label><input id="access42" type="checkbox" {{ck42}}  name="access" value="wageManagement">مدیریت کارمزدها</label>
+											</td>
+											<td>
 												<label><input id="access38" type="checkbox" {{ck38}}  name="access" value="searchPage">صفحه جستجو</label>
 											</td>
 											<td>
@@ -394,6 +416,15 @@
 					}
 					document.getElementById('access25').checked = true;
 					document.getElementById('access31').checked = true;
+				}
+			}
+
+			function constantWage(id_name) {
+				var check = document.getElementById(id_name).checked;
+				if (check == true) {
+					document.getElementById('constant_wage').style.display = 'block';
+				} else {
+					document.getElementById('constant_wage').style.display = 'none';
 				}
 			}
 

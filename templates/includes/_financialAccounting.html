@@ -41,40 +41,40 @@
 				</tr>
 			</thead>
 			<tbody id="myDropdown" style="height: 65vh;">
-				{% for rec in v_financial['record'] %}
+				{% for i in range((v_financial['record']|length)-1, -1, -1) %}
 					<tr class="rows">
 						<td>
 							<span>{{loop.index}}</span>
 						</td>
 						<td class="" style="width: 10vw;">
-							<span>{{rec[0]}}</span>
+							<span>{{v_financial['record'][i][0]}}</span>
 						</td>
 						<td class="" style="width: 15vw;">
-							<a href="javascript:window.open('/orders-details/{{rec[0]}}/v_financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
+							<a href="javascript:window.open('/orders-details/{{v_financial['record'][i][0]}}/v_financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(v_financial['record'][i][11]))}}"><span class="blue">{{v_financial['record'][i][1]}}</span></a>
 						</td>
 						<td class="" style="width: 10vw;">
-							<span>{{rec[2]}}</span>
+							<span>{{v_financial['record'][i][2]}}</span>
 						</td>
 						<td class="">
-							<span >{{rec[6]}}</span>
+							<span >{{v_financial['record'][i][6]}}</span>
 						</td>
-						{% if rec[7] < 0 %}
+						{% if v_financial['record'][i][7] < 0 %}
 							<td style="width: 10vw;">
-								<span class="red">{{0-rec[7]}}</span>
+								<span class="red">{{0-v_financial['record'][i][7]}}</span>
 							</td>
 						{% else %}
 							<td style="width: 10vw;">
-								<span class="blue">{{rec[7]}}</span>
+								<span class="blue">{{v_financial['record'][i][7]}}</span>
 							</td>
 						{% endif %}
 						<td class="vw8">
-							<a title="شماره پیگیری: {{rec[14]}}"><span class="font12">{{rec[13]}}</span></a>
+							<a title="شماره پیگیری: {{v_financial['record'][i][14]}}"><span class="font12">{{v_financial['record'][i][13]}}</span></a>
 						</td>
 						<td class="vw8">
-							<span class="font12">{{rec[12]}}</span>
+							<span class="font12">{{v_financial['record'][i][12]}}</span>
 						</td>
 						<td class="vw8">
-							<span class="font12">{{rec[10]}}</span>
+							<span class="font12">{{v_financial['record'][i][10]}}</span>
 						</td>
 					</tr>
 				{% endfor %}
@@ -149,67 +149,67 @@
 				</tr>
 			</thead>
 			<tbody id="myDropdown" style="height: 65vh;">
-				{% for rec in financial['record'] %}
+				{% for i in range((financial['record']|length)-1, -1, -1) %}
 					<tr class="rows">
 						<td>
 							<span>{{loop.index}}</span>
 						</td>
 						<td class="">
-							<span>{{rec[0]}}</span>
+							<span>{{financial['record'][i][0]}}</span>
 						</td>
 						<td class="">
-							<a href="javascript:window.open('/orders-details/{{rec[0]}}/financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
+							<a href="javascript:window.open('/orders-details/{{financial['record'][i][0]}}/financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(financial['record'][i][11]))}}"><span class="blue">{{financial['record'][i][1]}}</span></a>
 						</td>
 						<td class="">
-							<span>{{rec[2]}}</span>
+							<span>{{financial['record'][i][2]}}</span>
 						</td>
 						<td class="">
-							<span>{{rec[3]}}</span>
+							<span>{{financial['record'][i][3]}}</span>
 						</td>
 						<td class="">
-							<span >{{rec[4]}}</span>
+							<span >{{financial['record'][i][4]}}</span>
 						</td>
 						<td class="">
-							<span >{{rec[5]}}</span>
+							<span >{{financial['record'][i][5]}}</span>
 						</td>
 						<td class="">
-							<span >{{rec[6]}}</span>
+							<span >{{financial['record'][i][6]}}</span>
 						</td>
-						{% if rec[7] < 0 %}
+						{% if financial['record'][i][7] < 0 %}
 							<td>
-								<span class="red">{{0-rec[7]}}</span>
+								<span class="red">{{0-financial['record'][i][7]}}</span>
 							</td>
 						{% else %}
 							<td>
-								<span class="blue">{{rec[7]}}</span>
+								<span class="blue">{{financial['record'][i][7]}}</span>
 							</td>
 						{% endif %}
-						{% if rec[8] < 0 %}
+						{% if financial['record'][i][8] < 0 %}
 							<td>
-								<span class="red">{{0-rec[8]}}</span>
+								<span class="red">{{0-financial['record'][i][8]}}</span>
 							</td>
 						{% else %}
 							<td>
-								<span class="blue">{{rec[8]}}</span>
+								<span class="blue">{{financial['record'][i][8]}}</span>
 							</td>
 						{% endif %}
-						{% if rec[9] < 0 %}
+						{% if financial['record'][i][9] < 0 %}
 							<td>
-								<span class="red">{{0-rec[9]}}</span>
+								<span class="red">{{0-financial['record'][i][9]}}</span>
 							</td>
 						{% else %}
 							<td>
-								<span class="blue">{{rec[9]}}</span>
+								<span class="blue">{{financial['record'][i][9]}}</span>
 							</td>
 						{% endif %}
 						<td class="">
-							<span class="font12">{{rec[13]}}</span>
+							<span class="font12">{{financial['record'][i][13]}}</span>
 						</td>
 						<td class="">
-							<span class="font12">{{rec[12]}}</span>
+							<span class="font12">{{financial['record'][i][12]}}</span>
 						</td>
 						<td class="">
-							<span class="font12">{{rec[10]}}</span>
+							<span class="font12">{{financial['record'][i][10]}}</span>
 						</td>
 					</tr>
 				{% endfor %}
