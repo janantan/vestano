@@ -307,6 +307,7 @@ def token_required(f):
                     session['all_orders'] = cursor.orders.find({'vendorName': session['vendor_name']}).count()
                     session['unread_tickets'] = cursor.tickets.find({'read': False, 'sender_username': True, 'sender_departement':None}).count()
                     session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False, 'vendor':session['vendor_name']}).count()
+                    session['unread_vendor_credit_req'] = cursor.credit_requests.find({'req_status': u'در دست بررسی', 'vendor':session['vendor_name']}).count()
                 else:
                     #utils.today_orders(cursor)
                     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
@@ -338,6 +339,7 @@ def token_required(f):
                     not_processed = cursor.inventory_transfer.find({'req_status': u'بررسی نشده'}).count()
                     edited = cursor.inventory_transfer.find({'req_status': u'ویرایش شده'}).count()
                     session['unread_inv_transfers'] = not_processed + edited
+                    session['unread_vendor_credit_req'] = cursor.credit_requests.find({'req_status': u'در دست بررسی'}).count()
         except:
             return redirect(url_for('token_logout'))            
 
@@ -370,6 +372,7 @@ def token_required(f):
                     session['all_orders'] = cursor.orders.find({'vendorName': session['vendor_name']}).count()
                     session['unread_tickets'] = cursor.tickets.find({'read': False, 'sender_username': True, 'sender_departement':None}).count()
                     session['unread_inv_transfers'] = cursor.inventory_transfer.find({'read': False, 'vendor':session['vendor_name']}).count()
+                    session['unread_vendor_credit_req'] = cursor.credit_requests.find({'req_status': u'در دست بررسی', 'vendor':session['vendor_name']}).count()
                 else:
                     session['temp_orders'] = cursor.temp_orders.estimated_document_count()
                     if session['role'] == 'admin':
@@ -400,6 +403,8 @@ def token_required(f):
                     not_processed = cursor.inventory_transfer.find({'req_status': u'بررسی نشده'}).count()
                     edited = cursor.inventory_transfer.find({'req_status': u'ویرایش شده'}).count()
                     session['unread_inv_transfers'] = not_processed + edited
+                    session['unread_vendor_credit_req'] = cursor.credit_requests.find({'req_status': u'در دست بررسی'}).count()
+
 
                 flash(result['name'] + u' عزیز خوش آمدید', 'success-login')
         
@@ -881,6 +886,20 @@ def pending_orders():
         states = utils.states(cursor)
         )
 
+#@app.route('/user-pannel/all-orders', methods=['GET'])
+#@token_required
+#def all_orders():
+    #if 'allOrders' not in session['access']:
+        #flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        #return redirect(request.referrer)
+
+    #return render_template('user_pannel.html',
+        #item='allOrders',
+        #inventory = utils.inventory(cursor),
+        #all_orders = utils.all_orders(cursor),
+        #states = utils.states(cursor)
+        #)
+
 @app.route('/user-pannel/all-orders', methods=['GET'])
 @token_required
 def all_orders():
@@ -892,6 +911,7 @@ def all_orders():
         item='allOrders',
         inventory = utils.inventory(cursor),
         all_orders = utils.all_orders(cursor),
+        #page = page,
         states = utils.states(cursor)
         )
 
@@ -2904,9 +2924,16 @@ def search(sub_item):
     search_result = []
     s_financial = None
     s_v_financial = None
+    countDown_flag = False
     if request.method == 'POST':
         rec = {}
         orderId_list = []
+
+        if request.form.getlist('count_down'):
+            countDown_flag = True
+        else:
+            countDown_flag = False
+
         if request.form.get('date_from'):
             date_from = request.form.get('date_from').encode('utf-8')
             date_from = jdatetime.datetime.strptime(date_from, '%Y/%m/%d')
@@ -2994,6 +3021,7 @@ def search(sub_item):
     return render_template('user_pannel.html',
         item = "search",
         sub_item = sub_item,
+        countDown_flag = countDown_flag,
         states = utils.states(cursor),
         inventory = utils.inventory(cursor),
         case_inventory = utils.case_inventory(cursor),
@@ -3108,6 +3136,28 @@ def register():
                 if len(request.form.getlist('if_constant_wage')):
                     users['constant_wage']['distributive'] = int(request.form.get('distributive'))
                     users['constant_wage']['returned'] = int(request.form.get('returned'))
+                
+                users['if_variable_wage'] = request.form.getlist('if_variable_wage')
+                online = {}
+                cod = {}
+                if len(request.form.getlist('if_variable_wage')):
+                    online['LT10'] = request.form.get('onlineLT10')
+                    online['10-15'] = request.form.get('online10_15')
+                    online['15-20'] = request.form.get('online15_20')
+                    online['20-25'] = request.form.get('online20_25')
+                    online['25-30'] = request.form.get('online25_30')
+                    online['GT30'] = request.form.get('onlineGT30')
+
+                    cod['LT10'] = request.form.get('codLT10')
+                    cod['10-15'] = request.form.get('cod10_15')
+                    cod['15-20'] = request.form.get('cod15_20')
+                    cod['20-25'] = request.form.get('cod20_25')
+                    cod['25-30'] = request.form.get('cod25_30')
+                    cod['GT30'] = request.form.get('codGT30')
+
+                    users['variable_wage']['online'] = online
+                    users['variable_wage']['cod'] = cod
+
                 users['acces'] = []
                 result = cursor.api_users.find_one({"username": users['username']})
                 result2 = cursor.users.find_one({"username": users['username']})
@@ -3240,7 +3290,13 @@ def users_management(sub_item):
 
     num = cursor.wage_setting.estimated_document_count()
     wage_result = cursor.wage_setting.find_one({'number':num})
-
+    if not wage_result:
+        wage_result = {
+        "rad" : {"GT30" : "", "10-15" : "", "25-30" : "", "LT10" : "", "15-20" : "", "20-25" : ""},
+        "cgd" : {"GT30" : "", "10-15" : "", "25-30" : "", "LT10" : "", "15-20" : "", "20-25" : ""},
+        "cod" : {"GT30" : "", "10-15" : "", "25-30" : "", "LT10" : "", "15-20" : "", "20-25" : ""},
+        "online" : {"GT30" : "", "10-15" : "", "25-30" : "", "LT10" : "", "15-20" : "", "20-25" : ""} 
+        }
 
     return render_template('usersManagement.html',
         sub_item = sub_item,
@@ -3276,6 +3332,29 @@ def users_detail(username):
             if len(if_constant_wage):
                 constant_wage['distributive'] = int(request.form.get('distributive'))
                 constant_wage['returned'] = int(request.form.get('returned'))
+
+            if_variable_wage = request.form.getlist('if_variable_wage')
+            online = {}
+            cod = {}
+            variable_wage = {
+            'online': {"GT30" : "", "10-15" : "", "25-30" : "", "LT10" : "", "15-20" : "", "20-25" : ""},
+            'cod': {"GT30" : "", "10-15" : "", "25-30" : "", "LT10" : "", "15-20" : "", "20-25" : ""}
+            }
+            if len(if_variable_wage):
+                online['LT10'] = request.form.get('onlineLT10')
+                online['10-15'] = request.form.get('online10_15')
+                online['15-20'] = request.form.get('online15_20')
+                online['20-25'] = request.form.get('online20_25')
+                online['25-30'] = request.form.get('online25_30')
+                online['GT30'] = request.form.get('onlineGT30')
+                cod['LT10'] = request.form.get('codLT10')
+                cod['10-15'] = request.form.get('cod10_15')
+                cod['15-20'] = request.form.get('cod15_20')
+                cod['20-25'] = request.form.get('cod20_25')
+                cod['25-30'] = request.form.get('cod25_30')
+                cod['GT30'] = request.form.get('codGT30')
+                variable_wage['online'] = online
+                variable_wage['cod'] = cod
             cursor.api_users.update_many(
                 {"username": username},
                 {'$set': {
@@ -3283,6 +3362,8 @@ def users_detail(username):
                 'editor_username': session['username'],
                 'if_constant_wage': if_constant_wage,
                 'constant_wage': constant_wage,
+                'if_variable_wage': if_variable_wage,
+                'variable_wage': variable_wage,
                 'name': request.form.get('name'),
                 'vendor_name': request.form.get('vendor-name'),
                 'email': request.form.get('email'),
@@ -3444,6 +3525,7 @@ def logout():
     session.pop('jdatetime', None)
     session.pop('unread_tickets', None)
     session.pop('unread_inv_transfers', None)
+    session.pop('unread_vendor_credit_req', None)
     session.pop('accounting_search_result', None)
     session.pop('vendors_list', None)
     return redirect(url_for('home'))
@@ -3467,6 +3549,7 @@ def token_logout():
     session.pop('jdatetime', None)
     session.pop('unread_tickets', None)
     session.pop('unread_inv_transfers', None)
+    session.pop('unread_vendor_credit_req', None)
     session.pop('accounting_search_result', None)
     session.pop('vendors_list', None)
     return redirect(url_for('login'))

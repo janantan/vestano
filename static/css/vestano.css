@@ -140,6 +140,27 @@ a.button:active {
     background: #999;
 }
 
+a.button2 {
+    display: inline-block;
+    text-decoration: none;
+    background-color: #eee;
+    font-family: "BNazanin";
+    font-size: 15px;
+    padding: 3px 12px;
+    border: 1px solid #e1e1e1;
+    border-radius: 5px;
+}
+
+a.button2:hover {
+    background: #bbb;
+    border: solid 1px #e1e1e1;
+    text-decoration: none;
+}
+
+a.button2:active {
+    background: #999;
+}
+
 a.export {
     display: inline-block;
     text-decoration: none;

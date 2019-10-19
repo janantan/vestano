@@ -33,6 +33,10 @@
 										<td>
 											<label style="margin-right: 2vw;"><input id="if_constant_wage" type="checkbox" name="if_constant_wage" value="yes" {{cw}} onchange="constantWage('if_constant_wage')"> کارمزد ثابت</label>
 										</td>
+										{% if 'yes' in data['if_variable_wage'] %}{% set vw='checked' %}{% set vwdisplay='block' %}{% else %}{% set vw='' %}{% set vwdisplay='none' %}{% endif %}
+										<td>
+											<label style="margin-right: 2vw;"><input id="if_variable_wage" type="checkbox" name="if_variable_wage" value="yes" {{vw}} onchange="variableWage('if_variable_wage')"> کارمزد متغیر</label>
+										</td>
 										{% endif %}
 									</tr>
 									{% if not api_user %}
@@ -58,6 +62,76 @@
 					                    <td>					
 											<label style="margin-right: 2vw;" class="right" for="returned">کارمزد برگشتی</label>
 											<input style="margin-right: 2vw;" id="returned" type="number" placeholder="ریال" name="returned" value="{{val2}}" />
+										</td>
+									</tr>
+									<tr id="variable_wage" style="display: {{vwdisplay}};">
+										{% if 'variable_wage' in data.keys() %}
+
+										{% set val_online_1=data['variable_wage']['online']['LT10'] %}
+										{% set val_online_2=data['variable_wage']['online']['10-15'] %}
+										{% set val_online_3=data['variable_wage']['online']['15-20'] %}
+										{% set val_online_4=data['variable_wage']['online']['20-25'] %}
+										{% set val_online_5=data['variable_wage']['online']['25-30'] %}
+										{% set val_online_6=data['variable_wage']['online']['GT30'] %}
+
+										{% set val_cod_1=data['variable_wage']['cod']['LT10'] %}
+										{% set val_cod_2=data['variable_wage']['cod']['10-15'] %}
+										{% set val_cod_3=data['variable_wage']['cod']['15-20'] %}
+										{% set val_cod_4=data['variable_wage']['cod']['20-25'] %}
+										{% set val_cod_5=data['variable_wage']['cod']['25-30'] %}
+										{% set val_cod_6=data['variable_wage']['cod']['GT30'] %}
+
+										{% else %}
+
+										{% set val_online_1='' %}
+										{% set val_online_2='' %}
+										{% set val_online_3='' %}
+										{% set val_online_4='' %}
+										{% set val_online_5='' %}
+										{% set val_online_6='' %}
+
+										{% set val_cod_1='' %}
+										{% set val_cod_2='' %}
+										{% set val_cod_3='' %}
+										{% set val_cod_4='' %}
+										{% set val_cod_5='' %}
+										{% set val_cod_6='' %}
+
+										{% endif %}
+										<td style="text-align: center; width: 8vw; margin-top: 2vh;">
+											<label style="text-align: center;">وزن (کیلوگرم)</label>
+											<input style="text-align: center; font-weight: bold; font-family: 'B-Roya'; background: #ffff9e;" type="text" value="پرداخت آنلاین (ریال)" disabled /><br>
+											<input style="text-align: center; margin-top: 1vh; font-weight: bold; font-family: 'B-Roya'; background: #ffff9e;" type="text"value="پرداخت در محل (ریال)" disabled />
+										</td>
+										<td style="width: 7vw; margin-top: 2vh;">
+											<label style="text-align: center;">کمتر از 10</label>
+											<input style="text-align: center;" id="onlineLT10" type="number" name="onlineLT10" value="{{val_online_1}}" /><br>
+											<input style="text-align: center; margin-top: 1vh;" id="codLT10" type="number" name="codLT10" value="{{val_cod_1}}" />
+										</td>
+										<td style="width: 7vw; margin-top: 2vh;">
+											<label style="text-align: center;">10 تا 15</label>
+											<input style="text-align: center;" id="online10_15" type="number" name="online10_15" value="{{val_online_2}}" />
+											<input style="text-align: center; margin-top: 1vh;" id="cod10_15" type="number" name="cod10_15" value="{{val_cod_2}}" />
+										</td>
+										<td style="width: 7vw; margin-top: 2vh;">
+											<label style="text-align: center;">15 تا 20</label>
+											<input style="text-align: center;" id="online15_20" type="number" name="online15_20" value="{{val_online_3}}" />
+											<input style="text-align: center; margin-top: 1vh;" id="cod15_20" type="number" name="cod15_20" value="{{val_cod_3}}" />
+										</td>
+										<td style="width: 7vw; margin-top: 2vh;">
+											<label style="text-align: center;">20 تا 25</label>
+											<input style="text-align: center;" id="online20_25" type="number" name="online20_25" value="{{val_online_4}}" />
+											<input style="text-align: center; margin-top: 1vh;" id="cod20_25" type="number" name="cod20_25" value="{{val_cod_4}}" />
+										</td>
+										<td style="width: 7vw; margin-top: 2vh;">
+											<label style="text-align: center;">25 تا 30</label>
+											<input style="text-align: center;" id="online25_30" type="number" name="online25_30" value="{{val_online_5}}" />
+											<input style="text-align: center; margin-top: 1vh;" id="cod25_30" type="number" name="cod25_30" value="{{val_cod_5}}" />
+										</td>
+										<td style="width: 7vw; margin-top: 2vh;">
+											<label style="text-align: center;">بیشتر از 30</label>
+											<input style="text-align: center;" id="onlineGT30" type="number" name="onlineGT30" value="{{val_online_6}}" />
+											<input style="text-align: center; margin-top: 1vh;" id="codGT30" type="number" name="codGT30" value="{{val_cod_6}}" />
 										</td>
 									</tr>
 									{% endif %}
@@ -423,8 +497,21 @@
 				var check = document.getElementById(id_name).checked;
 				if (check == true) {
 					document.getElementById('constant_wage').style.display = 'block';
+					document.getElementById('if_variable_wage').checked = false;
+					document.getElementById('variable_wage').style.display = 'none';
 				} else {
 					document.getElementById('constant_wage').style.display = 'none';
+				}
+			}
+
+			function variableWage(id_name) {
+				var check = document.getElementById(id_name).checked;
+				if (check == true) {
+					document.getElementById('variable_wage').style.display = 'block';
+					document.getElementById('if_constant_wage').checked = false;
+					document.getElementById('constant_wage').style.display = 'none';
+				} else {
+					document.getElementById('variable_wage').style.display = 'none';
 				}
 			}
 

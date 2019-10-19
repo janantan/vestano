@@ -2471,6 +2471,9 @@ def calculateWage(cursor, vendor, weight, service):
         if 'if_constant_wage' in vendor_wage_status.keys():
             if len(vendor_wage_status['if_constant_wage']):
                 constant_wage = True
+        if 'if_variable_wage' in vendor_wage_status.keys():
+            if len(vendor_wage_status['if_variable_wage']):
+                wage_result = vendor_wage_status['variable_wage']
 
     if (vendor == u'سفارش موردی') or (not constant_wage):
         if weight < 10000:
@@ -2520,7 +2523,6 @@ def calculateWage(cursor, vendor, weight, service):
                 vestano_wage = wage_result['cgd']['GT30']
             elif service == 'rad':
                 vestano_wage = wage_result['rad']['GT30']
-    
     else:
         vestano_wage = vendor_wage_status['constant_wage']['distributive']
 

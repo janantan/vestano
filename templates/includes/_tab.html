@@ -176,11 +176,19 @@
 					</tr>
 				{% endif %}
 				{% if 'financialRep' in session['access'] %}
-					<tr>
-						<td>
-							<a style={{finc}} href="/user-pannel/financial/accounting">مالی</a>
-						</td>
-					</tr>
+					{% if session['role'] != 'vendor_admin' %}
+						<tr>
+							<td>
+								<a style={{finc}} href="/user-pannel/financial/accounting">مالی ({{session['unread_vendor_credit_req']}})</a>
+							</td>
+						</tr>
+					{% else %}
+						<tr>
+							<td>
+								<a style={{finc}} href="/user-pannel/financial/accounting">مالی</a>
+							</td>
+						</tr>
+					{% endif %}
 				{% endif %}
 				{% if 'financialRep' in session['access'] %}
 					<!--<tr>

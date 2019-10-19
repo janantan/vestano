@@ -143,8 +143,11 @@
 								</th>
 							</tr>
 						</table>
-						<div class="mrg-vh12" style="margin-right: 15px;">
-							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="انجام جستجو" /> 
+						<div class="mrg-vh4" style="margin-right: 15px;">
+							<label>نمایش نزولی نتایج<input type="checkbox" name="count_down" value="true"/></label>
+						</div>
+						<div class="mrg-vh4" style="margin-right: 15px;">
+							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="انجام جستجو" />
 						</div>
 					</fieldset>
 				</form>
@@ -297,8 +300,11 @@
 								</th>
 							</tr>
 						</table>
-						<div class="mrg-vh12" style="margin-right: 15px;">
-							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="انجام جستجو" /> 
+						<div class="mrg-vh4" style="margin-right: 15px;">
+							<label>نمایش نزولی نتایج<input type="checkbox" name="count_down" value="true"/></label>
+						</div>
+						<div class="mrg-vh4" style="margin-right: 15px;">
+							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="انجام جستجو" />
 						</div>
 					</fieldset>
 				</form>
@@ -402,7 +408,10 @@
 								</th>
 							</tr>
 						</table>
-						<div style="margin-right: 15px; margin-top: 14vh;">
+						<div class="mrg-vh4" style="margin-right: 15px;">
+							<label>نمایش نزولی نتایج<input type="checkbox" name="count_down" value="true"/></label>
+						</div>
+						<div style="margin-right: 15px; margin-top: 14.5vh;">
 							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="انجام جستجو" />
 						</div>
 					</fieldset>
@@ -452,43 +461,83 @@
 						</tr>
 					</thead>
 					<tbody id="myDropdown" style="height: 64vh;">
-						{% for i in range((result|length)-1, -1, -1) %}
-							<tr class="rows">
-								<td style="width: 50px;">
-									<span>{{loop.index}}</span>
-								</td>
-								<td>
-									<a title="{{('\n'.join(result[i][9]))}}"><span>{{result[i][0]}}</span></a>
-								</td>
-								<td>
-									<span>{{result[i][10]}}</span>
-								</td>
-								<td>
-									<span>{{result[i][2]}}</span>
-								</td>
-								<td>
-									<span>{{result[i][3]}}</span>
-								</td>
-								<td>
-									<span>{{result[i][4]}}</span>
-								</td>
-								<td>
-									<span>{{result[i][5]}}</span>
-								</td>
-								<td>
-									<span>{{result[i][6]}}</span>
-								</td>
-								<td>
-									<span>{{result[i][7]}}</span>
-								</td>
-								<td>
-									<span>{{result[i][8]}}</span>
-								</td>
-								<td>
-									<a href="javascript:window.open('/orders-details/{{result[i][0]}}/search', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
-								</td>
-							</tr>
-						{% endfor %}
+						{% if countDown_flag %}
+							{% for i in range((result|length)-1, -1, -1) %}
+								<tr class="rows">
+									<td style="width: 50px;">
+										<span>{{loop.index}}</span>
+									</td>
+									<td>
+										<a title="{{('\n'.join(result[i][9]))}}"><span>{{result[i][0]}}</span></a>
+									</td>
+									<td>
+										<span>{{result[i][10]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][2]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][3]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][4]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][5]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][6]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][7]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][8]}}</span>
+									</td>
+									<td>
+										<a href="javascript:window.open('/orders-details/{{result[i][0]}}/search', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+									</td>
+								</tr>
+							{% endfor %}
+						{% else %}
+							{% for rec in result %}
+								<tr class="rows">
+									<td style="width: 50px;">
+										<span>{{loop.index}}</span>
+									</td>
+									<td>
+										<a title="{{('\n'.join(rec[9]))}}"><span>{{rec[0]}}</span></a>
+									</td>
+									<td>
+										<span>{{rec[10]}}</span>
+									</td>
+									<td>
+										<span>{{rec[2]}}</span>
+									</td>
+									<td>
+										<span>{{rec[3]}}</span>
+									</td>
+									<td>
+										<span>{{rec[4]}}</span>
+									</td>
+									<td>
+										<span>{{rec[5]}}</span>
+									</td>
+									<td>
+										<span>{{rec[6]}}</span>
+									</td>
+									<td>
+										<span>{{rec[7]}}</span>
+									</td>
+									<td>
+										<span>{{rec[8]}}</span>
+									</td>
+									<td>
+										<a href="javascript:window.open('/orders-details/{{rec[0]}}/search', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+									</td>
+								</tr>
+							{% endfor %}
+						{% endif %}
 					</tbody>
 				</table>
 			</fieldset>
@@ -534,43 +583,83 @@
 						</tr>
 					</thead>
 					<tbody id="myDropdown" style="height: 64vh;">
-						{% for rec in result %}
-							<tr class="rows">
-								<td style="width: 50px;">
-									<span>{{loop.index}}</span>
-								</td>
-								<td>
-									<a title="{{('\n'.join(rec[9]))}}"><span>{{rec[0]}}</span></a>
-								</td>
-								<td>
-									<span>{{rec[1]}}</span>
-								</td>
-								<td>
-									<span>{{rec[2]}}</span>
-								</td>
-								<td>
-									<span>{{rec[3]}}</span>
-								</td>
-								<td>
-									<span>{{rec[4]}}</span>
-								</td>
-								<td>
-									<span>{{rec[5]}}</span>
-								</td>
-								<td>
-									<span>{{rec[6]}}</span>
-								</td>
-								<td>
-									<span>{{rec[7]}}</span>
-								</td>
-								<td>
-									<span>{{rec[8]}}</span>
-								</td>
-								<td>
-									<a href="javascript:window.open('/orders-details/{{rec[0]}}/search', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
-								</td>
-							</tr>
-						{% endfor %}
+						{% if countDown_flag %}
+							{% for i in range((result|length)-1, -1, -1) %}
+								<tr class="rows">
+									<td style="width: 50px;">
+										<span>{{loop.index}}</span>
+									</td>
+									<td>
+										<a title="{{('\n'.join(result[i][9]))}}"><span>{{result[i][0]}}</span></a>
+									</td>
+									<td>
+										<span>{{result[i][1]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][2]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][3]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][4]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][5]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][6]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][7]}}</span>
+									</td>
+									<td>
+										<span>{{result[i][8]}}</span>
+									</td>
+									<td>
+										<a href="javascript:window.open('/orders-details/{{result[i][0]}}/search', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+									</td>
+								</tr>
+							{% endfor %}
+						{% else %}
+							{% for rec in result %}
+								<tr class="rows">
+									<td style="width: 50px;">
+										<span>{{loop.index}}</span>
+									</td>
+									<td>
+										<a title="{{('\n'.join(rec[9]))}}"><span>{{rec[0]}}</span></a>
+									</td>
+									<td>
+										<span>{{rec[1]}}</span>
+									</td>
+									<td>
+										<span>{{rec[2]}}</span>
+									</td>
+									<td>
+										<span>{{rec[3]}}</span>
+									</td>
+									<td>
+										<span>{{rec[4]}}</span>
+									</td>
+									<td>
+										<span>{{rec[5]}}</span>
+									</td>
+									<td>
+										<span>{{rec[6]}}</span>
+									</td>
+									<td>
+										<span>{{rec[7]}}</span>
+									</td>
+									<td>
+										<span>{{rec[8]}}</span>
+									</td>
+									<td>
+										<a href="javascript:window.open('/orders-details/{{rec[0]}}/search', 'Details', 'width=950,height=500,top=100,left=300');" title=""><span style="color: blue;">جزئیات</span></a>
+									</td>
+								</tr>
+							{% endfor %}
+						{% endif %}
 					</tbody>
 				</table>
 			</fieldset>
@@ -610,43 +699,83 @@
 							</tr>
 						</thead>
 						<tbody style="height: 64vh;">
-							{% for rec in s_v_financial['record'] %}
-								<tr class="rows">
-									<td>
-										<span>{{loop.index}}</span>
-									</td>
-									<td class="" style="width: 10vw;">
-										<span>{{rec[0]}}</span>
-									</td>
-									<td class="" style="width: 15vw;">
-										<a href="javascript:window.open('/orders-details/{{rec[0]}}/v_financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
-									</td>
-									<td class="" style="width: 10vw;">
-										<span>{{rec[2]}}</span>
-									</td>
-									<td class="">
-										<span >{{rec[6]}}</span>
-									</td>
-									{% if rec[7] < 0 %}
-										<td style="width: 10vw;">
-											<span class="red">{{0-rec[7]}}</span>
+							{% if countDown_flag %}
+								{% for i in range((s_v_financial['record']|length)-1, -1, -1) %}
+									<tr class="rows">
+										<td>
+											<span>{{loop.index}}</span>
 										</td>
-									{% else %}
-										<td style="width: 10vw;">
-											<span class="blue">{{rec[7]}}</span>
+										<td class="" style="width: 10vw;">
+											<span>{{s_v_financial['record'][i][0]}}</span>
 										</td>
-									{% endif %}
-									<td class="vw8">
-										<a title="شماره پیگیری: {{rec[14]}}"><span class="font12">{{rec[13]}}</span></a>
-									</td>
-									<td class="vw8">
-										<span class="font12">{{rec[12]}}</span>
-									</td>
-									<td class="vw8">
-										<span class="font12">{{rec[10]}}</span>
-									</td>
-								</tr>
-							{% endfor %}
+										<td class="" style="width: 15vw;">
+											<a href="javascript:window.open('/orders-details/{{s_v_financial['record'][i][0]}}/v_financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(s_v_financial['record'][i][11]))}}"><span class="blue">{{s_v_financial['record'][i][1]}}</span></a>
+										</td>
+										<td class="" style="width: 10vw;">
+											<span>{{s_v_financial['record'][i][2]}}</span>
+										</td>
+										<td class="">
+											<span >{{s_v_financial['record'][i][6]}}</span>
+										</td>
+										{% if s_v_financial['record'][i][7] < 0 %}
+											<td style="width: 10vw;">
+												<span class="red">{{0-s_v_financial['record'][i][7]}}</span>
+											</td>
+										{% else %}
+											<td style="width: 10vw;">
+												<span class="blue">{{s_v_financial['record'][i][7]}}</span>
+											</td>
+										{% endif %}
+										<td class="vw8">
+											<a title="شماره پیگیری: {{s_v_financial['record'][i][14]}}"><span class="font12">{{s_v_financial['record'][i][13]}}</span></a>
+										</td>
+										<td class="vw8">
+											<span class="font12">{{s_v_financial['record'][i][12]}}</span>
+										</td>
+										<td class="vw8">
+											<span class="font12">{{s_v_financial['record'][i][10]}}</span>
+										</td>
+									</tr>
+								{% endfor %}
+							{% else %}
+								{% for rec in s_v_financial['record'] %}
+									<tr class="rows">
+										<td>
+											<span>{{loop.index}}</span>
+										</td>
+										<td class="" style="width: 10vw;">
+											<span>{{rec[0]}}</span>
+										</td>
+										<td class="" style="width: 15vw;">
+											<a href="javascript:window.open('/orders-details/{{rec[0]}}/v_financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
+										</td>
+										<td class="" style="width: 10vw;">
+											<span>{{rec[2]}}</span>
+										</td>
+										<td class="">
+											<span >{{rec[6]}}</span>
+										</td>
+										{% if rec[7] < 0 %}
+											<td style="width: 10vw;">
+												<span class="red">{{0-rec[7]}}</span>
+											</td>
+										{% else %}
+											<td style="width: 10vw;">
+												<span class="blue">{{rec[7]}}</span>
+											</td>
+										{% endif %}
+										<td class="vw8">
+											<a title="شماره پیگیری: {{rec[14]}}"><span class="font12">{{rec[13]}}</span></a>
+										</td>
+										<td class="vw8">
+											<span class="font12">{{rec[12]}}</span>
+										</td>
+										<td class="vw8">
+											<span class="font12">{{rec[10]}}</span>
+										</td>
+									</tr>
+								{% endfor %}
+							{% endif %}
 							<tr style="background: rgb(255,255,180);">
 								<td colspan="3">
 									<span>مجموع</span>
@@ -718,70 +847,137 @@
 							</tr>
 						</thead>
 						<tbody style="height: 64vh;">
-							{% for rec in s_financial['record'] %}
-								<tr class="rows">
-									<td style="width: 4vw;">
-										<span>{{loop.index}}</span>
-									</td>
-									<td class="">
-										<span>{{rec[0]}}</span>
-									</td>
-									<td class="">
-										<a href="javascript:window.open('/orders-details/{{rec[0]}}/financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
-									</td>
-									<td class="">
-										<span>{{rec[2]}}</span>
-									</td>
-									<td class="">
-										<span>{{rec[3]}}</span>
-									</td>
-									<td class="">
-										<span >{{rec[4]}}</span>
-									</td>
-									<td class="">
-										<span >{{rec[5]}}</span>
-									</td>
-									<td class="">
-										<span >{{rec[6]}}</span>
-									</td>
-									{% if rec[7] < 0 %}
-										<td>
-											<span class="red">{{0-rec[7]}}</span>
+							{% if countDown_flag %}
+								{% for i in range((s_financial['record']|length)-1, -1, -1) %}
+									<tr class="rows">
+										<td style="width: 4vw;">
+											<span>{{loop.index}}</span>
 										</td>
-									{% else %}
-										<td>
-											<span class="blue">{{rec[7]}}</span>
+										<td class="">
+											<span>{{s_financial['record'][i][0]}}</span>
 										</td>
-									{% endif %}
-									{% if rec[8] < 0 %}
-										<td>
-											<span class="red">{{0-rec[8]}}</span>
+										<td class="">
+											<a href="javascript:window.open('/orders-details/{{s_financial['record'][i][0]}}/financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(s_financial['record'][i][11]))}}"><span class="blue">{{s_financial['record'][i][1]}}</span></a>
 										</td>
-									{% else %}
-										<td>
-											<span class="blue">{{rec[8]}}</span>
+										<td class="">
+											<span>{{s_financial['record'][i][2]}}</span>
 										</td>
-									{% endif %}
-									{% if rec[9] < 0 %}
-										<td>
-											<span class="red">{{0-rec[9]}}</span>
+										<td class="">
+											<span>{{s_financial['record'][i][3]}}</span>
 										</td>
-									{% else %}
-										<td>
-											<span class="blue">{{rec[9]}}</span>
+										<td class="">
+											<span >{{s_financial['record'][i][4]}}</span>
 										</td>
-									{% endif %}
-									<td class="">
-										<span class="font12">{{rec[13]}}</span>
-									</td>
-									<td class="">
-										<span class="font12">{{rec[12]}}</span>
-									</td>
-									<td class="">
-										<span class="font12">{{rec[10]}}</span>
-									</td>
-								</tr>
-							{% endfor %}
+										<td class="">
+											<span >{{s_financial['record'][i][5]}}</span>
+										</td>
+										<td class="">
+											<span >{{s_financial['record'][i][6]}}</span>
+										</td>
+										{% if s_financial['record'][i][7] < 0 %}
+											<td>
+												<span class="red">{{0-s_financial['record'][i][7]}}</span>
+											</td>
+										{% else %}
+											<td>
+												<span class="blue">{{s_financial['record'][i][7]}}</span>
+											</td>
+										{% endif %}
+										{% if s_financial['record'][i][8] < 0 %}
+											<td>
+												<span class="red">{{0-s_financial['record'][i][8]}}</span>
+											</td>
+										{% else %}
+											<td>
+												<span class="blue">{{s_financial['record'][i][8]}}</span>
+											</td>
+										{% endif %}
+										{% if s_financial['record'][i][9] < 0 %}
+											<td>
+												<span class="red">{{0-s_financial['record'][i][9]}}</span>
+											</td>
+										{% else %}
+											<td>
+												<span class="blue">{{s_financial['record'][i][9]}}</span>
+											</td>
+										{% endif %}
+										<td class="">
+											<span class="font12">{{s_financial['record'][i][13]}}</span>
+										</td>
+										<td class="">
+											<span class="font12">{{s_financial['record'][i][12]}}</span>
+										</td>
+										<td class="">
+											<span class="font12">{{s_financial['record'][i][10]}}</span>
+										</td>
+									</tr>
+								{% endfor %}
+							{% else %}
+								{% for rec in s_financial['record'] %}
+									<tr class="rows">
+										<td style="width: 4vw;">
+											<span>{{loop.index}}</span>
+										</td>
+										<td class="">
+											<span>{{rec[0]}}</span>
+										</td>
+										<td class="">
+											<a href="javascript:window.open('/orders-details/{{rec[0]}}/financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(rec[11]))}}"><span class="blue">{{rec[1]}}</span></a>
+										</td>
+										<td class="">
+											<span>{{rec[2]}}</span>
+										</td>
+										<td class="">
+											<span>{{rec[3]}}</span>
+										</td>
+										<td class="">
+											<span >{{rec[4]}}</span>
+										</td>
+										<td class="">
+											<span >{{rec[5]}}</span>
+										</td>
+										<td class="">
+											<span >{{rec[6]}}</span>
+										</td>
+										{% if rec[7] < 0 %}
+											<td>
+												<span class="red">{{0-rec[7]}}</span>
+											</td>
+										{% else %}
+											<td>
+												<span class="blue">{{rec[7]}}</span>
+											</td>
+										{% endif %}
+										{% if rec[8] < 0 %}
+											<td>
+												<span class="red">{{0-rec[8]}}</span>
+											</td>
+										{% else %}
+											<td>
+												<span class="blue">{{rec[8]}}</span>
+											</td>
+										{% endif %}
+										{% if rec[9] < 0 %}
+											<td>
+												<span class="red">{{0-rec[9]}}</span>
+											</td>
+										{% else %}
+											<td>
+												<span class="blue">{{rec[9]}}</span>
+											</td>
+										{% endif %}
+										<td class="">
+											<span class="font12">{{rec[13]}}</span>
+										</td>
+										<td class="">
+											<span class="font12">{{rec[12]}}</span>
+										</td>
+										<td class="">
+											<span class="font12">{{rec[10]}}</span>
+										</td>
+									</tr>
+								{% endfor %}
+							{% endif %}
 							<tr style="background: rgb(255,255,180);">
 								<td colspan="3">
 									<span>مجموع</span>

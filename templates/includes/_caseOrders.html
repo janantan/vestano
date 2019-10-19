@@ -198,6 +198,12 @@
                     <label><input id="payType1" type="radio" name="payType" onchange="codChange()" value="1" checked />پرداخت در محل</label>
                   </td>
                   <td>
+                    <label style="color: red; font-weight: bold;"><input type="checkbox" id="rad" name="rad" value="true" onchange="rentalAtDest()" />کرایه در مقصد</label>
+                  </td>
+                  <td>
+                    <label style="color: red; font-weight: bold;"><input type="checkbox" id="cgd" name="cgd" value="true" onchange="productPriceAtDest()" />هزینه کالا در مقصد</label>
+                  </td>
+                  <td>
                     <label><input id="payType2" type="radio" name="payType" onchange="onlineChange()" value="2"/>پرداخت آنلاین</label>
                   </td>
                 </tr>
@@ -250,14 +256,6 @@
                 </tbody>
               </table>
             </fieldset>
-          </td>
-        </tr>
-        <tr>
-          <td style="width: 10%; float: right;">
-            <label style="color: red; font-weight: bold; margin: 2vw 0;"><input type="checkbox" id="rad" name="rad" value="true" onchange="rentalAtDest()" />کرایه در مقصد</label>
-          </td>
-          <td style="width: 10%; float: right;">
-            <label style="color: red; font-weight: bold; margin: 2vw 0;"><input type="checkbox" id="cgd" name="cgd" value="true" onchange="productPriceAtDest()" />هزینه کالا در مقصد</label>
           </td>
         </tr>
       </tbody>
@@ -646,6 +644,15 @@
             document.getElementById('wage').value = json.wage;
           }
           document.getElementById('first-wage').value = json.wage;
+          if (rad) {
+            var wage = parseInt(document.getElementById('wage').value);
+            var packing = parseInt(document.getElementById('packing').value);
+            var carton = parseInt(document.getElementById('carton').value);
+            var gathering = parseInt(document.getElementById('gathering').value);
+            var sum = wage+packing+carton+gathering;
+            document.getElementById('price1').value = sum;
+            document.getElementById('price-sum').value = sum;
+          }
        }
     }
     xhr.open('GET', '/wage-calculator?weight='+weight+'&service='+service, true);
@@ -660,16 +667,17 @@
     var gathering = parseInt(document.getElementById('gathering').value);
     var sum = wage+packing+carton+gathering;
     if (rad) {
-      document.getElementById('price1').value = sum;
-      document.getElementById('price-sum').value = sum;
       document.getElementById('free').checked = false;
       document.getElementById('free').disabled = true;
+      document.getElementById('payType1').checked = true;
       document.getElementById('cgd').checked = false;
+      document.getElementById('price1').value = sum;
+      document.getElementById('price-sum').value = sum;
       anyChange();
     } else {
+      document.getElementById('free').disabled = false;
       document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
       document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
-      document.getElementById('free').disabled = false;
       anyChange();
     }
   }
@@ -738,6 +746,8 @@
     document.getElementById('price-sum').value = document.getElementById('product-price').value;
     getDeliveryPrice();
     wageCalculator(document.getElementById('weight1').value);
+    document.getElementById('cgd').checked = false;
+    document.getElementById('rad').checked = false;
   }
 
   function codChange() {
