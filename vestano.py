@@ -3846,5 +3846,65 @@ def ticket_attachment(num):
     #filename = app.config['ATTACHED_FILE_FOLDER'] + file
     return send_file(filename, as_attachment=True)
 
+@app.route('/pdf-generator/<orderId>', methods=['GET'])
+@token_required
+def pdf_generator(orderId):
+    price = 0
+    count = 0
+    weight = 0
+    discount = 0
+    case_result = cursor.case_orders.find_one({'orderId': orderId})
+    state_result = cursor.states.find_one({'Code': case_result['stateCode']})
+    for c in state_result['Cities']:
+        if c['Code'] == case_result['cityCode']:
+            city = c['Name']
+            break
+
+    for i in range(len(case_result['products'])):
+        price = price + case_result['products'][i]['price']*case_result['products'][i]['count']
+        count = count + case_result['products'][i]['count']
+        weight = weight + case_result['products'][i]['weight']
+        discount = discount + case_result['products'][i]['percentDiscount']
+
+    (sType, pType) = utils.typeOfServicesToString(case_result['serviceType'], case_result['payType'])
+
+    vestano_wage = case_result['wage']
+
+    delivery_result = utils.GetDeliveryPrice(case_result['cityCode'], price, weight, case_result['serviceType'], case_result['payType'])
+
+
+    pdfkit.from_string(render_template('includes/_caseOrderPdf.html',
+        datetime = jdatetime.datetime.now().strftime('%H:%M %Y/%m/%d'),
+        orderId = orderId,
+        parcelCode = orderId,
+        sender = case_result['senderFirstName']+' '+case_result['senderLastName'],
+        s_cellNumber = case_result['senderCellNumber'],
+        s_address = case_result['senderAddress'],
+        s_postalCode = case_result['senderPostalCode'],
+        receiver = case_result['receiverFirstName']+' '+case_result['receiverLastName'],
+        cellNumber = case_result['receiverCellNumber'],
+        destination = state_result['Name']+' / '+city+' / '+case_result['registerAddress'],
+        postalCode = case_result['registerPostalCode'],
+        weight = weight,
+        price = price,
+        sType = case_result['serviceType'],
+        serviceType = sType,
+        payType = pType,
+        packing = case_result['packing'],
+        carton = case_result['carton'],
+        gathering = case_result['gathering'],
+        vestano_wage = vestano_wage,
+        without_ck = case_result['without_ck'],
+        rad = case_result['rad'],
+        cgd = case_result['cgd'],
+        deliveryPrice = delivery_result['DeliveryPrice'] + vestano_wage,
+        VatTax = delivery_result['VatTax']
+        ), 'static/pdf/tempCaseOrders/orderId_'+orderId+'.pdf')
+
+    filename = '/root/vestano/static/pdf/tempCaseOrders/orderId_'+orderId+'.pdf'
+    #filename = 'E:/projects/VESTANO/Vestano/static/pdf/tempCaseOrders/orderId_'+orderId+'.pdf'
+    
+    return send_file(filename, as_attachment=True)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug = True)

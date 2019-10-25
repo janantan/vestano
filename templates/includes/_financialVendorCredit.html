@@ -1,7 +1,7 @@
 {% if session['role'] != 'vendor_admin' %}
 	<div class="dropdown" style="float: left; left: 13vw; top: -8vh;">
 		<div id="myDropdown" class="dropdown-content" style="max-height: none;">
-			<input type="text" placeholder="شرکت فروشنده" id="myInput" autocomplete="off" onclick="show()" style="width: 12vw;">
+			<input type="text" placeholder="شرکت فروشنده" id="myInput" autocomplete="off" onclick="show()" onkeyup="filter()" style="width: 12vw;">
 			<table id="vendors" style="display: none;">
 				<tbody style="height: 45vh; width: 12vw;">
 					{% for vendor in session['vendors_list'] %}
@@ -155,6 +155,23 @@
 		}
 		xhr.open('GET', '/user-pannel/financial/credit?vendorName=' + vendor_name, true);
 		xhr.send();
+	}
+
+	function filter() {
+		var input, filter, ul, tr, a, i;
+		input = document.getElementById("myInput");
+		filter = input.value.toUpperCase();
+		div = document.getElementById("myDropdown");
+		a = div.getElementsByTagName("a");
+		tr = div.getElementsByTagName("tr");
+		for (i = 0; i < a.length; i++) {
+			txtValue = a[i].textContent || a[i].innerText;
+			if (txtValue.toUpperCase().indexOf(filter) > -1) {
+				tr[i].style.display = "";
+			} else {
+				tr[i].style.display = "none";
+			}
+		}
 	}
 
 	function show() {

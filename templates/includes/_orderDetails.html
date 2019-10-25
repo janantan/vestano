@@ -482,6 +482,7 @@
 		{% elif code == 'caseTemp' %}
 			<div style="margin-top: 3vh;">
 				<a class="button" href="javascript:processFunction('/confirm-order/{{details[13]}}')" title="تایید و آماده به ارسال" style="background-color: #f3f3f3;">تایید سفارش</a>
+				<a class="button" href="/pdf-generator/{{details[13]}}" title="مشاهده فایل pdf فاکتور" style="background-color: #f3f3f3; margin-right: 2vw;">فاکتور موقت</a>
 				<a class="button" href="javascript:processFunction('/cancel-order/{{details[13]}}')" title="ارسال به سفارشات لغو شده" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">لغو سفارش</a>
 				<!--<a class="button" href="javascript:processFunction('/pending-order/{{details[13]}}')" title="ارسال به در انتظار کالا" style="background-color: #f3f3f3; float: left; margin-right: 1vw;">عدم موجودی</a>-->
 				<a class="button" href="/edit-order/{{details[13]}}" title="تغییر در سفارش" style="background-color: #f3f3f3; float: left;">ویرایش سفارش</a>
@@ -515,6 +516,14 @@
 			<div style="margin-top: 3vh;">
 				{% if details[1] == 'سفارش موردی' %}
 					<a class="button" href="/show-pdf/{{details[13]}}" title="مشاهده فایل pdf فاکتور" style="background-color: #f3f3f3; margin-right: 2vw;">مشاهده فاکتور</a>
+				{% endif %}
+			</div>
+		{% elif code == 'search' %}
+			<div style="margin-top: 3vh;">
+				{% if details[1] == 'سفارش موردی' %}
+					{% if details[14] != 'در صف پردازش' %}
+						<a class="button" href="/show-pdf/{{details[13]}}" title="مشاهده فایل pdf فاکتور" style="background-color: #f3f3f3; margin-right: 2vw;">مشاهده فاکتور</a>
+					{% endif %}
 				{% endif %}
 			</div>
 		{% endif %}
