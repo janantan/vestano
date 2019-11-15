@@ -101,6 +101,7 @@
 			</tbody>
 		</table>
 	{% else %}
+		{% include 'includes/_accountingPagination.html' %}
 		<table id="accounting">
 			<thead>
 				<tr style="background: yellow;">
@@ -148,11 +149,11 @@
 					</th>
 				</tr>
 			</thead>
-			<tbody id="myDropdown" style="height: 65vh;">
-				{% for i in range((financial['record']|length)-1, -1, -1) %}
+			<tbody id="myDropdown" style="height: 63vh;">
+				{% for i in range(financial['record']|length) %}
 					<tr class="rows">
 						<td>
-							<span>{{loop.index}}</span>
+							<span>{{loop.index + (page|int - 1)*REC_IN_EACH_PAGE}}</span>
 						</td>
 						<td class="">
 							<span>{{financial['record'][i][0]}}</span>
@@ -214,8 +215,8 @@
 					</tr>
 				{% endfor %}
 				<tr id="sum" style="background: rgb(255,255,180);">
-					<td colspan="3">
-						<span>مجموع</span>
+					<td id="tSum" colspan="3">
+						<span><a style="cursor: pointer;" title="محاسبه مجموع کل" onclick="getFullSum('accounting')">مجموع</a></span>
 					</td>
 					<td>
 						<span id="sum3">{{financial['totalCosts'][0]}}</span>
@@ -505,5 +506,43 @@
 		} else {
 			document.getElementById(id_name).className = 'red';
 		}
+	}
+
+	function getFullSum(code) {
+	    const xhr = new XMLHttpRequest();
+	    xhr.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				var json = JSON.parse(this.responseText);
+				document.getElementById('tSum').style.background = '#4dfe4d';
+				document.getElementById('sum3').innerHTML = json.tProductPrice;
+				document.getElementById('sum4').innerHTML = json.tDeliveryCost;
+				document.getElementById('sum5').innerHTML = json.tVatTax;
+				document.getElementById('sum6').innerHTML = json.tRegisterCost;
+				document.getElementById('sum7').innerHTML = json.tWage;
+				if (json.tVendorAccount<0) {
+					document.getElementById('sum8').innerHTML = Math.abs(json.tVendorAccount);
+					document.getElementById('sum8').className = 'red';
+				} else {
+					document.getElementById('sum8').innerHTML = Math.abs(json.tVendorAccount);
+					document.getElementById('sum8').className = 'blue';
+				}
+				if (json.tPostAccount<0) {
+					document.getElementById('sum9').innerHTML = Math.abs(json.tPostAccount);
+					document.getElementById('sum9').className = 'red';
+				} else {
+					document.getElementById('sum9').innerHTML = Math.abs(json.tPostAccount);
+					document.getElementById('sum9').className = 'blue';
+				}
+				if (json.tVestanoAccount<0) {
+					document.getElementById('sum10').innerHTML = Math.abs(json.tVestanoAccount);
+					document.getElementById('sum10').className = 'red';
+				} else {
+					document.getElementById('sum10').innerHTML = Math.abs(json.tVestanoAccount);
+					document.getElementById('sum10').className = 'blue';
+				}
+			}
+	    }
+	    xhr.open('GET', '/accounting-full-sum-ajax?code=' + code, true);
+	    xhr.send();
 	}
 </script>

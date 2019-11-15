@@ -164,7 +164,7 @@
 				{% if 'allOrders' in session['access'] %}
 					<tr>
 						<td>
-							<a style={{all}} href="/user-pannel/all-orders">مشاهده همه سفارشات ({{session['all_orders']}})</a>
+							<a style={{all}} href="/user-pannel/all-orders/1">مشاهده همه سفارشات ({{session['all_orders']}})</a>
 						</td>
 					</tr>
 				{% endif %}
@@ -179,13 +179,13 @@
 					{% if session['role'] != 'vendor_admin' %}
 						<tr>
 							<td>
-								<a style={{finc}} href="/user-pannel/financial/accounting">مالی ({{session['unread_vendor_credit_req']}})</a>
+								<a style={{finc}} href="/user-pannel/financial/accounting/1">مالی ({{session['unread_vendor_credit_req']}})</a>
 							</td>
 						</tr>
 					{% else %}
 						<tr>
 							<td>
-								<a style={{finc}} href="/user-pannel/financial/accounting">مالی</a>
+								<a style={{finc}} href="/user-pannel/financial/accounting/1">مالی</a>
 							</td>
 						</tr>
 					{% endif %}

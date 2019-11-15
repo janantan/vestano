@@ -172,7 +172,7 @@ class SomeSoapService(spyne.Service):
 
                 (sType, pType) = utils.typeOfServicesToString(serviceType, payType)
 
-                order_id = str(random2.randint(1000000, 9999999))
+                order_id = str(random2.randint(10000000, 99999999))
 
                 input_data = {
                 'vendorName' : user_result['vendor_name'],
@@ -900,18 +900,27 @@ def pending_orders():
         #states = utils.states(cursor)
         #)
 
-@app.route('/user-pannel/all-orders', methods=['GET'])
+#@app.route('/user-pannel/all-orders', methods=['GET'])
+@app.route('/user-pannel/all-orders/<page>', methods=['GET'])
 @token_required
-def all_orders():
+#def all_orders():
+def all_orders(page):
     if 'allOrders' not in session['access']:
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
+    #new(
+    (all_orders, L) = utils.all_orders(cursor, int(page))
+    #)
 
     return render_template('user_pannel.html',
         item='allOrders',
         inventory = utils.inventory(cursor),
-        all_orders = utils.all_orders(cursor),
-        #page = page,
+        #all_orders = utils.all_orders(cursor),
+        all_orders = all_orders,
+        L = L,
+        page = page,
+        REC_IN_EACH_PAGE = utils.REC_IN_EACH_PAGE,
+        NUM_OF_SHOWN_PAGE = utils.NUM_OF_SHOWN_PAGE,
         states = utils.states(cursor)
         )
 
@@ -2519,9 +2528,11 @@ def delete_from_inventory(productId):
 
     return redirect(request.referrer)
 
-@app.route('/user-pannel/financial/<sub_item>', methods=['GET'])
+#@app.route('/user-pannel/financial/<sub_item>', methods=['GET'])
+@app.route('/user-pannel/financial/<sub_item>/<page>', methods=['GET'])
 @token_required
-def financial(sub_item):
+#def financial(sub_item):
+def financial(sub_item, page):
     if 'financialRep' not in session['access']:
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
@@ -2554,16 +2565,38 @@ def financial(sub_item):
     for r in recent_request:
         recent_data = {'paid_datetime': r['paid_datetime'], 'ref_number': r['ref_number']}
 
+    #new(
+    if (sub_item=='accounting') or (sub_item=='case-accounting'):
+        (financial, L) = utils.financial(cursor, int(page))
+        #(v_financial, v_L) = utils.v_financial(cursor, int(page))
+        (case_financial, c_L) = utils.case_financial(cursor, int(page))
+        #)
+    else:
+        (financial, L) = ([], 0)
+        #(v_financial, v_L) = ([], 0)
+        (case_financial, c_L) = ([], 0)
+
     return render_template('user_pannel.html',
         item = "financial",
         sub_item = sub_item,
         recent_data = recent_data,
-        financial = utils.financial(cursor),
-        case_financial = utils.case_financial(cursor),
+        #financial = utils.financial(cursor),
+        #case_financial = utils.case_financial(cursor),
         v_financial = utils.v_financial(cursor),
         vendor_credit = utils.financial_vendor_credit(cursor, vendorName),
         requests_list = utils.credit_requests_list(cursor),
-        paid_list = utils.paid_list(cursor)
+        paid_list = utils.paid_list(cursor),
+        #new(
+        financial = financial,
+        #v_financial = v_financial,
+        case_financial = case_financial,
+        L = L,
+        #v_L = v_L,
+        c_L = c_L,
+        page = page,
+        REC_IN_EACH_PAGE = utils.REC_IN_EACH_PAGE,
+        NUM_OF_SHOWN_PAGE = utils.NUM_OF_SHOWN_PAGE
+        #)
         )
 
 @app.route('/req-credit', methods=['GET', 'POST'])
@@ -2999,8 +3032,12 @@ def search(sub_item):
             for r in result:
                 accounting_search_result.append(r['orderId'])
             session['accounting_search_result'] = accounting_search_result
-            s_financial = utils.search_financial(cursor, result)
-            s_v_financial = utils.search_v_financial(cursor, result)
+            if session['role'] == 'vendor_admin':
+                s_financial = []
+                s_v_financial = utils.search_v_financial(cursor, result)
+            else:
+                s_financial = utils.search_financial(cursor, result)
+                s_v_financial = []
 
         for r in result:
             orderId_list.append(r['orderId'])
@@ -3654,6 +3691,32 @@ def case_ajax():
         
     return jsonify(ans)
 
+@app.route('/accounting-full-sum-ajax', methods=['GET'])
+def accountingFullSum_ajax():
+    if 'username' in session:
+        acc = request.args.get('code')
+        if acc == 'accounting':
+            result = utils.financial_full(cursor)
+        elif acc == 'case-accounting':
+            result = utils.case_financial_full(cursor)
+        else:
+            return False
+        ans = {
+        'tProductPrice': result['totalCosts'][0],
+        'tDeliveryCost': result['totalCosts'][1],
+        'tVatTax': result['totalCosts'][2],
+        'tRegisterCost': result['totalCosts'][3],
+        'tWage': result['totalCosts'][4],
+        'tVendorAccount': result['totalCosts'][5],
+        'tPostAccount': result['totalCosts'][6],
+        'tVestanoAccount': result['totalCosts'][7]
+        }
+    else:
+        flash(u'لطفا ابتدا وارد شوید', 'error')
+        return redirect(request.referrer)
+        
+    return jsonify(ans)
+
 @app.route('/shipmentTrack-ajax', methods=['GET'])
 def shipmentTrack_ajax():
     track_id = str(request.args.get('track_id'))
@@ -3682,7 +3745,8 @@ def shipmentTrack_ajax():
         else:
             status_datetime = ''
     else:
-        senderName = u'سامانه پستی وستانو'
+        #senderName = u'سامانه پستی وستانو'
+        senderName = u'فروشگاه ' + result['vendorName']
         status = utils.statusToString(result['status'])
         status_datetime = jdatetime.date.fromgregorian(date=result['lastUpdate']).strftime('%Y/%m/%d')
         status_datetime = ' - ' + status_datetime

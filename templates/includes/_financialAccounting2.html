@@ -8,7 +8,7 @@
 <fieldset class="fieldset" style="height: 76vh;">
 	<legend>حسابداری:</legend>
 	{% if session['role'] == 'vendor_admin' %}
-		<table id="case-accounting">
+		<table id="accounting">
 			<thead>
 				<tr style="background: yellow;">
 					<th class="font12"">
@@ -101,8 +101,7 @@
 			</tbody>
 		</table>
 	{% else %}
-		{% include 'includes/_caseAccountingPagination.html' %}
-		<table id="case-accounting">
+		<table id="accounting">
 			<thead>
 				<tr style="background: yellow;">
 					<th class="font12"">
@@ -111,7 +110,7 @@
 					<th class="font12">
 						<span>شناسه سفارش</span>
 					</th>
-					<th class="vw10 font12">
+					<th class="vw11 font12">
 						<span>کد رهگیری</span>
 					</th>
 					<th class="vw7 font12">
@@ -130,10 +129,16 @@
 						<span>کارمزد</span>
 					</th>
 					<th class="font12">
+						<span>بستانکار|بدهکار<br/>فروشگاه</span>
+					</th>
+					<th class="font12">
 						<span>بستانکار|بدهکار<br/>پست</span>
 					</th>
 					<th class="font12">
 						<span>بستانکار|بدهکار<br/>وستانو</span>
+					</th>
+					<th class="font12">
+						<span>وضعیت<br/>درخواست وجه</span>
 					</th>
 					<th class="font12" style="width: 6vw;">
 						<span>وضعیت</span>
@@ -143,94 +148,115 @@
 					</th>
 				</tr>
 			</thead>
-			<tbody id="myDropdown" style="height: 63vh;">
-				{% for i in range(case_financial['record']|length) %}
+			<tbody id="myDropdown" style="height: 65vh;">
+				{% for i in range((financial['record']|length)-1, -1, -1) %}
 					<tr class="rows">
 						<td>
-							<span>{{loop.index + (page|int - 1)*REC_IN_EACH_PAGE}}</span>
+							<span>{{loop.index}}</span>
 						</td>
 						<td class="">
-							<span>{{case_financial['record'][i][0]}}</span>
+							<span>{{financial['record'][i][0]}}</span>
 						</td>
 						<td class="">
-							<a href="javascript:window.open('/orders-details/{{case_financial['record'][i][0]}}/financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(case_financial['record'][i][11]))}}"><span class="blue">{{case_financial['record'][i][1]}}</span></a>
+							<a href="javascript:window.open('/orders-details/{{financial['record'][i][0]}}/financial', 'Details', 'width=950,height=500,top=100,left=300');" title="{{('\n'.join(financial['record'][i][11]))}}"><span class="blue">{{financial['record'][i][1]}}</span></a>
 						</td>
 						<td class="">
-							<span>{{case_financial['record'][i][2]}}</span>
+							<span>{{financial['record'][i][2]}}</span>
 						</td>
 						<td class="">
-							<span>{{case_financial['record'][i][3]}}</span>
+							<span>{{financial['record'][i][3]}}</span>
 						</td>
 						<td class="">
-							<span >{{case_financial['record'][i][4]}}</span>
+							<span >{{financial['record'][i][4]}}</span>
 						</td>
 						<td class="">
-							<span >{{case_financial['record'][i][5]}}</span>
+							<span >{{financial['record'][i][5]}}</span>
 						</td>
 						<td class="">
-							<span >{{case_financial['record'][i][6]}}</span>
+							<span >{{financial['record'][i][6]}}</span>
 						</td>
-						{% if case_financial['record'][i][8] < 0 %}
+						{% if financial['record'][i][7] < 0 %}
 							<td>
-								<span class="red">{{0-case_financial['record'][i][8]}}</span>
+								<span class="red">{{0-financial['record'][i][7]}}</span>
 							</td>
 						{% else %}
 							<td>
-								<span class="blue">{{case_financial['record'][i][8]}}</span>
+								<span class="blue">{{financial['record'][i][7]}}</span>
 							</td>
 						{% endif %}
-						{% if case_financial['record'][i][9] < 0 %}
+						{% if financial['record'][i][8] < 0 %}
 							<td>
-								<span class="red">{{0-case_financial['record'][i][9]}}</span>
+								<span class="red">{{0-financial['record'][i][8]}}</span>
 							</td>
 						{% else %}
 							<td>
-								<span class="blue">{{case_financial['record'][i][9]}}</span>
+								<span class="blue">{{financial['record'][i][8]}}</span>
+							</td>
+						{% endif %}
+						{% if financial['record'][i][9] < 0 %}
+							<td>
+								<span class="red">{{0-financial['record'][i][9]}}</span>
+							</td>
+						{% else %}
+							<td>
+								<span class="blue">{{financial['record'][i][9]}}</span>
 							</td>
 						{% endif %}
 						<td class="">
-							<span class="font12">{{case_financial['record'][i][12]}}</span>
+							<span class="font12">{{financial['record'][i][13]}}</span>
 						</td>
 						<td class="">
-							<span class="font12">{{case_financial['record'][i][10]}}</span>
+							<span class="font12">{{financial['record'][i][12]}}</span>
+						</td>
+						<td class="">
+							<span class="font12">{{financial['record'][i][10]}}</span>
 						</td>
 					</tr>
 				{% endfor %}
 				<tr id="sum" style="background: rgb(255,255,180);">
-					<td id="tSum" colspan="3">
-						<span><a style="cursor: pointer;" title="محاسبه مجموع کل" onclick="getFullSum('case-accounting')">مجموع</a></span>
+					<td colspan="3">
+						<span>مجموع</span>
 					</td>
 					<td>
-						<span id="sum3">{{case_financial['totalCosts'][0]}}</span>
+						<span id="sum3">{{financial['totalCosts'][0]}}</span>
 					</td>
 					<td>
-						<span id="sum4">{{case_financial['totalCosts'][1]}}</span>
+						<span id="sum4">{{financial['totalCosts'][1]}}</span>
 					</td>
 					<td>
-						<span id="sum5">{{case_financial['totalCosts'][2]}}</span>
+						<span id="sum5">{{financial['totalCosts'][2]}}</span>
 					</td>
 					<td>
-						<span id="sum6">{{case_financial['totalCosts'][3]}}</span>
+						<span id="sum6">{{financial['totalCosts'][3]}}</span>
 					</td>
 					<td>
-						<span id="sum7">{{case_financial['totalCosts'][4]}}</span>
+						<span id="sum7">{{financial['totalCosts'][4]}}</span>
 					</td>
-					{% if case_financial['totalCosts'][6] < 0 %}
+					{% if financial['totalCosts'][5] < 0 %}
 						<td>
-							<span id="sum9" class="red">{{0 - case_financial['totalCosts'][6]}}</span>
+							<span id="sum8" class="red">{{0 - financial['totalCosts'][5]}}</span>
 						</td>
 					{% else %}
 						<td>
-							<span id="sum9" class="blue">{{case_financial['totalCosts'][6]}}</span>
+							<span id="sum8" class="blue">{{financial['totalCosts'][5]}}</span>
 						</td>
 					{% endif %}
-					{% if case_financial['totalCosts'][7] < 0 %}
+					{% if financial['totalCosts'][6] < 0 %}
 						<td>
-							<span id="sum10" class="red">{{0 - case_financial['totalCosts'][7]}}</span>
+							<span id="sum9" class="red">{{0 - financial['totalCosts'][6]}}</span>
 						</td>
 					{% else %}
 						<td>
-							<span id="sum10" class="blue">{{case_financial['totalCosts'][7]}}</span>
+							<span id="sum9" class="blue">{{financial['totalCosts'][6]}}</span>
+						</td>
+					{% endif %}
+					{% if financial['totalCosts'][7] < 0 %}
+						<td>
+							<span id="sum10" class="red">{{0 - financial['totalCosts'][7]}}</span>
+						</td>
+					{% else %}
+						<td>
+							<span id="sum10" class="blue">{{financial['totalCosts'][7]}}</span>
 						</td>
 					{% endif %}
 				</tr>
@@ -330,14 +356,14 @@
 					}
 				}
 				if (!value) {
-					sum3 = "{{case_financial['totalCosts'][0]}}";
-					sum4 = "{{case_financial['totalCosts'][1]}}";
-					sum5 = "{{case_financial['totalCosts'][2]}}";
-					sum6 = "{{case_financial['totalCosts'][3]}}";
-					sum7 = "{{case_financial['totalCosts'][4]}}";
-					sum8 = "{{case_financial['totalCosts'][5]}}";
-					sum9 = "{{case_financial['totalCosts'][6]}}";
-					sum10 = "{{case_financial['totalCosts'][7]}}";
+					sum3 = "{{financial['totalCosts'][0]}}";
+					sum4 = "{{financial['totalCosts'][1]}}";
+					sum5 = "{{financial['totalCosts'][2]}}";
+					sum6 = "{{financial['totalCosts'][3]}}";
+					sum7 = "{{financial['totalCosts'][4]}}";
+					sum8 = "{{financial['totalCosts'][5]}}";
+					sum9 = "{{financial['totalCosts'][6]}}";
+					sum10 = "{{financial['totalCosts'][7]}}";
 				}
 				showSum('sum3', sum3);
 				showSum('sum4', sum4);
@@ -414,14 +440,14 @@
 			}
 			if (tr[0].getElementsByTagName("span").length > 9) {
 				if (!value) {
-					sum3 = "{{case_financial['totalCosts'][0]}}";
-					sum4 = "{{case_financial['totalCosts'][1]}}";
-					sum5 = "{{case_financial['totalCosts'][2]}}";
-					sum6 = "{{case_financial['totalCosts'][3]}}";
-					sum7 = "{{case_financial['totalCosts'][4]}}";
-					sum8 = "{{case_financial['totalCosts'][5]}}";
-					sum9 = "{{case_financial['totalCosts'][6]}}";
-					sum10 = "{{case_financial['totalCosts'][7]}}";
+					sum3 = "{{financial['totalCosts'][0]}}";
+					sum4 = "{{financial['totalCosts'][1]}}";
+					sum5 = "{{financial['totalCosts'][2]}}";
+					sum6 = "{{financial['totalCosts'][3]}}";
+					sum7 = "{{financial['totalCosts'][4]}}";
+					sum8 = "{{financial['totalCosts'][5]}}";
+					sum9 = "{{financial['totalCosts'][6]}}";
+					sum10 = "{{financial['totalCosts'][7]}}";
 				}
 				showSum('sum3', sum3);
 				showSum('sum4', sum4);
@@ -479,36 +505,5 @@
 		} else {
 			document.getElementById(id_name).className = 'red';
 		}
-	}
-
-	function getFullSum(code) {
-	    const xhr = new XMLHttpRequest();
-	    xhr.onreadystatechange = function() {
-			if (this.readyState == 4 && this.status == 200) {
-				var json = JSON.parse(this.responseText);
-				document.getElementById('tSum').style.background = '#4dfe4d';
-				document.getElementById('sum3').innerHTML = json.tProductPrice;
-				document.getElementById('sum4').innerHTML = json.tDeliveryCost;
-				document.getElementById('sum5').innerHTML = json.tVatTax;
-				document.getElementById('sum6').innerHTML = json.tRegisterCost;
-				document.getElementById('sum7').innerHTML = json.tWage;
-				if (json.tPostAccount<0) {
-					document.getElementById('sum9').innerHTML = Math.abs(json.tPostAccount);
-					document.getElementById('sum9').className = 'red';
-				} else {
-					document.getElementById('sum9').innerHTML = Math.abs(json.tPostAccount);
-					document.getElementById('sum9').className = 'blue';
-				}
-				if (json.tVestanoAccount<0) {
-					document.getElementById('sum10').innerHTML = Math.abs(json.tVestanoAccount);
-					document.getElementById('sum10').className = 'red';
-				} else {
-					document.getElementById('sum10').innerHTML = Math.abs(json.tVestanoAccount);
-					document.getElementById('sum10').className = 'blue';
-				}
-			}
-	    }
-	    xhr.open('GET', '/accounting-full-sum-ajax?code=' + code, true);
-	    xhr.send();
 	}
 </script>

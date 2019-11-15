@@ -1,0 +1,133 @@
+<div id="tab">
+	{% set referrer_page = request.referrer.rsplit('/', 1)[-1] %}
+	{% if 'allOrders' in session['access'] %}
+		<!--<a href="#">&laquo;</a>-->
+		<a id="first-page" href="/user-pannel/all-orders/1" class="button2">1</a>
+		{% if L/REC_IN_EACH_PAGE > 1 %}
+			{% if L/REC_IN_EACH_PAGE > NUM_OF_SHOWN_PAGE %}
+				{% for i in range(1, L//REC_IN_EACH_PAGE) %}
+					<a id="page{{i+1}}" href="/user-pannel/all-orders/{{i+1}}" class="button2">{{i+1}}</a>
+					{% if (i+1)%NUM_OF_SHOWN_PAGE == 0 %}
+						<a id="expand{{(i+1)//NUM_OF_SHOWN_PAGE}}" style="display: none; cursor: pointer;" title="گسترش صفحات" onclick="expand('{{(i+1)//NUM_OF_SHOWN_PAGE}}')" class="button2">...</a>
+					{% endif %}
+				{% endfor %}
+			{% else %}
+				{% for i in range(1, L//REC_IN_EACH_PAGE) %}
+					<a id="page{{i+1}}" href="/user-pannel/all-orders/{{i+1}}" class="button2">{{i+1}}</a>
+				{% endfor %}
+			{% endif %}
+			<a id="last-page" href="/user-pannel/all-orders/{{L//REC_IN_EACH_PAGE + 1}}" class="button2">{{L//REC_IN_EACH_PAGE + 1}}</a>
+			<!--<a href="#">&raquo;</a>-->
+		{% endif %}
+	{% endif %}
+</div>
+
+<script type="text/javascript">
+	if ("{{request.base_url.rsplit('/', 1)[-1]}}" == '1') {
+		document.getElementById('first-page').style.background = 'yellow';
+	} else if ("{{request.base_url.rsplit('/', 1)[-1]}}" == "{{L//REC_IN_EACH_PAGE + 1}}") {
+		document.getElementById('last-page').style.background = 'yellow';
+	} else {
+		document.getElementById("page"+"{{request.base_url.rsplit('/', 1)[-1]}}").style.background = 'yellow';
+	}
+
+	if (parseInt("{{NUM_OF_SHOWN_PAGE}}") < parseInt("{{L//REC_IN_EACH_PAGE +1}}")) {
+		d = parseInt("{{(L//REC_IN_EACH_PAGE +1)//NUM_OF_SHOWN_PAGE}}");
+		for (q=1; q<=d+1; q++) {
+			if (q==d+1) {
+				//alert(q);
+				for (i=2; i<parseInt("{{L//REC_IN_EACH_PAGE +1}}"); i++) {
+					document.getElementById("page"+i).style.display = 'none';
+				}
+				for(i=(q-1)*parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i<parseInt("{{L//REC_IN_EACH_PAGE +1}}"); i++) {
+					document.getElementById("page"+i).style.display = '';
+				}
+				if (q==2) {
+					document.getElementById('expand'+(q-1)).style.display = '';
+				} else {
+					document.getElementById('expand'+(q-2)).style.display = '';
+				}
+			} else if (((q-1)*parseInt("{{NUM_OF_SHOWN_PAGE}}") < parseInt("{{request.base_url.rsplit('/', 1)[-1]}}")) && (parseInt("{{request.base_url.rsplit('/', 1)[-1]}}") <= q*parseInt("{{NUM_OF_SHOWN_PAGE}}"))) {
+
+				for (i=2; i<parseInt("{{L//REC_IN_EACH_PAGE +1}}"); i++) {
+					document.getElementById("page"+i).style.display = 'none';
+				}
+
+				if (q==1) {
+					for(i=(q-1)*parseInt("{{NUM_OF_SHOWN_PAGE}}")+2; i<q*parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i++) {
+						document.getElementById("page"+i).style.display = '';
+					}
+					document.getElementById('expand'+q).style.display = '';
+				} else {
+					for(i=(q-1)*parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i<q*parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i++) {
+						if (document.getElementById("page"+i)) {
+							document.getElementById("page"+i).style.display = '';
+						}
+					}
+					if (q==2) {
+						document.getElementById('expand'+(q-1)).style.display = '';
+					} else {
+						document.getElementById('expand'+(q-2)).style.display = '';
+					}
+					document.getElementById('expand'+q).style.display = '';
+				}
+				break;
+			}
+		}
+	}
+
+	function expand(num) {
+		n = parseInt(num);
+		if (n == 1) {
+			if (document.getElementById('page'+"{{NUM_OF_SHOWN_PAGE+1}}").style.display != 'none') {
+				for (i=2; i<parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i++) {
+					document.getElementById("page"+i).style.display = '';
+				}
+				for (i=parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i<parseInt("{{L//REC_IN_EACH_PAGE}}")+1; i++) {
+					document.getElementById("page"+i).style.display = 'none';
+				}
+				for (k=2; k<"{{(L//REC_IN_EACH_PAGE +1)//NUM_OF_SHOWN_PAGE + 1}}"; k++) {
+					document.getElementById('expand'+k).style.display = 'none';
+				}
+				return(true);
+			}
+		}
+		if ("{{L//REC_IN_EACH_PAGE + 1}}" > (n+1)*parseInt("{{NUM_OF_SHOWN_PAGE}}")) {
+			for (i=n*parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i<(n+1)*parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i++) {
+				document.getElementById("page"+i).style.display = '';
+			}
+			//document.getElementById('prev-expand').style.display = '';
+			//document.getElementById('next-expand').style.display = '';
+			for (k=1; k<"{{(L//REC_IN_EACH_PAGE +1)//NUM_OF_SHOWN_PAGE + 1}}"; k++) {
+				document.getElementById('expand'+k).style.display = 'none';
+			}
+			document.getElementById('expand'+(n+1)).style.display = '';
+			if (n>1) {
+				document.getElementById('expand'+(n-1)).style.display = '';
+			} else {
+				document.getElementById('expand1').style.display = '';
+			}
+			
+			for (i=2; i<n*parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i++) {
+				document.getElementById("page"+i).style.display = 'none';
+			}
+			for (i=(n+1)*parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i<parseInt("{{L//REC_IN_EACH_PAGE}}")+1; i++) {
+				document.getElementById("page"+i).style.display = 'none';
+			}
+		} else {
+			for (i=n*parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i<parseInt("{{L//REC_IN_EACH_PAGE}}")+1; i++) {
+				document.getElementById("page"+i).style.display = '';
+			}
+			for (k=1; k<n-1; k++) {
+				document.getElementById('expand'+k).style.display = 'none';
+			}
+			if (n>1) {
+				document.getElementById('expand'+n).style.display = 'none';
+				document.getElementById('expand'+(n-1)).style.display = '';
+			}
+			for (i=2; i<n*parseInt("{{NUM_OF_SHOWN_PAGE}}")+1; i++) {
+				document.getElementById("page"+i).style.display = 'none';
+			}
+		}
+	}
+</script>

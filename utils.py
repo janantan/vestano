@@ -25,6 +25,8 @@ VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
 #VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
+REC_IN_EACH_PAGE = 100
+NUM_OF_SHOWN_PAGE = 10
 
 #Config MongoDB
 def config_mongodb():
@@ -227,13 +229,26 @@ def pending_orders(cursor):
             statusToString(r['status']), pNameList))
     return pnd
 
-def all_orders(cursor):
+#def all_orders(cursor):
+def all_orders(cursor, page):
     if session['role'] == 'vendor_admin':
-        result = cursor.orders.find({'vendorName': session['vendor_name']})
+        result = cursor.orders.find({'vendorName': session['vendor_name']}).sort("_id", -1)
+        L = cursor.orders.find({'vendorName': session['vendor_name']}).count()
     else:
-        result = cursor.orders.find()
+        result = cursor.orders.find().sort("_id", -1)
+        L = cursor.orders.find().count()
     all_list = []
-    for r in result:
+    #new(
+    res = []
+    if L > (REC_IN_EACH_PAGE*page):
+        for i in range((REC_IN_EACH_PAGE*(page-1)), (REC_IN_EACH_PAGE*page)):
+            res.append(result[i])
+    else:
+        for i in range((REC_IN_EACH_PAGE*(page-1)), L):
+            res.append(result[i])
+    for r in res:
+    #)
+    #for r in result:
         pNameList = []
         for i in range(len(r['products'])):
             pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
@@ -241,7 +256,8 @@ def all_orders(cursor):
         all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
             statusToString(r['status']), pNameList))
-    return all_list
+    #return (all_list)
+    return (all_list, L)
 
 def case_all_orders(cursor):
     result = cursor.orders.find({'vendorName': 'سفارش موردی'})
@@ -385,7 +401,8 @@ def removeFromInventory(cursor, orderId):
                     }
                     )
 
-def financial(cursor):
+#function for export full excel file from accounting page
+def financial_full(cursor):
     if session['role'] == 'vendor_admin':
         result = cursor.orders.find({
             'datetime': {'$gte': '1398/06/05'},
@@ -395,6 +412,7 @@ def financial(cursor):
         result = cursor.orders.find({
             'datetime': {'$gte': '1398/06/05'}
             })
+
     record = []
     price = 0
     PostDeliveryPrice = 0
@@ -405,6 +423,7 @@ def financial(cursor):
     t_post_account = 0
     t_vestano_account = 0
     constant_wage_flag = False
+    
     for r in result:
         #filter just three status
         if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
@@ -486,7 +505,8 @@ def financial(cursor):
 
     return financial
 
-def case_financial(cursor):
+#case-function for calculate full sum of total costs
+def case_financial_full(cursor):
     result = cursor.orders.find({
         'vendorName': 'سفارش موردی'
         })
@@ -499,10 +519,10 @@ def case_financial(cursor):
     wage = 0
     t_post_account = 0
     t_vestano_account = 0
+    
     for r in result:
         #filter just three status
         if (r['status'] in [11, 70, 71]) :
-
             (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
 
             #recalulate post delivery costs for returned orders
@@ -571,7 +591,222 @@ def case_financial(cursor):
 
     return case_financial
 
+#def financial(cursor):
+def financial(cursor, page):
+    if session['role'] == 'vendor_admin':
+        result = cursor.orders.find({
+            'datetime': {'$gte': '1398/06/05'},
+            'vendorName': session['vendor_name']
+            }).sort("_id", -1)
+    else:
+        result = cursor.orders.find({
+            'datetime': {'$gte': '1398/06/05'}
+            }).sort("_id", -1)
+
+    filtered_res = []
+    record = []
+    price = 0
+    PostDeliveryPrice = 0
+    VatTax = 0
+    registerCost = 0
+    wage = 0
+    t_vendor_account = 0
+    t_post_account = 0
+    t_vestano_account = 0
+    constant_wage_flag = False
+    
+    #filter just three status
+    for r in result:
+        if (r['status'] in [11, 70, 71]) and (r['vendorName'] != u'سفارش موردی') :
+            filtered_res.append(r)
+
+    L = len(filtered_res)
+    res = []
+    if L > (REC_IN_EACH_PAGE*page):
+        for i in range((REC_IN_EACH_PAGE*(page-1)), (REC_IN_EACH_PAGE*page)):
+            res.append(filtered_res[i])
+    else:
+        for i in range((REC_IN_EACH_PAGE*(page-1)), L):
+            res.append(filtered_res[i])
+    
+    for r in res:
+        (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+        #recalulate post delivery costs for returned orders
+        if (r['status'] == 11) and (pType != 2):
+            if 'for_accounting_recalculated_delivery_costs' not in r.keys():
+                weight = 0
+                for p in r['products']:
+                    weight += p['weight'] * p['count']
+                deliveryPriceResult = GetDeliveryPrice(r['cityCode'], r['costs']['price'], weight, sType, 2)
+                for_accounting_delivery_costs = {
+                'PostDeliveryPrice': deliveryPriceResult['DeliveryPrice'],
+                'VatTax': deliveryPriceResult['VatTax']
+                }
+                cursor.orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'for_accounting_recalculated_delivery_costs': for_accounting_delivery_costs}})
+                r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
+                r['costs']['VatTax'] = deliveryPriceResult['VatTax']
+            else:
+                r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
+                r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
+
+        api_users_result = cursor.api_users.find_one({'vendor_name':r['vendorName']})
+        if 'if_constant_wage' in api_users_result.keys():
+            if len(api_users_result['if_constant_wage']):
+                constant_wage_flag = True
+                returned_account = int(api_users_result['constant_wage']['returned'])
+
+        if (pType == 2) or (r['status'] == 11):
+            vendor_account = r['costs']['wage']
+            if r['status'] == 11:
+                if constant_wage_flag:
+                    vendor_account = returned_account
+            post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+        elif pType == 88:
+            vendor_account = 0 - (r['costs']['price'])
+            post_account = (r['costs']['price']+r['costs']['wage']) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+        else:
+            vendor_account = 0 - (r['costs']['price'])
+            post_account = (r['costs']['price']+r['costs']['wage'])
+
+        if pType == 1:
+            vestano_account = r['costs']['wage']
+        else:
+            vestano_account = r['costs']['wage'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+        t_vendor_account += vendor_account
+        t_post_account += post_account
+        t_vestano_account += vestano_account
+
+        price += r['costs']['price']
+        PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+        VatTax += r['costs']['VatTax']
+        registerCost += r['costs']['registerCost']
+        wage += r['costs']['wage']
+
+        status = statusToString(r['status'])
+
+        if 'credit_req_status' not in r.keys():
+            r['credit_req_status'] = '-'
+        if 'settlement_ref_number' not in r.keys():
+            r['settlement_ref_number'] = ''
+
+        protducts_list = []
+        for p in r['products']:
+            protducts_list.append(p['productName']+' - '+str(p['count']) + u' عدد ')
+
+        record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+        r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+        r['costs']['wage'], vendor_account, post_account, vestano_account , r['payType'],
+        protducts_list, status, r['credit_req_status'], r['settlement_ref_number']))
+
+    totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage,t_vendor_account ,t_post_account ,t_vestano_account)
+    financial = {'record': record, 'totalCosts': totalCosts}
+
+    return (financial, L)
+
+def case_financial(cursor, page):
+    result = cursor.orders.find({
+        'vendorName': 'سفارش موردی'
+        }).sort("_id", -1)
+
+    filtered_res = []
+    record = []
+    price = 0
+    PostDeliveryPrice = 0
+    VatTax = 0
+    registerCost = 0
+    wage = 0
+    t_post_account = 0
+    t_vestano_account = 0
+    
+    #filter just three status
+    for r in result:
+        if (r['status'] in [11, 70, 71]) :
+            filtered_res.append(r)
+
+    L = len(filtered_res)
+    res = []
+    if L > (REC_IN_EACH_PAGE*page):
+        for i in range((REC_IN_EACH_PAGE*(page-1)), (REC_IN_EACH_PAGE*page)):
+            res.append(filtered_res[i])
+    else:
+        for i in range((REC_IN_EACH_PAGE*(page-1)), L):
+            res.append(filtered_res[i])
+    
+    for r in res:
+        (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
+
+        #recalulate post delivery costs for returned orders
+        if (r['status'] == 11) and (pType != 2):
+            if 'for_accounting_recalculated_delivery_costs' not in r.keys():
+                weight = 0
+                for p in r['products']:
+                    weight += p['weight'] * p['count']
+                deliveryPriceResult = GetDeliveryPrice(r['cityCode'], r['costs']['price'], weight, sType, 2)
+                for_accounting_delivery_costs = {
+                'PostDeliveryPrice': deliveryPriceResult['DeliveryPrice'],
+                'VatTax': deliveryPriceResult['VatTax']
+                }
+                cursor.orders.update_many(
+                    {'orderId': r['orderId']},
+                    {'$set':{'for_accounting_recalculated_delivery_costs': for_accounting_delivery_costs}})
+                r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
+                r['costs']['VatTax'] = deliveryPriceResult['VatTax']
+            else:
+                r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
+                r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
+
+        if (pType == 2) or (r['status'] == 11):
+            #vendor_account = r['costs']['wage']
+            post_account = 0 - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+        elif pType == 88:
+            #vendor_account = 0 - (r['costs']['price'])
+            post_account = (r['costs']['price']+r['costs']['wage']) - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+        else:
+            #vendor_account = 0 - (r['costs']['price'])
+            post_account = (r['costs']['price']+r['costs']['wage'])
+
+        if pType == 1:
+            vestano_account = r['costs']['wage']
+        else:
+            vestano_account = r['costs']['wage'] - (r['costs']['PostDeliveryPrice']+r['costs']['VatTax']+r['costs']['registerCost'])
+
+        #t_vendor_account += vendor_account
+        t_post_account += post_account
+        t_vestano_account += vestano_account
+
+        price += r['costs']['price']
+        PostDeliveryPrice += r['costs']['PostDeliveryPrice']
+        VatTax += r['costs']['VatTax']
+        registerCost += r['costs']['registerCost']
+        wage += r['costs']['wage']
+
+        status = statusToString(r['status'])
+
+        if 'credit_req_status' not in r.keys():
+            r['credit_req_status'] = '-'
+        if 'settlement_ref_number' not in r.keys():
+            r['settlement_ref_number'] = ''
+
+        protducts_list = []
+        for p in r['products']:
+            protducts_list.append(p['productName']+' - '+str(p['count']) + u' عدد ')
+
+        record.append((r['orderId'], r['parcelCode'], r['costs']['price'],
+        r['costs']['PostDeliveryPrice'], r['costs']['VatTax'], r['costs']['registerCost'],
+        r['costs']['wage'], 0, post_account, vestano_account , r['payType'],
+        protducts_list, status, r['credit_req_status'], r['settlement_ref_number']))
+
+    totalCosts = (price, PostDeliveryPrice, VatTax, registerCost, wage, 0, t_post_account, t_vestano_account)
+    case_financial = {'record': record, 'totalCosts': totalCosts}
+
+    return (case_financial, L)
+
 def v_financial(cursor):
+#def v_financial(cursor, page):
     if session['role'] == 'vendor_admin':
         result = cursor.orders.find({
             'datetime': {'$gte': '1398/06/05'},
@@ -707,6 +942,7 @@ def search_financial(cursor, result):
                     r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
                     r['costs']['VatTax'] = deliveryPriceResult['VatTax']
                 else:
+                    print(r['orderId'])
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
@@ -799,6 +1035,7 @@ def search_v_financial(cursor, result):
                     r['costs']['PostDeliveryPrice'] = deliveryPriceResult['DeliveryPrice']
                     r['costs']['VatTax'] = deliveryPriceResult['VatTax']
                 else:
+                    print(r['orderId'])
                     r['costs']['PostDeliveryPrice'] = r['for_accounting_recalculated_delivery_costs']['PostDeliveryPrice']
                     r['costs']['VatTax'] = r['for_accounting_recalculated_delivery_costs']['VatTax']
 
@@ -2277,7 +2514,7 @@ def write_excel(cursor):
 def write_excel_financial(cursor, role):
     #filename = "E:/projects/VESTANO/Vestano/static/pdf/financial.xls"
     filename = "/root/vestano/static/pdf/xls/financial.xls"
-    f = financial(cursor)
+    f = financial_full(cursor)
     finan = f['record']
     excel_file = xlwt.Workbook()
     today = jdatetime.datetime.today().strftime('%Y-%m-%d')
@@ -2699,7 +2936,7 @@ def lias_search(cursor, rec, prev_lias):
     result = []
     res = cursor.orders.find(query)
     for r in res:
-        if (r['orderId'] in prev_lias) or (r['status'] in [1, 3]):
+        if (r['orderId'] in prev_lias) or (r['status'] == 1) or (r['status'] == 3):
             continue
 
         if r['status'] in [0, 2]:

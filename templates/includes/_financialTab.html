@@ -17,18 +17,18 @@
 {% endif %}
 <div id="tab">
 	{% if 'accounting' in session['access'] %}
-		<a href="/user-pannel/financial/accounting" style={{accnt}} class="button">حسابداری</a>
+		<a href="/user-pannel/financial/accounting/1" style={{accnt}} class="button">حسابداری</a>
 	{% endif %}
 	{% if ('accounting' in session['access']) and (session['role'] != 'vendor_admin') %}
-		<a href="/user-pannel/financial/case-accounting" style={{case_accnt}} class="button">حسابداری سفارشات موردی</a>
+		<a href="/user-pannel/financial/case-accounting/1" style={{case_accnt}} class="button">حسابداری سفارشات موردی</a>
 	{% endif %}
 	{% if (session['role'] == 'vendor_admin' or  session['role'] == 'admin') and ('vendorCredit' in session['access']) %}
-		<a href="/user-pannel/financial/credit" style={{credit}} class="button">بستانکاری فروشگاه</a>
+		<a href="/user-pannel/financial/credit/all" style={{credit}} class="button">بستانکاری فروشگاه</a>
 	{% endif %}
 	{% if 'creditList' in session['access'] %}
-		<a href="/user-pannel/financial/requests-list" style={{req}} class="button">لیست درخواستها ({{session['unread_vendor_credit_req']}})</a>
+		<a href="/user-pannel/financial/requests-list/all" style={{req}} class="button">لیست درخواستها ({{session['unread_vendor_credit_req']}})</a>
 	{% endif %}
 	{% if 'paidList' in session['access'] %}
-		<a href="/user-pannel/financial/paid-list" style={{paid}} class="button">مبالغ واریزی</a>
+		<a href="/user-pannel/financial/paid-list/all" style={{paid}} class="button">مبالغ واریزی</a>
 	{% endif %}
 </div>

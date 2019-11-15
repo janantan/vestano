@@ -1,7 +1,8 @@
+{% include 'includes/_allOrdersPagination.html' %}
 <div class="dropdown-content-inventory">
 	<input type="text" class="navbar-link invent-search" id="myInput-inventory" onkeyup="filter()" size="25">
 </div>
-<fieldset class="fieldset" style="margin-top: 2vh;">
+<fieldset class="fieldset" style="margin-top: 2vh; height: 78vh;">
 	<legend>همه سفارشات:</legend>
 	<table id="inventory">
 		<thead>
@@ -42,11 +43,11 @@
 				<th style="width: 15px;"></th>
 			</tr>
 		</thead>
-		<tbody id="myDropdown" style="height: 74vh;">
-			{% for i in range((all_orders|length)-1, -1, -1) %}
+		<tbody id="myDropdown" style="height: 71vh;">
+			{% for i in range(all_orders|length) %}
 				<tr class="rows">
 					<td style="width: 50px;">
-						<span>{{loop.index}}</span>
+						<span>{{loop.index + (page|int - 1)*REC_IN_EACH_PAGE}}</span>
 					</td>
 					<td>
 						<a title="{{('\n'.join(all_orders[i][9]))}}"><span>{{all_orders[i][0]}}</span></a>

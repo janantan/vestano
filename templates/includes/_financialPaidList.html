@@ -32,7 +32,7 @@
         </th>
       </tr>
     </thead>
-    <tbody id="myDropdown" style="height: 72vh; font-family: 'B-Roya';" >
+    <tbody id="myDropdown" style="height: 69vh; font-family: 'B-Roya';" >
       {% for i in range((paid_list|length)-1, -1, -1) %}
         <tr id="rows" class="border-bottom" onclick="financialSettlement('{{paid_list[i]['number']}}')">
           <td style="width: 4vw;">

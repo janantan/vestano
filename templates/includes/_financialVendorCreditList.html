@@ -35,7 +35,7 @@
         </th>
       </tr>
     </thead>
-    <tbody id="myDropdown" style="height: 72vh; font-family: 'B-Roya';" >
+    <tbody id="myDropdown" style="height: 69vh; font-family: 'B-Roya';" >
       {% for i in range((requests_list|length)-1, -1, -1) %}
       {% if (session['role'] == 'vendor_admin') and (not requests_list[i]['read']) %}
         <tr id="rows" class="border-bottom bold" onclick="financialSettlement('{{requests_list[i]['number']}}')">
