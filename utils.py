@@ -110,11 +110,18 @@ def today_orders(cursor):
     else:
         result = cursor.today_orders.find()
     for r in result:
+        #write sender name instead of vendor name in case of case orders:
+        if r['vendorName'] == u'سفارش موردی':
+            case_ord_res = cursor.case_orders.find_one({'orderId': r['orderId']})
+            vendorName = case_ord_res['senderFirstName'] + ' ' + case_ord_res['senderLastName']
+        else:
+            vendorName = r['vendorName']
+            
         pNameList = []
         for i in range(len(r['products'])):
             pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
         state_result = cursor.states.find_one({'Code': r['stateCode']})
-        today.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+        today.append((r['orderId'], vendorName, r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
             statusToString(r['status']), pNameList))
     return today

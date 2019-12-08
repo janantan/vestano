@@ -1,17 +1,17 @@
 <nav>
-  <!--<ul>
+  <ul>
     <li>
       {% include 'includes/_logo.html' %}
     </li>
-  </ul>-->
+  </ul>
 
   {% if (not request.url_rule.rule[1]) or ("footer-contents" in request.base_url) %}
-    <ul>
+    <!--<ul>
       <li style="margin-right: 0vw;"><a style="color: #0b4158; padding-right: 0; font-size: 17px; font-family: 'B-Roya'" href="/login">ورود به پنل کاربری</a></li>
-    </ul>
+    </ul>-->
     <div id="registration">
       <ul>
-        <li style="margin-left: 0vw;"><span style="color: #f1f1f1; font-size: 17px; font-family: 'B-Roya'">وستانو فراتر از یک ارسال</span></li>
+        <li style="margin-left: 0vw;"><a style="color: #f1f1f1; font-size: 17px; font-family: 'B-Roya'" href="/login">ورود به پنل کاربری</a></li>
       </ul>
     </div>
   {% endif %}

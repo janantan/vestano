@@ -612,7 +612,13 @@ def confirm_orders(code):
                     #record['price'] = result['products'][i]['price']
                 #else:
                     #record['price'] = result['products'][i]['price'] + result['temp_wage'] + result['temp_delivery_costs']
-                record['price'] = result['products'][i]['price']
+                if pType == 1:
+                    if i > 0:
+                        record['price'] = result['products'][i]['price']
+                    else:
+                        record['price'] = result['products'][i]['price'] + result['temp_wage']
+                else:
+                    record['price'] = result['products'][i]['price']
                 record['weight'] = result['products'][i]['weight']
                 record['count'] = result['products'][i]['count']
                 record['percentDiscount'] = result['products'][i]['percentDiscount']
