@@ -1609,7 +1609,14 @@ form input, button, textarea {
     background: #f7f7f7;
 }
 
-form input:focus, button:focus, textarea:focus {
+form select {
+    border: 1px solid #e1e1e1;
+    border-radius: 5px;
+    padding: 10px;
+    background: #f7f7f7;
+}
+
+form input:focus, button:focus, textarea:focus, select:focus {
     background: #fff;
 }
 

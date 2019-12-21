@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from passlib.hash import sha256_crypt
 from operator import itemgetter
 import string
+import requests
 import re
 import json
 import collections
@@ -25,8 +26,20 @@ VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
 #VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
 username = 'vestano3247'
 password = 'Vestano3247'
+postAvval_username = 'vesta'
+postAvval_password = 'w8cv9e1n'
 REC_IN_EACH_PAGE = 100
 NUM_OF_SHOWN_PAGE = 10
+
+
+#Bearer Token Auth for requests.post
+class BearerAuth(requests.auth.AuthBase):
+    token = None
+    def __init__(self, token):
+        self.token = token
+    def __call__(self, r):
+        r.headers["authorization"] = "Bearer " + self.token
+        return r
 
 #Config MongoDB
 def config_mongodb():
@@ -3020,3 +3033,104 @@ def defaultWage(cursor, vendor_name):
         if len(api_users_result['if_constant_wage']):
             defaultWage = api_users_result['constant_wage']['distributive']
     return defaultWage
+
+def postAvval_token_generator():
+    data = {
+    'username': postAvval_username,
+    'password': postAvval_password,
+    'client_id': 'ps.m.client',
+    'scope': 'parcel_storage profile openid offline_access',
+    'grant_type': 'password'
+    }
+    test_url = 'https://ttk.titec.ir/connect/token'
+    url = 'https://tidp.titec.ir/connect/token'
+    response = requests.post(test_url, data=data)
+    #print(response.json()['access_token'])
+    return response.json()['access_token']
+
+def postAvval_preCode(data, token):
+    data = json.dumps(data)
+    test_url = 'https://fpt.titec.ir/api/v1/parcel/getprecode'
+    url = 'https://tcapi.titec.ir/api/v1/parcel/getprecode'
+    bearer_token = "Bearer {}".format(token)
+    header = {
+    "authorization": bearer_token,
+    "Content-Type": "application/json",
+    "User-Agent": "PostmanRuntime/7.21.0",
+    }
+    response = requests.post(test_url, data=data, headers=header)
+    print(response.status_code)
+    print(type(response.status_code))
+    print(response.json())
+    if response.status_code not in [201, 200]:
+        result = False
+    else:
+        result = {
+        'preCode': response.json()['preCode'],
+        'createDatePersian': response.json()['createDatePersian']
+        }
+    return result
+
+def postAvval_acceptparcel(data, token):
+    data = json.dumps(data)
+    test_url = "https://fpt.titec.ir/api/v1/parcel/acceptparcel"
+    url = 'https://tcapi.titec.ir/api/v1/parcel/acceptparcel'
+    bearer_token = "Bearer {}".format(token)
+    header = {
+    "authorization": bearer_token,
+    "Content-Type": "application/json",
+    "User-Agent": "PostmanRuntime/7.21.0",
+    }
+    response = requests.post(test_url, data=data, headers=header)
+    print(response.status_code)
+    if response.status_code not in [201, 200]:
+        result = False
+    else:
+        result = {
+        'parcelCode': response.json()['code'],
+        'createDatePersian': response.json()['createDatePersian']
+        }
+    return result
+
+def postAvval_provinces(token):
+    test_url = 'https://gst.titec.ir/api/v1/general/getprovinces'
+    bearer_token = "Bearer {}".format(token)
+    header = {
+    "Authorization": bearer_token,
+    "Content-Type": "application/json",
+    }
+    response = requests.get(test_url, headers=header)
+    return response.json()
+
+def postAvval_cities(token, p_id):
+    test_url = 'https://gst.titec.ir/api/v1/general/getcitiesbyprovinceId/'+p_id
+    bearer_token = "Bearer {}".format(token)
+    header = {
+    "Authorization": bearer_token,
+    "Content-Type": "application/json",
+    }
+    response = requests.get(test_url, headers=header)
+    #print(response.status_code)
+    #print(response.json())
+    return response.json()
+
+def dimension(value):
+    if value == "0":
+        dimension = {"length": "15", "width": "10", "height": "8"}
+    elif value == "1":
+        dimension = {"length": "20", "width": "14", "height": "10"}
+    elif value == "2":
+        dimension = {"length": "24.5", "width": "17.5", "height": "12.5"}
+    elif value == "3":
+        dimension = {"length": "28", "width": "20", "height": "14"}
+    elif value == "4":
+        dimension = {"length": "30", "width": "22.5", "height": "15"}
+    elif value == "5":
+        dimension = {"length": "35", "width": "25", "height": "18"}
+    elif value == "6":
+        dimension = {"length": "40", "width": "27.5", "height": "20"}
+    elif value == "7":
+        dimension = {"length": "45", "width": "35", "height": "22.5"}
+    elif value == "8":
+        dimension = {"length": "60", "width": "45", "height": "30"}
+    return dimension

@@ -1,7 +1,7 @@
 #coding: utf-8
 from flask import Flask, render_template, flash, redirect, url_for, session, request, jsonify
 from flask import Response, logging, Markup, abort, after_this_request, make_response, send_file
-#from flask_recaptcha import ReCaptcha
+from flask_recaptcha import ReCaptcha
 from pymongo import MongoClient
 from passlib.hash import sha256_crypt
 from functools import wraps
@@ -36,12 +36,12 @@ app = Flask(__name__)
 app.secret_key = 'secret@vestano@password_hash@840'
 
 app.config['ATTACHED_FILE_FOLDER'] = ATTACHED_FILE_FOLDER
-#app.config.update({
-    #'RECAPTCHA_ENABLED': True,
-    #'RECAPTCHA_SITE_KEY': '6Lc-0asUAAAAAMBA5mQR2Svai9uFEtNJe5gvu8_z',
-    #'RECAPTCHA_SECRET_KEY': '6Lc-0asUAAAAAG3ukYfT0Gwd4llqFCyYTmfcvRul'
-    #})
-#recaptcha = ReCaptcha(app=app)
+app.config.update({
+   'RECAPTCHA_ENABLED': True,
+   'RECAPTCHA_SITE_KEY': '6Lca0qsUAAAAAJzN2w2a9BdLaF9icGwzV1naBiqT',
+   'RECAPTCHA_SECRET_KEY': '6Lca0qsUAAAAAJP-OpE0-WLpaxV09r4VzPvA3ycd'
+   })
+recaptcha = ReCaptcha(app=app)
 
 spyne = Spyne(app)
 
@@ -835,6 +835,193 @@ def confirm_orders(code):
 
     return render_template('user_pannel.html',
         item='orderList')
+
+@app.route('/postAvvalParameters/<orderId>/<code>', methods=['GET', 'POST'])
+@token_required
+def confirm_orders_postAvval(orderId, code):
+    if session['role'] == 'vendor_admin':
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if ('processList' not in session['access']) and ('caseProcessList' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    #set the "postAvvalStates" collection in database
+    postAvvalStates = cursor.postAvvalStates.find_one({'Code': 1})
+    if postAvvalStates:
+        if 'Cities' not in postAvvalStates.keys():
+            postAvvalStates = cursor.postAvvalStates.find()
+            for r in postAvvalStates:
+                response = utils.postAvval_cities(token, str(r['Code']))
+                cities = []
+                for c in response:
+                    d = {
+                    'Code': c['id'],
+                    'Name':c['name']
+                    }
+                    cities.append(d)
+                cursor.postAvvalStates.update_many(
+                    {'Code': r['Code']},
+                    {'$set':{'Cities': cities}}
+                    )
+    else:
+        response = utils.postAvval_provinces(token)
+        for r in response:
+            cursor.postAvvalStates.insert_one({'Code': r['id'], 'Name': r['name']})
+
+    result = cursor.temp_orders.find_one({"orderId": orderId})
+
+    #find postAvval state and city codes.
+    state = cursor.states.find_one({'Code': result['stateCode']})
+    for city in state['Cities']:
+        if city['Code'] == result['cityCode']:
+            city_name = city['Name']
+    postAvval_state = cursor.postAvvalStates.find_one({'Name': state['Name']})
+    postAvval_stateCode = postAvval_state['Code']
+    for city in postAvval_state['Cities']:
+        if city['Name'] == city_name:
+            postAvval_cityCode = city['Code']
+
+    #find serviceTypeId
+    if result['serviceType'] == u'پست سفارشی':
+        ServiceTypeId = "1"
+        serviceType = u'سرویس استاندارد'
+    elif result['serviceType'] == u'پست پیشتاز':
+        ServiceTypeId = "2"
+        serviceType = u'سرویس اکسپرس'
+
+    #calculate weight, price and count of products
+    price = 0
+    productsName = ""
+    weight = 0
+    for i in range(len(result['products'])):
+        price = price + (result['products'][i]['price'] - (result['products'][i]['price']*result['products'][i]['percentDiscount'])/100)*result['products'][i]['count']
+        productsName = productsName + " " + result['products'][i]['productName']+" )"+str(result['products'][i]['count'])+u" عدد)"
+        weight = weight + result['products'][i]['weight']
+
+    token = utils.postAvval_token_generator()
+
+    now = datetime.datetime.now() - datetime.timedelta(minutes=1)
+
+    if request.method == 'POST':
+
+        if len(request.form.getlist('SIsLegal')):
+            SIsLegal = 'true'
+        else:
+            SIsLegal = 'false'
+        if len(request.form.getlist('RIsLegal')):
+            RIsLegal = 'true'
+        else:
+            RIsLegal = 'false'
+
+        if not request.form.get('RNationalCompanyCode'):
+            RNationalCompanyCode = ""
+        else:
+            RNationalCompanyCode = request.form.get('RNationalCompanyCode')
+        if not request.form.get('RCompanyName'):
+            RCompanyName = ""
+        else:
+            RCompanyName = request.form.get('RCompanyName')
+
+        if not request.form.get('SNationalCompanyCode'):
+            SNationalCompanyCode = ""
+        else:
+            SNationalCompanyCode = request.form.get('SNationalCompanyCode')
+        if not request.form.get('SCompanyName'):
+            SCompanyName = ""
+        else:
+            SCompanyName = request.form.get('SCompanyName')
+    
+        dimension = utils.dimension(request.form.get('dimension'))
+        receiver_info = {
+        "cityId": str(postAvval_cityCode),
+        "nationalCode": str(request.form.get('RNationalCode')),
+        "nationalCompanyCode": str(RNationalCompanyCode),
+        "fullName": (result['registerFirstName'] + ' ' + result['registerLastName']).encode('utf-8'),
+        "companyName": (RCompanyName).encode('utf-8'),
+        "cellNumber": str(result['registerCellNumber']),
+        "address": result['registerAddress'].encode('utf-8'),
+        "postalCode": str(result['registerPostalCode']),
+        "isLegal": str(RIsLegal)
+        }
+        sender_info = {
+        "cityId": "861",
+        "nationalCode": str(request.form.get('SNationalCode')),
+        "nationalCompanyCode":  str(SNationalCompanyCode),
+        "fullName": (request.form.get('SFullName')).encode('utf-8'),
+        "companyName": SCompanyName.encode('utf-8'),
+        "cellNumber": str(request.form.get('ScellNumber')),
+        "address": (request.form.get('Saddress')).encode('utf-8'),
+        "postalCode": str(request.form.get('SpostalCode')),
+        "isLegal": str(SIsLegal)
+        }
+
+        data = {
+        "serviceZoneId": str(request.form.get('ServiceZoneId')),
+        "serviceTypeId": str(ServiceTypeId),
+        "parcelTypeId": str(request.form.get('ParcelTypeId')),
+        "providerBranchId": "12",
+        "providerCode": orderId,
+        "postage": str(request.form.get('Postage')),
+        "weight": str(float(weight)/1000),
+        "insuredValue": str(price),
+        "contentDescription": productsName.encode('utf-8'),
+        "dateAndTime": now.strftime('%Y-%m-%d %H:%M:%S'),
+        "dimension": dimension,
+        "receiver": receiver_info,
+        "sender": sender_info
+        }
+
+        #print(data)
+
+        response = utils.postAvval_preCode(data, token)
+        print('preCode: ', response)
+        preCode = str(response['preCode'])
+        if not response:
+            flash(u'خطا در داده ورودی!', 'error')
+            return redirect(request.referrer)
+
+        data2 = {
+        "preCode": str(response['preCode']),
+        "providerBranchId": "12",
+        "dateAndTime": (now + datetime.timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+        response = utils.postAvval_acceptparcel(data2, token)
+        print('parcelCode: ', response)
+        if not response:
+            flash(u'خطا در تولید کد !', 'error')
+            return redirect(request.referrer)
+
+        cursor.temp_orders.update_many(
+            {'orderId': orderId},
+            {'$set':{
+            'postAvvalData': data,
+            'preCode': preCode,
+            'Code': str(response['parcelCode'])
+            }}
+            )
+
+
+        #cursor.orders.insert_one(new_rec)
+        #cursor.ready_to_ship.insert_one(new_rec)
+        #new_rec['last update'] = datetime.datetime.now()
+        #cursor.status.insert_one(new_rec)
+        #cursor.temp_orders.remove({'orderId': code})
+        #cursor.caseTemp_orders.remove({'orderId': code})
+        #cursor.today_orders.remove({'orderId': code})
+        #cursor.today_orders.insert_one(new_rec)
+        #if 'grntProduct' in new_rec.keys():
+            #if new_rec['grntProduct']:
+                #cursor.guarantee_orders.remove({'orderId': code})
+                #cursor.guarantee_orders.insert_one(new_rec)
+
+    return render_template('includes/_postAvvalDetails.html',
+        code = code,
+        details = utils.details(cursor, orderId, code),
+        item='orderList'
+        )
 
 @app.route('/user-pannel/ready-to-ship', methods=['GET'])
 @token_required
@@ -3523,27 +3710,42 @@ def change_password():
 def footer_contents(sub_item):
     if sub_item == 'complaints':
         if request.method == 'POST':
-            record = {'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
-            record['departement'] = 'management'
-            record['title'] = 'فرم ثبت شکایات'
-            record['sender_name'] = request.form.get('complaints-name')
-            record['sender_phone'] = request.form.get('complaints-phone')
-            record['sender_departement'] = request.form.get('complaints-departement')
-            record['text'] = request.form.get('complaints-text').split("\n")
-            record['number'] = 'VES-T-' + str(random2.randint(10000000, 99999999))
-            record['ref_ticket'] = ''
-            record['sender_username'] = ""
-            record['sender_email'] = request.form.get('complaints-email')
-            record['vendor'] = ""
-            record['reply'] = {'sender':[], 'text':[], 'datetime':[]}
-            record['forward'] = {'forward_from':[], 'forward_to':[], 'text':[], 'datetime':[], 'description':[]}
-            record['read'] = False
-            record['support_reply'] = False
-            record['sender_reply'] = True
+            r = requests.post('https://www.google.com/recaptcha/api/siteverify', 
+            data = {
+            'secret' : '6Lca0qsUAAAAAJP-OpE0-WLpaxV09r4VzPvA3ycd',
+            'response' : request.form['g-recaptcha-response']
+            })
 
-            flash(u'با موفقیت ثبت شد. همکاران بازرسی در اسرع وقت با شما تماس خواهند گرفت.', 'success')
+            google_response = json.loads(r.text)
+            #print('JSON: ', google_response)
 
-            cursor.tickets.insert_one(record)
+            if google_response['success']:
+                print('Captcha success')
+                record = {'datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
+                record['departement'] = 'management'
+                record['title'] = 'فرم ثبت شکایات'
+                record['sender_name'] = request.form.get('complaints-name')
+                record['sender_phone'] = request.form.get('complaints-phone')
+                record['sender_departement'] = request.form.get('complaints-departement')
+                record['text'] = request.form.get('complaints-text').split("\n")
+                record['number'] = 'VES-T-' + str(random2.randint(10000000, 99999999))
+                record['ref_ticket'] = ''
+                record['sender_username'] = ""
+                record['sender_email'] = request.form.get('complaints-email')
+                record['vendor'] = ""
+                record['reply'] = {'sender':[], 'text':[], 'datetime':[]}
+                record['forward'] = {'forward_from':[], 'forward_to':[], 'text':[], 'datetime':[], 'description':[]}
+                record['read'] = False
+                record['support_reply'] = False
+                record['sender_reply'] = True
+
+                flash(u'با موفقیت ثبت شد. همکاران بازرسی در اسرع وقت با شما تماس خواهند گرفت.', 'success')
+
+                cursor.tickets.insert_one(record)
+            else:
+                # FAILED
+                print('Captcha failed')
+                flash(u'اعتبارسنجی شما به درستی انجام نشده است!', 'error')
 
     return render_template('footer-contents.html',
         sub_item = sub_item
@@ -3729,33 +3931,55 @@ def shipmentTrack_ajax():
     orderId = track_id
     trackId = u'شماره پیگیری: ' + track_id
     success = 1
+    tempOrderFlag = 0
+    caseTempOrderFlag = 0
     result = cursor.orders.find_one({'orderId':track_id})
     if not result:
         result = cursor.orders.find_one({'parcelCode':track_id})
         if not result:
-            success = 0
-            return jsonify({'success':success})
-        trackId = u'بارکد: ' + track_id
-        orderId = result['orderId']
+            result = cursor.temp_orders.find_one({'orderId':track_id})
+            if not result:
+                result = cursor.caseTemp_orders.find_one({'orderId':track_id})
+                if not result:
+                    success = 0
+                    return jsonify({'success':success})
+                else:
+                    caseTempOrderFlag = 1
+            else:
+                tempOrderFlag = 1
+        else:
+            trackId = u'بارکد: ' + track_id
+            orderId = result['orderId']
 
     if result['vendorName'] == u'سفارش موردی':
-        r = cursor.case_orders.find_one({'orderId': orderId})
-        senderName = r['senderFirstName'] +' '+ r['senderLastName']
-        status = utils.statusToStringForCaseOrders(result['status'])
-        if result['status'] in [7, 70, 71]:
-            if 'status7Update' in result.keys():
-                status_datetime = ' - ' + result['status7Update']
+        if not caseTempOrderFlag:
+            r = cursor.case_orders.find_one({'orderId': orderId})
+            senderName = r['senderFirstName'] +' '+ r['senderLastName']
+            status = utils.statusToStringForCaseOrders(result['status'])
+            if result['status'] in [7, 70, 71]:
+                if 'status7Update' in result.keys():
+                    status_datetime = ' - ' + result['status7Update']
+                else:
+                    status_datetime = jdatetime.date.fromgregorian(date=result['lastUpdate']).strftime('%Y/%m/%d')
+                    status_datetime = ' - ' + status_datetime
             else:
-                status_datetime = jdatetime.date.fromgregorian(date=result['lastUpdate']).strftime('%Y/%m/%d')
-                status_datetime = ' - ' + status_datetime
+                status_datetime = ''
         else:
+            r = cursor.case_orders.find_one({'orderId': orderId})
+            senderName = r['senderFirstName'] +' '+ r['senderLastName']
+            status = u'در صف پردازش و ارسال'
             status_datetime = ''
+
     else:
         #senderName = u'سامانه پستی وستانو'
         senderName = u'فروشگاه ' + result['vendorName']
-        status = utils.statusToString(result['status'])
-        status_datetime = jdatetime.date.fromgregorian(date=result['lastUpdate']).strftime('%Y/%m/%d')
-        status_datetime = ' - ' + status_datetime
+        if not tempOrderFlag:
+            status = utils.statusToString(result['status'])
+            status_datetime = jdatetime.date.fromgregorian(date=result['lastUpdate']).strftime('%Y/%m/%d')
+            status_datetime = ' - ' + status_datetime
+        else:
+            status = u'در صف پردازش و ارسال'
+            status_datetime = ''
 
     state_result = cursor.states.find_one({'Code': result['stateCode']})
     for rec in state_result['Cities']:
@@ -3825,6 +4049,15 @@ def wage_calculator():
 def order_details(orderId, code):
 
     return render_template('includes/_orderDetails.html',
+        code = code,
+        details = utils.details(cursor, orderId, code)
+        )
+
+@app.route('/postAvvalParameters/<orderId>/<code>', methods=['GET', 'POST'])
+@token_required
+def post_avval_details(orderId, code):
+
+    return render_template('includes/_postAvvalDetails.html',
         code = code,
         details = utils.details(cursor, orderId, code)
         )

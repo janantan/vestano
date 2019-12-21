@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fa-IR" style="padding: 10px 10px;">
+    <head>
+        <title>سامانه پستی وستانو</title>
+        <!--<meta charset="utf-8" />-->
+        <meta content="text/html;charset=UTF-8" http-equiv="Content-Type" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
+    </head>
+    <body class="card" style="direction: rtl; margin: 0 auto;">
+    	<form method="POST" action="">
+	    	{% if details[1] == 'سفارش موردی' %}
+	    	<fieldset class="fieldset" style="background-color: #bcd1fe;">
+	    	{% else %}
+	    	<fieldset class="fieldset" style="background-color: #bcd1fe;">
+	    	{% endif %}
+	    		<div>
+	    			<span style="font-weight: bold;">اطلاعات سفارش (ارسال با شرکت پست اول)</span>
+	    		</div>
+				<table id="temp-ord">
+					<tr>
+						<td>
+							<span class="blue bold">بارکد مرسوله:</span>
+						</td>
+						<td class="vw12">
+							<span class="font14"> {{details[16]}} </span>
+						</td>
+						<td>
+							<span class="blue bold">شناسه سفارش:</span>
+						</td>
+						<td class="vw12">
+							<span>{{details[0]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">نام فروشگاه:</span>
+						</td>
+						<td class="vw12">
+							<span>{{details[1]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">زمان سفارش:</span>
+						</td>
+						<td class="vw17 font14">
+							<span>{{details[2]}}</span>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span class="blue bold">نوع منطقه سرویس:</span>
+						</td>
+						<td class="vw12">
+							<select id="ServiceZoneId" name="ServiceZoneId" required>
+								<option value="2">داخله بین شهری</option>
+								<option value="1">داخله شهری</option>
+								<option value="3">خارجه وارده</option>
+								<option value="4">خارجه صادره</option>
+							</select>
+						</td>
+						<td>
+							<span class="blue bold">قيمت نهایی سرویس:</span>
+						</td>
+						<td class="vw12">
+							<input id="Postage" type="text" name="Postage" required size="15"/>
+						</td>
+						<td>
+							<span class="blue bold">نوع مرسوله:</span>
+						</td>
+						<td class="vw12">
+							<select id="ParcelTypeId" name="ParcelTypeId" required>
+								<option value="2">بسته</option>
+								<option value="1">پاکات</option>
+							</select>
+						</td>
+						<td>
+							<span class="blue bold">ابعاد بسته:</span>
+						</td>
+						<td class="vw17 font14">
+							<select id="dimension" name="dimension" dir="ltr" required>
+								<option value="0">سایز نیم</option>
+								<option value="1">سایز 1</option>
+								<option value="2">سایز 2</option>
+								<option value="3">سایز 3</option>
+								<option value="4">سایز 4</option>
+								<option value="5">سایز 5</option>
+								<option value="6">سایز 6</option>
+								<option value="7">سایز 7</option>
+								<option value="8">سایز بزرگ</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="7">
+							<span style="font-weight: bold;">اطلاعات فرستنده:</span>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span class="blue bold">فرستنده حقوقی:</span>
+						</td>
+						<td>
+							<input id="SIsLegal" type="checkbox" name="SIsLegal" checked="true" onchange="senderIsLegal()" value="true"/>
+						</td>
+						<td>
+							<span class="blue bold">نام شرکت فرستنده:</span>
+						</td>
+						<td>
+							<input id="SCompanyName" type="text" name="SCompanyName" value="{{details[1]}}" size="15"/>
+						</td>
+						<td>
+							<span class="blue bold">شناسه ملی شرکت فرستنده:</span>
+						</td>
+						<td>
+							<input id="SNationalCompanyCode" type="text" name="SNationalCompanyCode" required size="15" />
+						</td>
+						<td>
+							<span class="blue bold">کد ملی فرستنده:</span>
+						</td>
+						<td>
+							<input id="SNationalCode" type="text" name="SNationalCode" size="15" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span class="blue bold">نام فرستنده:</span>
+						</td>
+						<td>
+							<input id="SFullName" type="text" name="SFullName" required size="15" />
+						</td>
+						<td>
+							<span class="blue bold">تلفن همراه:</span>
+						</td>
+						<td>
+							<input id="ScellNumber" type="text" name="ScellNumber" required size="15" />
+						</td>
+						<td>
+							<span class="blue bold">کد پستی:</span>
+						</td>
+						<td>
+							<input id="SpostalCode" type="text" name="SpostalCode" required size="15" />
+						</td>
+						<td>
+							<span class="blue bold">نشانی:</span>
+						</td>
+						<td>
+							<textarea id="Saddress" name="Saddress" cols="12" required></textarea>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="7">
+							<span style="font-weight: bold;">اطلاعات گیرنده:</span>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span class="blue bold">گیرنده حقوقی:</span>
+						</td>
+						<td>
+							<input id="RIsLegal" type="checkbox" name="RIsLegal" onchange="recieverIsLegal()" value="true"/>
+						</td>
+						<td>
+							<span class="blue bold">نام شرکت گیرنده:</span>
+						</td>
+						<td>
+							<input id="RCompanyName" type="text" name="RCompanyName" disabled="true" size="15"/>
+						</td>
+						<td>
+							<span class="blue bold">شناسه ملی شرکت گیرنده:</span>
+						</td>
+						<td>
+							<input id="RNationalCompanyCode" type="text" name="RNationalCompanyCode" disabled="true" size="15" />
+						</td>
+						<td>
+							<span class="blue bold">کد ملی گیرنده:</span>
+						</td>
+						<td>
+							<input id="RNationalCode" type="text" name="RNationalCode" required size="15" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span class="blue bold">نام گیرنده:</span>
+						</td>
+						<td>
+							<span>{{details[3]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">تلفن ثابت:</span>
+						</td>
+						<td>
+							<span>{{details[28]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">تلفن همراه:</span>
+						</td>
+						<td>
+							<span>{{details[4]}}</span>
+						</td>
+						<td>
+							<span class="blue bold">کد پستی:</span>
+						</td>
+						<td>
+							<span>{{details[5]}}</span>
+						</td>
+					</tr>
+					{% if details[1] == 'سفارش موردی' %}
+						<tr>
+							<td>
+								<span class="blue bold font14">هزینه بسته بندی:</span>
+							</td>
+							<td>
+								<span>{{details[22]}} ریال</span>
+							</td>
+							<td>
+								<span class="blue bold font14">هزینه کارتن:</span>
+							</td>
+							<td>
+								<span>{{details[23]}} ریال</span>
+							</td>
+							<td>
+								<span class="blue bold font14"> هزینه جمع آوری:</span>
+							</td>
+							<td>
+								<span>{{details[24]}} ریال</span>
+							</td>
+							<td>
+								<span class="blue bold font14">هزینه ارسال:</span>
+							</td>
+							<td>
+								<span>{{details[17]}} ریال</span>
+							</td>
+						</tr>
+						{% if details[25] != None %}
+							{% if details[25] %}{% set rad='checked' %}{% else %}{% set rad='' %}{% endif %}
+							{% if details[26] %}{% set cgd='checked' %}{% else %}{% set cgd='' %}{% endif %}
+							<tr>
+								<td>
+									<span class="blue bold font14">کرایه در مقصد:</span>
+								</td>
+								<td>
+									<span><input type="checkbox" {{rad}} /></span>
+								</td>
+								<td>
+									<span class="blue bold font14">هزینه کالا در مقصد:</span>
+								</td>
+								<td>
+									<span><input type="checkbox" {{cgd}} /></span>
+								</td>
+								<td>
+									<span class="blue bold font14">کاربر پردازش:</span>
+								</td>
+								<td>
+									<span class="font14">{{details[29]}}</span>
+								</td>
+								<td>
+									<span class="blue bold font14">کاربر ثبت کننده سفارش:</span>
+								</td>
+								<td>
+									<span class="font14">{{details[30]}}</span>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<span class="blue bold">نشانی:</span>
+								</td>
+								<td colspan="7">
+									<span>{{details[8]}}</span>
+								</td>
+							</tr>
+						{% endif %}
+					{% else %}
+						{% if details[27] %}{% set grnt='checked' %}{% else %}{% set grnt='' %}{% endif %}
+						{% if session['role'] == 'vendor_admin' %}
+							<tr>
+								<td>
+									<span class="blue bold">نشانی:</span>
+								</td>
+								<td colspan="5">
+									<span>{{details[8]}}</span>
+								</td>
+								<td>
+									<span class="blue bold font14">کالای گارانتی:</span>
+								</td>
+								<td>
+									<span><input type="checkbox" {{grnt}} /></span>
+								</td>
+							</tr>
+						{% else %}
+							<tr>
+								<td>
+									<span class="blue bold">کارمزد:</span>
+								</td>
+								<td>
+									<span> {{details[15]}} ریال </span>
+								</td>
+								<td>
+									<span class="blue bold font14">هزینه ارسال:</span>
+								</td>
+								<td>
+									<span>{{details[17]}} ریال</span>
+								</td>
+								<td>
+									<span class="blue bold font14">کالای گارانتی:</span>
+								</td>
+								<td>
+									<span><input type="checkbox" {{grnt}} /></span>
+								</td>
+								<td>
+									<span class="blue bold font14">کاربر پردازش:</span>
+								</td>
+								<td>
+									<span class="font14">{{details[29]}}</span>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<span class="blue bold">نشانی:</span>
+								</td>
+								<td colspan="7">
+									<span>{{details[8]}}</span>
+								</td>
+							</tr>
+						{% endif %}
+					{% endif %}
+				</table>
+				<fieldset class="p-fieldset">
+					<legend>اقلام سفارش</legend>
+					<table id="temp-ord-products">
+						<tr class="bg-yellow">
+							<td class="vw18 right">
+								<span>نام کالا </span><span class="font14" style="color: red;">(موجودی انبار)</span>
+							</td>
+							<td class="vw10">
+								<span>قیمت واحد</span>
+							</td>
+							<td class="vw8">
+								<span>وزن</span>
+							</td>
+							<td class="vw10">
+								<span>تعداد</span>
+							</td>
+							<td class="vw10">
+								<span>مجموع قیمت</span>
+							</td>
+							<td class="vw10">
+								<span>تخفیف</span>
+							</td>
+							<td class="vw10">
+								<span>مجموع خرید</span>
+							</td>
+							<td class="vw18 bg-green">
+								<span>مجموع فاکتور</span>
+							</td>
+						</tr>
+						{% for p in details[9] %}
+							<tr class="rows">
+								{% if p['if_pack'] %}
+									<td class="vw18 right font14">
+										<table>
+											<tr>
+												<td class="right">
+													<span>{{p['productName']}} </span><span style="color: red;">({{p['inventory_count']}})</span><span> شامل:</span>
+												</td>
+											</tr>
+											{% for pp in p['pack_products'] %}
+												<tr>
+													<td class="right">
+														<span class="font14" style="margin-right: 1vw;">{{pp['count']}} عدد {{pp['productName']}} </span><span style="color: red;">({{pp['invent_count']}})</span>
+													</td>
+												</tr>
+											{% endfor %}
+										</table>
+									</td>
+								{% else %}
+									<td class="vw18 right font14">
+										<span>{{p['productName']}} </span><span style="color: red;">({{p['inventory_count']}})</span>
+									</td>
+								{% endif %}
+								<td class="vw10">
+									<span>{{p['price']}}</span>
+								</td>
+								<td class="vw8">
+									<span>{{p['weight']}}</span>
+								</td>
+								<td class="vw10">
+									<span>{{p['count']}}</span>
+								</td>
+								<td class="vw10">
+									<span>{{p['price']*p['count']}}</span>
+								</td>
+								<td class="vw10">
+									<span>{{p['percentDiscount']}}</span>
+								</td>
+								{% if p['percentDiscount'] %}
+									<td class="vw10">
+										<span>{{(p['price']*p['count'])-(p['price']*p['count']*p['percentDiscount']/100)}}</span>
+									</td>
+								{% else %}
+									<td class="vw10">
+										<span>{{(p['price']*p['count'])}}</span>
+									</td>
+								{% endif %}
+							</tr>
+						{% endfor %}
+						<tr class="bg-yellow">
+							<td colspan="2">
+								<span>مجموع</span>
+							</td>
+							<td>
+								<span>{{details[21]}}</span>
+							</td>
+							<td>
+								<span>{{details[10]}}</span>
+							</td>
+							<td>
+								<span>{{details[11]}}</span>
+							</td>
+							<td>
+								<span>{{details[12]}}</span>
+							</td>
+							{% if details[12] %}
+								<td>
+									<span>{{details[11]-(details[11]*details[12]/100)}}</span>
+								</td>
+								{% if details[1] == 'سفارش موردی' %}
+									{% if details[25] != None %}
+										{% if details[25] %}
+											<td class="vw18 bg-green">
+												<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% elif details[26] %}
+											<td class="vw18 bg-green">
+												<span>{{details[11]-(details[11]*details[12]/100)}} ریال</span>
+											</td>
+										{% else %}
+											{% if details[7] == 'پرداخت آنلاین' %}
+												<td class="vw18 bg-green">
+													<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+												</td>
+											{% else %}
+												<td class="vw18 bg-green">
+													<span>{{details[11]-(details[11]*details[12]/100)+details[17]}} ریال</span>
+												</td>
+											{% endif %}
+										{% endif %}
+									{% else %}
+										{% if details[7] == 'پرداخت آنلاین' %}
+											<td class="vw18 bg-green">
+												<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% else %}
+											<td class="vw18 bg-green">
+												<span>{{details[11]-(details[11]*details[12]/100)+details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% endif %}
+									{% endif %}
+								{% else %}
+									<td class="vw18 bg-green">
+										<span>{{details[11]-(details[11]*details[12]/100) + details[15]}} ریال</span>
+									</td>
+								{% endif %}
+							{% else %}
+								<td>
+									<span>{{details[11]}}</span>
+								</td>
+								{% if details[1] == 'سفارش موردی' %}
+									{% if details[25] != None %}
+										{% if details[25] %}
+											<td class="vw18 bg-green">
+												<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% elif details[26] %}
+											<td class="vw18 bg-green">
+												<span>{{details[11]}} ریال</span>
+											</td>
+										{% else %}
+											{% if details[7] == 'پرداخت آنلاین' %}
+												<td class="vw18 bg-green">
+													<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+												</td>
+											{% else %}
+												<td class="vw18 bg-green">
+													<span>{{details[11]+details[17]}} ریال</span>
+												</td>
+											{% endif %}
+										{% endif %}
+									{% else %}
+										{% if details[7] == 'پرداخت آنلاین' %}
+											<td class="vw18 bg-green">
+												<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% else %}
+											<td class="vw18 bg-green">
+												<span>{{details[11]+details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% endif %}
+									{% endif %}
+								{% else %}
+									{% if (details[1] != 'سفارش موردی') and (not session['constant_wage_flag']) %}
+									<td class="vw18 bg-green">
+										<span>{{details[11] + details[15] + details[17]}} ریال</span>
+									</td>
+									{% else %}
+									<td class="vw18 bg-green">
+										<span>{{details[11] + details[15]}} ریال</span>
+									</td>
+									{% endif %}
+								{% endif %}
+							{% endif %}
+						</tr>
+					</table>
+				</fieldset>
+			</fieldset>
+			<div style="margin-right: 15px;">
+		      <input style="background: #ddd; font-size: 17px; font-family: BNazanin;" type="submit" value="ارسال با شرکت پست اول" />
+		    </div>
+		</form>
+		<script type="text/javascript">
+			function senderIsLegal() {
+				var check = document.getElementById('SIsLegal').checked;
+				if (check == true) {
+					document.getElementById('SCompanyName').disabled = false;
+					document.getElementById('SCompanyName').required = true;
+					document.getElementById('SCompanyName').style.background = '#f7f7f7';
+					document.getElementById('SNationalCompanyCode').disabled = false;
+					document.getElementById('SNationalCompanyCode').required = true;
+					document.getElementById('SNationalCompanyCode').style.background = '#f7f7f7';
+					document.getElementById('SNationalCode').required = false;
+				} else {
+					document.getElementById('SCompanyName').disabled = true;
+					document.getElementById('SCompanyName').required = false;
+					document.getElementById('SCompanyName').style.background = '#ddd';
+					document.getElementById('SNationalCompanyCode').disabled = true;
+					document.getElementById('SNationalCompanyCode').required = false;
+					document.getElementById('SNationalCompanyCode').style.background = '#ddd';
+					document.getElementById('SNationalCode').required = true;
+				}
+			}
+			function recieverIsLegal() {
+				var check = document.getElementById('RIsLegal').checked;
+				if (check == true) {
+					document.getElementById('RCompanyName').disabled = false;
+					document.getElementById('RCompanyName').required = true;
+					document.getElementById('RCompanyName').style.background = '#f7f7f7';
+					document.getElementById('RNationalCompanyCode').disabled = false;
+					document.getElementById('RNationalCompanyCode').required = true;
+					document.getElementById('RNationalCompanyCode').style.background = '#f7f7f7';
+					document.getElementById('RNationalCode').required = false;
+				} else {
+					document.getElementById('RCompanyName').disabled = true;
+					document.getElementById('RCompanyName').required = false;
+					document.getElementById('RCompanyName').style.background = '#ddd';
+					document.getElementById('RNationalCompanyCode').disabled = true;
+					document.getElementById('RNationalCompanyCode').required = false;
+					document.getElementById('RNationalCompanyCode').style.background = '#ddd';
+					document.getElementById('RNationalCode').required = true;
+
+				}
+			}
+		</script>
+    </body>
+</html>
