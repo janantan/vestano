@@ -70,6 +70,16 @@ phone_schema = {
 }
 }
 
+nationalCode_schema = {
+'number':{
+    'type': 'string',
+    'required': True,
+    'regex': '^[\d -]+$',
+    'minlength': 10,
+    'maxlength': 10
+}
+}
+
 date_schema = {
 'number':{
     'type': 'string',
@@ -499,6 +509,7 @@ def home():
 @app.route('/user-pannel/orderList', methods=['GET'])
 @token_required
 def temp_orders():
+    #utils.creat_postAvvalStates_collection()
     #result = cursor.vestano_inventory.find({'vendor': u'روژیاپ'})
     #for r in result:
         #edit_result = utils.editStuff(
@@ -749,6 +760,7 @@ def confirm_orders(code):
 
                 new_rec['costs'] = costs
 
+                new_rec['lastUpdate'] = datetime.datetime.now()
                 cursor.orders.insert_one(new_rec)
                 cursor.ready_to_ship.insert_one(new_rec)
                 new_rec['last update'] = datetime.datetime.now()
@@ -846,29 +858,6 @@ def confirm_orders_postAvval(orderId, code):
     if ('processList' not in session['access']) and ('caseProcessList' not in session['access']):
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
-
-    #set the "postAvvalStates" collection in database
-    postAvvalStates = cursor.postAvvalStates.find_one({'Code': 1})
-    if postAvvalStates:
-        if 'Cities' not in postAvvalStates.keys():
-            postAvvalStates = cursor.postAvvalStates.find()
-            for r in postAvvalStates:
-                response = utils.postAvval_cities(token, str(r['Code']))
-                cities = []
-                for c in response:
-                    d = {
-                    'Code': c['id'],
-                    'Name':c['name']
-                    }
-                    cities.append(d)
-                cursor.postAvvalStates.update_many(
-                    {'Code': r['Code']},
-                    {'$set':{'Cities': cities}}
-                    )
-    else:
-        response = utils.postAvval_provinces(token)
-        for r in response:
-            cursor.postAvvalStates.insert_one({'Code': r['id'], 'Name': r['name']})
 
     result = cursor.temp_orders.find_one({"orderId": orderId})
 
@@ -1004,6 +993,7 @@ def confirm_orders_postAvval(orderId, code):
             )
 
 
+        #new_rec['lastUpdate'] = datetime.datetime.now()
         #cursor.orders.insert_one(new_rec)
         #cursor.ready_to_ship.insert_one(new_rec)
         #new_rec['last update'] = datetime.datetime.now()
@@ -1022,6 +1012,179 @@ def confirm_orders_postAvval(orderId, code):
         details = utils.details(cursor, orderId, code),
         item='orderList'
         )
+
+@app.route('/postAvval-confirm-order/<orderId>', methods=['GET', 'POST'])
+@token_required
+def casePostAvval_confirm_order(orderId):
+    if session['role'] == 'vendor_admin':
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if ('processList' not in session['access']) and ('caseProcessList' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    RNationalCompanyCode = ""
+    RCompanyName = ""
+    SNationalCompanyCode = ""
+    SCompanyName = ""
+
+    print('entered')
+
+    result = cursor.caseTemp_orders.find_one({"orderId": orderId})
+    case_result = cursor.case_orders.find_one({"orderId": orderId})
+
+    new_rec = copy.deepcopy(result)
+
+    #calculate weight, price and count of products
+    price = 0
+    productsName = ""
+    weight = 0
+    for i in range(len(result['products'])):
+        price = price + (result['products'][i]['price'] - (result['products'][i]['price']*result['products'][i]['percentDiscount'])/100)*result['products'][i]['count']
+        productsName = productsName + " " + result['products'][i]['productName']+" )"+str(result['products'][i]['count'])+u" عدد)"
+        weight = weight + result['products'][i]['weight']
+
+    token = utils.postAvval_token_generator()
+
+    print(token)
+
+    now = datetime.datetime.now() - datetime.timedelta(minutes=1)
+
+    if case_result['receiverNationalCompanyCode']:
+        RNationalCompanyCode = case_result['receiverNationalCompanyCode']
+    if case_result['receiverCompanyName']:
+        RCompanyName = case_result['receiverCompanyName']
+
+    if case_result['senderNationalCompanyCode']:
+        SNationalCompanyCode = case_result['senderNationalCompanyCode']
+    if case_result['senderCompanyName']:
+        SCompanyName = case_result['senderCompanyName']
+
+    receiver_info = {
+    "cityId": str(case_result['cityCode']),
+    "nationalCode": str(case_result['receiverNationalCode']),
+    "nationalCompanyCode": str(RNationalCompanyCode),
+    "fullName": (case_result['receiverFirstName'] + ' ' + case_result['receiverLastName']).encode('utf-8'),
+    "companyName": (RCompanyName).encode('utf-8'),
+    "cellNumber": str(case_result['receiverCellNumber']),
+    "address": case_result['registerAddress'].encode('utf-8'),
+    "postalCode": str(case_result['registerPostalCode']),
+    "isLegal": case_result['recieverIsLegal']
+    }
+    sender_info = {
+    "cityId": str(case_result['senderCityCode']),
+    "nationalCode": str(case_result['senderNationalCode']),
+    "nationalCompanyCode":  str(SNationalCompanyCode),
+    "fullName": (case_result['senderFirstName'] + ' ' + case_result['senderLastName']).encode('utf-8'),
+    "companyName": SCompanyName.encode('utf-8'),
+    "cellNumber": str(case_result['senderCellNumber']),
+    "address": case_result['senderAddress'].encode('utf-8'),
+    "postalCode": str(case_result['senderPostalCode']),
+    "isLegal": case_result['senderIsLegal']
+    }
+
+    data = {
+    "serviceZoneId": str(case_result['serviceZoneId']),
+    "serviceTypeId": str(case_result['serviceType']),
+    "parcelTypeId": str(case_result['parcelType']),
+    "providerBranchId": "12",
+    "providerCode": orderId,
+    "postage": str(case_result['wage']),
+    "weight": str(float(weight)/1000),
+    "insuredValue": str(price),
+    "contentDescription": productsName.encode('utf-8'),
+    "dateAndTime": now.strftime('%Y-%m-%d %H:%M:%S'),
+    "dimension": case_result['dimension'],
+    "receiver": receiver_info,
+    "sender": sender_info
+    }
+
+    #print(data)
+
+    response = utils.postAvval_preCode(data, token)
+    print('preCode: ', response)
+    preCode = str(response['preCode'])
+    if not response:
+        flash(u'خطا در داده ورودی!', 'error')
+        return redirect(request.referrer)
+
+    data2 = {
+    "preCode": str(response['preCode']),
+    "providerBranchId": "12",
+    "dateAndTime": (now + datetime.timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
+    }
+
+    response2 = utils.postAvval_acceptparcel(data2, token)
+    print('parcelCode: ', response2)
+    if not response2:
+        flash(u'خطا در تولید کد !', 'error')
+        return redirect(request.referrer)
+
+    new_rec['record_datetime'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
+    new_rec['parcelCode'] = str(response2['parcelCode'])
+    new_rec['username'] = session['username']
+    new_rec['datetime'] = jdatetime.datetime.today().strftime('%Y/%m/%d')
+
+    new_rec['status'] = 0
+    new_rec['status_updated'] = False
+
+    costs = {
+    'price': price,
+    'PostDeliveryPrice': 0,
+    'VatTax': 0,
+    'registerCost': 0,
+    'wage': case_result['wage']
+    }
+
+    new_rec['costs'] = costs
+
+
+    new_rec['lastUpdate'] = datetime.datetime.now()
+    cursor.orders.insert_one(new_rec)
+    cursor.ready_to_ship.insert_one(new_rec)
+    new_rec['last update'] = datetime.datetime.now()
+    cursor.status.insert_one(new_rec)
+    cursor.caseTemp_orders.remove({'orderId': orderId})
+    cursor.today_orders.remove({'orderId': orderId})
+    cursor.today_orders.insert_one(new_rec)
+
+    state_result = cursor.postAvvalStates.find_one({'Code': new_rec['stateCode']})
+    for c in state_result['Cities']:
+        if c['Code'] == new_rec['cityCode']:
+            city = c['Name']
+            break
+
+    pdfkit.from_string(render_template('includes/_caseOrderPdf.html',
+        datetime = jdatetime.datetime.now().strftime('%H:%M %Y/%m/%d'),
+        orderId = new_rec['orderId'],
+        parcelCode = new_rec['parcelCode'],
+        sender = case_result['senderFirstName']+' '+case_result['senderLastName'],
+        s_cellNumber = case_result['senderCellNumber'],
+        s_address = case_result['senderAddress'],
+        s_postalCode = case_result['senderPostalCode'],
+        receiver = case_result['receiverFirstName']+' '+case_result['receiverLastName'],
+        cellNumber = case_result['receiverCellNumber'],
+        destination = state_result['Name']+' / '+city+' / '+case_result['registerAddress'],
+        postalCode = new_rec['registerPostalCode'],
+        weight = weight,
+        price = price,
+        sType = case_result['serviceType'],
+        serviceType = new_rec['serviceType'],
+        payType = new_rec['payType'],
+        packing = case_result['packing'],
+        carton = case_result['carton'],
+        gathering = case_result['gathering'],
+        vestano_wage = case_result['wage'],
+        without_ck = case_result['without_ck'],
+        rad = case_result['rad'],
+        cgd = case_result['cgd'],
+        deliveryPrice = case_result['wage'],
+        VatTax = 0
+        ), 'static/pdf/caseOrders/orderId_'+new_rec['orderId']+'.pdf')
+
+    return render_template('user_pannel.html',
+        item='orderList')
 
 @app.route('/user-pannel/ready-to-ship', methods=['GET'])
 @token_required
@@ -1919,6 +2082,143 @@ def case_orders():
         item='case-orders',
         inventory = utils.case_inventory(cursor),
         states = utils.states(cursor)
+        )
+
+@app.route('/user-pannel/postAvval-orders', methods=['GET', 'POST'])
+@token_required
+def postAvval_orders():
+    if 'caseOrdering' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    if 'username' in session:
+        ordered_products = []
+        username = session['username']
+        senderIsLegal = False
+        recieverIsLegal = False
+        if request.method == 'POST':
+
+            temp_order_products = []
+            for i in range (1, 100):
+                if request.form.get('product_'+str(i)):
+                    cursor.case_inventory.update_many(
+                        {'productId': request.form.get('product_'+str(i))},
+                        {'$set':{
+                        'price': int(request.form.get('price_'+str(i))),
+                        'weight': int(request.form.get('weight_'+str(i))),
+                        }
+                        }
+                        )
+                    p_details = cursor.case_inventory.find_one({'productId': request.form.get('product_'+str(i))})
+                    temp_order_product = {}
+                    temp_order_product['productId'] = request.form.get('product_'+str(i))
+                    temp_order_product['productName'] = p_details['productName']
+                    temp_order_product['count'] = int(request.form.get('count_'+str(i)))
+                    temp_order_product['price'] = int(request.form.get('price_'+str(i)))
+                    temp_order_product['weight'] = p_details['weight']
+                    temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+                    temp_order_product['description'] = p_details['description']
+
+                    temp_order_products.append(temp_order_product)
+
+            pTypeCode = int(request.form.get('payType'))
+            serviceType = int(request.form.get('serviceType'))
+            (sType, pType) = utils.postAvvalTypeOfServicesToString(serviceType, pTypeCode)
+
+            if len(request.form.getlist('s_is_legal')):
+                senderIsLegal = True
+            if len(request.form.getlist('r_is_legal')):
+                recieverIsLegal = True
+
+            orderId = str(random2.randint(1000000, 9999999))
+
+            input_data = {
+            'vendorName' : u'سفارش موردی',
+            'orderId' : orderId,
+            'postAvvalFlag': True,
+            'registerFirstName' : request.form.get('r_first_name'),
+            'registerLastName' : request.form.get('r_last_name'),
+            'registerCellNumber' : request.form.get('r_cell_number'),
+            'registerPhoneNumber' : request.form.get('r_phone_number'),
+            'stateCode' : int(request.form.get('stateCode')),
+            'cityCode' : int(request.form.get('cityCode')),
+            'registerAddress' : request.form.get('address'),
+            'registerPostalCode' : request.form.get('postal_code'),
+            'products' : temp_order_products,
+            'serviceType' : sType,
+            'payType' : pType,
+            'grntProduct' : None,
+            'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
+            'orderTime': jdatetime.datetime.now().strftime('%M : %H'),
+            'record_date': jdatetime.datetime.now().strftime('%d / %m / %Y'),
+            'record_time': jdatetime.datetime.now().strftime('%M : %H'),
+            'parcelCode': '-',
+            'datetime': jdatetime.datetime.today().strftime('%Y/%m/%d'),
+            'init_username': session['username'],
+            'status' : 80
+            }
+
+            case_order = {
+            'vendorName' : u'سفارش موردی',
+            'postAvvalFlag': True,
+            'senderIsLegal' : senderIsLegal,
+            'senderCompanyName' : request.form.get('s_company_name'),
+            'senderNationalCompanyCode' : request.form.get('s_national_company_code'),
+            'senderFirstName' : request.form.get('s_first_name'),
+            'senderLastName' : request.form.get('s_last_name'),
+            'senderCellNumber' : request.form.get('s_cell_number'),
+            'senderPhoneNumber' : request.form.get('s_phone_number'),
+            'senderNationalCode' : request.form.get('s_national_code'),
+            'senderStateCode' : int(request.form.get('s_stateCode')),
+            'senderCityCode' : int(request.form.get('s_cityCode')),
+            'senderAddress' : request.form.get('s_address'),
+            'senderPostalCode' : request.form.get('s_postal_code'),
+            'recieverIsLegal' : recieverIsLegal,
+            'receiverCompanyName' : request.form.get('r_company_name'),
+            'receiverNationalCompanyCode' : request.form.get('r_national_company_code'),
+            'receiverFirstName' : request.form.get('r_first_name'),
+            'receiverLastName' : request.form.get('r_last_name'),
+            'receiverCellNumber' : request.form.get('r_cell_number'),
+            'receiverPhoneNumber' : request.form.get('r_phone_number'),
+            'receiverNationalCode' : request.form.get('r_national_code'),
+            'stateCode' : int(request.form.get('stateCode')),
+            'cityCode' : int(request.form.get('cityCode')),
+            'registerAddress' : request.form.get('address'),
+            'registerPostalCode' : request.form.get('postal_code'),
+            'products' : temp_order_products,
+            'serviceZoneId' : int(request.form.get('ServiceZoneId')),
+            'parcelType' : int(request.form.get('ParcelType')),
+            'serviceType' : int(request.form.get('serviceType')),
+            'payType' : int(request.form.get('payType')),
+            'username' : session['username'],
+            'wage' : int(request.form.get('wage')),
+            'packing': int(request.form.get('packing')),
+            'carton': int(request.form.get('carton')),
+            'gathering': int(request.form.get('gathering')),
+            'dimension' : utils.dimension(request.form.get('dimension')),
+            'without_ck': request.form.getlist('without_ck'),
+            'rad': [],
+            'cgd': [],
+            'orderId' : orderId,
+            'orderDate': jdatetime.datetime.now().strftime('%d / %m / %Y'),
+            'orderTime': jdatetime.datetime.now().strftime('%M : %H')
+            }
+
+            cursor.caseTemp_orders.insert_one(input_data)
+            cursor.case_orders.insert_one(case_order)
+            #cursor.today_orders.insert_one(input_data)
+            cursor.all_records.insert_one(input_data)
+
+            flash(u'ثبت شد!', 'success')
+
+            return redirect(url_for('case_orders'))
+    else:
+        flash(u'لطفا ابتدا وارد شوید', 'error')
+        return redirect(request.referrer)
+    return render_template('user_pannel.html',
+        item='postAvval-orders',
+        inventory = utils.case_inventory(cursor),
+        states = utils.postAvvalStates(cursor)
         )
 
 @app.route('/user-pannel/inventory-management/<sub_item>', methods=['GET', 'POST'])
@@ -3809,7 +4109,20 @@ def ajax():
             result = utils.Products(cursor, data)
 
     else:
-        flash(u'لطفا ابتدا وارد شوید', 'error')
+        return redirect(request.referrer)
+        
+    return jsonify(result)
+
+@app.route('/postAvvalAjax', methods=['GET'])
+def postAvvalAjax():
+    if 'username' in session:
+        data = request.args.get('code')
+        if len(data) < 3:
+            result = utils.postAvvalCities(cursor, int(data))
+        else:
+            result = utils.Products(cursor, data)
+
+    else:
         return redirect(request.referrer)
         
     return jsonify(result)
@@ -3835,6 +4148,25 @@ def price_ajax():
         }
     else:
         flash(u'لطفا ابتدا وارد شوید', 'error')
+        return redirect(request.referrer)
+        
+    return jsonify(result)
+
+@app.route('/postAvval-price-ajax', methods=['GET'])
+def postAvval_price_ajax():
+    if 'username' in session:
+        weight = int(request.args.get('weight'))
+        price = int(request.args.get('price'))
+        cityCode = int(request.args.get('city'))
+        pType = int(request.args.get('pType'))
+        city = utils.convertPostAvvalCities(cityCode)[1]
+        sefareshi = utils.GetDeliveryPrice(city, price, weight, 1, pType)
+        pishtaz = utils.GetDeliveryPrice(city, price, weight, 2, pType)
+        result = {
+        'sefareshi': sefareshi['DeliveryPrice'] + sefareshi['VatTax'],
+        'pishtaz': pishtaz['DeliveryPrice'] + pishtaz['VatTax']
+        }
+    else:
         return redirect(request.referrer)
         
     return jsonify(result)
@@ -3866,6 +4198,14 @@ def validator_ajax():
         'number' : Data
         }
         if v.validate(data, phone_schema):
+            return jsonify({'result': True})
+        else:
+            return jsonify({'result': False})
+    elif Type == 'nationalCode':
+        data = {
+        'number' : Data
+        }
+        if v.validate(data, nationalCode_schema):
             return jsonify({'result': True})
         else:
             return jsonify({'result': False})
@@ -4157,11 +4497,6 @@ def pdf_generator(orderId):
     weight = 0
     discount = 0
     case_result = cursor.case_orders.find_one({'orderId': orderId})
-    state_result = cursor.states.find_one({'Code': case_result['stateCode']})
-    for c in state_result['Cities']:
-        if c['Code'] == case_result['cityCode']:
-            city = c['Name']
-            break
 
     for i in range(len(case_result['products'])):
         price = price + case_result['products'][i]['price']*case_result['products'][i]['count']
@@ -4169,9 +4504,23 @@ def pdf_generator(orderId):
         weight = weight + case_result['products'][i]['weight']
         discount = discount + case_result['products'][i]['percentDiscount']
 
-    (sType, pType) = utils.typeOfServicesToString(case_result['serviceType'], case_result['payType'])
-
     vestano_wage = case_result['wage']
+
+    if 'postAvvalFlag' in case_result.keys():
+        state_result = cursor.postAvvalStates.find_one({'Code': case_result['stateCode']})
+        (sType, pType) = utils.postAvvalTypeOfServicesToString(case_result['serviceType'], case_result['payType'])
+        deliveryPrice = 0
+        VatTax = 0
+    else:
+        state_result = cursor.states.find_one({'Code': case_result['stateCode']})
+        (sType, pType) = utils.typeOfServicesToString(case_result['serviceType'], case_result['payType'])
+        delivery_result = utils.GetDeliveryPrice(case_result['cityCode'], price, weight, case_result['serviceType'], case_result['payType'])
+        deliveryPrice = delivery_result['DeliveryPrice']
+        VatTax = delivery_result['VatTax']
+    for c in state_result['Cities']:
+        if c['Code'] == case_result['cityCode']:
+            city = c['Name']
+            break
 
     delivery_result = utils.GetDeliveryPrice(case_result['cityCode'], price, weight, case_result['serviceType'], case_result['payType'])
 
@@ -4200,8 +4549,8 @@ def pdf_generator(orderId):
         without_ck = case_result['without_ck'],
         rad = case_result['rad'],
         cgd = case_result['cgd'],
-        deliveryPrice = delivery_result['DeliveryPrice'] + vestano_wage,
-        VatTax = delivery_result['VatTax']
+        deliveryPrice = deliveryPrice + vestano_wage,
+        VatTax = VatTax
         ), 'static/pdf/tempCaseOrders/orderId_'+orderId+'.pdf')
 
     filename = '/root/vestano/static/pdf/tempCaseOrders/orderId_'+orderId+'.pdf'

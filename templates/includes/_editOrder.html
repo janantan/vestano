@@ -75,7 +75,7 @@
                       {% for i in range(data['products']|length) %}
                         <tr id="row{{i+1}}" class="order-0">
                           <td>
-                            <select id="product{{i+1}}" onchange="product('product{{i+1}}')" disabled required>
+                            <select id="product{{i+1}}" name="product_{{i+1}}" onchange="product('product{{i+1}}')" required>
                               <option value="{{data['products'][i]['productId']}}">{{data['products'][i]['productName']}}</option>
                               {% for item in inventory %}
                                 <option value="{{item[1]}}">{{item[0]}}</option>
@@ -84,10 +84,10 @@
                             </select>
                           </td>                  
                           <td>
-                            <input type="text" id="count{{i+1}}" value="{{data['products'][i]['count']}}" onchange="anyChange()" size="4" disabled required/>
+                            <input type="text" id="count{{i+1}}" name="count_{{i+1}}" value="{{data['products'][i]['count']}}" onchange="anyChange()" size="4" required/>
                           </td>
                           <td>
-                            <input id="price{{i+1}}" type="text" value="{{data['products'][i]['price']}}" onchange="anyChange()" size="6" disabled required/>
+                            <input id="price{{i+1}}" name="price_{{i+1}}" type="text" value="{{data['products'][i]['price']}}" onchange="anyChange()" size="6" required/>
                           </td>
                           <td>
                             <input id="discount{{i+1}}" type="text" name="discount_{{i+1}}" value="{{data['products'][i]['percentDiscount']}}" onchange="anyChange()" size="6" required/>

@@ -93,7 +93,10 @@ def caseTemp_orders(cursor):
     else:
         result = cursor.caseTemp_orders.find({'init_username': session['username']})
     temp = []
+    postAvvalOrder = False
     for r in result:
+        if 'postAvvalFlag' in r.keys():
+            postAvvalOrder = True
         case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
         if case_result:
             sender_name = case_result['senderFirstName']+' '+case_result['senderLastName']
@@ -105,7 +108,7 @@ def caseTemp_orders(cursor):
         state_result = cursor.states.find_one({'Code': r['stateCode']})
         temp.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList, sender_name))
+            statusToString(r['status']), pNameList, sender_name, postAvvalOrder))
     return temp
 
 def today_orders(cursor):
@@ -1409,6 +1412,7 @@ def details(cursor, orderId, code):
     count = 0
     Weight = 0
     discount = 0
+    postAvvalOrder = False
     if code == 'temp':
         r = cursor.temp_orders.find_one({'orderId': orderId})
     elif code == 'caseTemp':
@@ -1448,9 +1452,16 @@ def details(cursor, orderId, code):
             r = cursor.canceled_orders.find_one({'orderId': orderId})
     if not r:
         return None
-    state_result = cursor.states.find_one({'Code': r['stateCode']})
+
+    if 'postAvvalFlag' in r.keys():
+        (stateCode, cityCode) = convertPostAvvalCities(r['cityCode'])
+        postAvvalOrder = True
+    else:
+        (stateCode, cityCode) = (r['stateCode'], r['cityCode'])
+
+    state_result = cursor.states.find_one({'Code': stateCode})
     for rec in state_result['Cities']:
-        if r['cityCode'] == rec['Code']:
+        if cityCode == rec['Code']:
             city = rec['Name']
             break
 
@@ -1567,7 +1578,7 @@ def details(cursor, orderId, code):
             else:
                 temp_wage = wage
         else:
-            deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price, Weight, sType, pType)
+            deliveryPriceResult = GetDeliveryPrice(cityCode, price, Weight, sType, pType)
             deliveryPrice = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
             if 'temp_wage' in r.keys():
                 temp_wage = r['temp_wage']
@@ -1603,7 +1614,7 @@ def details(cursor, orderId, code):
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
         r['products'],count, price, discount, orderId, status, temp_wage, parcelCode, deliveryPrice,
         senderName, senderCellNumber, senderPostalCode, Weight, packing, carton, gathering, rad,
-        cgd, grnt, r['registerPhoneNumber'], r['username'], r['init_username'], senderPhoneNumber)
+        cgd, grnt, r['registerPhoneNumber'], r['username'], r['init_username'], senderPhoneNumber, postAvvalOrder)
 
     return details
 
@@ -1703,9 +1714,9 @@ def typeOfServicesToString(serviceType, payType):
     return (sType, pType)
 
 def typeOfServicesToCode(serviceType, payType):
-    if serviceType == u'پست پیشتاز':
+    if (serviceType == u'پست پیشتاز') or (serviceType == u'سرویس استاندارد'):
         sType = 1
-    elif serviceType == u'پست سفارشی':
+    elif (serviceType == u'پست سفارشی') or (serviceType == u'سرویس اکسپرس'):
         sType = 2
     elif serviceType == u'مطبئع':
         sType = 3
@@ -1716,6 +1727,27 @@ def typeOfServicesToCode(serviceType, payType):
         pType = 1
     elif payType == u'پرداخت آنلاین':
         pType = 2
+
+    return (sType, pType)
+
+def postAvvalTypeOfServicesToString(serviceType, payType):
+    if serviceType==1:
+        sType = u'سرویس استاندارد'
+    elif serviceType==2:
+        sType = u'سرویس اکسپرس'
+    elif serviceType==3:
+        sType = u'سرویس خارجه'
+    else:
+        return None
+
+    if payType==88:
+        pType = u'ارسال رایگان'
+    elif payType==1:
+        pType = u'پرداخت در محل'
+    elif payType==2:
+        pType = u'پرداخت آنلاین'
+    else:
+        return None
 
     return (sType, pType)
 
@@ -1899,8 +1931,23 @@ def states(cursor):
         states.append((r['Code'], r['Name'], r['Cities']))
     return states
 
+def postAvvalStates(cursor):
+    result = cursor.postAvvalStates.find()
+    states = []
+    for r in result:
+        states.append((r['Code'], r['Name'], r['Cities']))
+    return states
+
 def cities(cursor, code):
     result = cursor.states.find_one({'Code': code})
+    ans = {'Code':[], 'Name':[], 'stateName':result['Name'], 'stateCode':code}
+    for r in result['Cities']:
+        ans['Code'].append(r['Code'])
+        ans['Name'].append(r['Name'])
+    return ans
+
+def postAvvalCities(cursor, code):
+    result = cursor.postAvvalStates.find_one({'Code': code})
     ans = {'Code':[], 'Name':[], 'stateName':result['Name'], 'stateCode':code}
     for r in result['Cities']:
         ans['Code'].append(r['Code'])
@@ -3045,7 +3092,7 @@ def postAvval_token_generator():
     test_url = 'https://ttk.titec.ir/connect/token'
     url = 'https://tidp.titec.ir/connect/token'
     response = requests.post(test_url, data=data)
-    #print(response.json()['access_token'])
+    print(response.json())
     return response.json()['access_token']
 
 def postAvval_preCode(data, token):
@@ -3094,6 +3141,7 @@ def postAvval_acceptparcel(data, token):
 
 def postAvval_provinces(token):
     test_url = 'https://gst.titec.ir/api/v1/general/getprovinces'
+    url = 'https://tgsapi.titec.ir/api/v1/general/getprovinces'
     bearer_token = "Bearer {}".format(token)
     header = {
     "Authorization": bearer_token,
@@ -3104,6 +3152,7 @@ def postAvval_provinces(token):
 
 def postAvval_cities(token, p_id):
     test_url = 'https://gst.titec.ir/api/v1/general/getcitiesbyprovinceId/'+p_id
+    url = 'https://tgsapi.titec.ir/api/v1/general/getcitiesbyprovinceId/'+p_id
     bearer_token = "Bearer {}".format(token)
     header = {
     "Authorization": bearer_token,
@@ -3113,6 +3162,31 @@ def postAvval_cities(token, p_id):
     #print(response.status_code)
     #print(response.json())
     return response.json()
+
+#set the "postAvvalStates" collection in database
+def creat_postAvvalStates_collection():
+    token = postAvval_token_generator()
+    postAvvalStates = cursor.postAvvalStates.find_one({'Code': 1})
+    if postAvvalStates:
+        if 'Cities' not in postAvvalStates.keys():
+            postAvvalStates = cursor.postAvvalStates.find()
+            for r in postAvvalStates:
+                response = postAvval_cities(token, str(r['Code']))
+                cities = []
+                for c in response:
+                    d = {
+                    'Code': c['id'],
+                    'Name':c['name']
+                    }
+                    cities.append(d)
+                cursor.postAvvalStates.update_many(
+                    {'Code': r['Code']},
+                    {'$set':{'Cities': cities}}
+                    )
+    else:
+        response = postAvval_provinces(token)
+        for r in response:
+            cursor.postAvvalStates.insert_one({'Code': r['id'], 'Name': r['name']})
 
 def dimension(value):
     if value == "0":
@@ -3134,3 +3208,21 @@ def dimension(value):
     elif value == "8":
         dimension = {"length": "60", "width": "45", "height": "30"}
     return dimension
+
+def convertPostAvvalCities(cityCode):
+    states_result = cursor.postAvvalStates.find()
+    flag = 0
+    for r in states_result:
+        for c in r['Cities']:
+            if int(cityCode) == c['Code']:
+                flag = 1
+                (state, city) = (r['Name'], c['Name'])
+                break
+    if flag:
+        State = cursor.states.find_one({'Name': state})
+        if State:
+            for r in State['Cities']:
+                if r['Name'] == city:
+                    print(r['Code'])
+                    return (State['Code'], r['Code'])
+    return None

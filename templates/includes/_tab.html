@@ -1,6 +1,7 @@
 {% set home = "color:#fafafa;" %}
 {% set temp = "color:#fafafa;" %}
 {% set caseTemp = "color:#fafafa;" %}
+{% set postAvval = "color:#fafafa;" %}
 {% set rts = "color:#fafafa;" %}
 {% set pnd = "color:#fafafa;" %}
 {% set grnt = "color:#fafafa;" %}
@@ -49,6 +50,8 @@
 	{% set ord = "color:yellow;" %}
 {% elif "case-orders" in request.base_url %}
 	{% set case = "color:yellow;" %}
+{% elif "postAvval-orders" in request.base_url %}
+	{% set postAvval = "color:yellow;" %}
 {% elif "update-status" in request.base_url %}
 	{% set sts = "color:yellow;" %}
 {% elif "inventory-management" in request.base_url %}
@@ -95,6 +98,13 @@
 					<tr>
 						<td>
 							<a style={{case}} href="/user-pannel/case-orders">ثبت سفارش موردی</a>
+						</td>
+					</tr>
+				{% endif %}
+				{% if 'caseOrdering' in session['access'] %}
+					<tr>
+						<td>
+							<a style={{postAvval}} href="/user-pannel/postAvval-orders">ثبت سفارش پست اول</a>
 						</td>
 					</tr>
 				{% endif %}

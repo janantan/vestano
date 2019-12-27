@@ -115,7 +115,13 @@
     								<span>شیوه پرداخت:</span>
     							</td>
     							<td style="width: 150px; height: 40px; text-align: center;">
+    								{% if cgd %}
+    								<span>هزینه کالا در مقصد</span>
+    								{% elif rad %}
+    								<span>کرایه در مقصد</span>
+    								{% else %}
     								<span>{{payType}}</span>
+    								{% endif %}
     							</td>
     						</tr>
     						<tr>

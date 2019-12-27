@@ -1266,6 +1266,26 @@ a.export {
 
 #myInput-city:focus {outline: 3px solid #eee;}
 
+#s-myInput {
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 1vh 1vw 1vh 1vw;
+  border: none;
+  border-bottom: 1px solid #eee;
+}
+
+#s-myInput:focus {outline: 3px solid #eee;}
+
+#s-myInput-city {
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 1vh 1vw 1vh 1vw;
+  border: none;
+  border-bottom: 1px solid #eee;
+}
+
+#s-myInput-city:focus {outline: 3px solid #eee;}
+
 #add-srch input {
     border: none;
     font-size: 13px;
@@ -1365,6 +1385,11 @@ a.export {
     font-family: "B-Roya";
 }
 
+#s-myInput::placeholder {
+    text-align: right;
+    font-family: "B-Roya";
+}
+
 .new-ticket-fieldset {
     height: 81vh;
 }
@@ -1447,6 +1472,15 @@ tr.border-bottom td {
 tr#rows:hover {
     background-color: #daebef;
     cursor: pointer;
+}
+
+#postAvval-logo { 
+    background:url(/static/img/icon/postaval.png) center top; 
+    width:16px;
+    height:16px;
+    display: block;
+    float: right;
+    margin:0 0.5vw 0 0.5vw;
 }
 
 #delete { 
