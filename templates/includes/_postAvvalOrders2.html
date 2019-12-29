@@ -146,7 +146,24 @@
                   </tr>
                   <tr id="row1" class="order-0">
                     <td>
-                      <input id="product1" type="text" name="product_1" size="20" required/>
+                      <div id="add-srch-prdct" class="dropdown">
+                        <div id="myDropdown-prdct1" class="dropdown-content" style="width: max-content; position: unset; border-radius: 5px;">
+                          <input type="text" placeholder="انتخاب کنید" id="myInput-prdct1" autocomplete="nope" onclick="show_prdct('prdct1')" onkeyup="filter_prdct('myInput-prdct1', 'myDropdown-prdct1')" size="25">
+                          <div id="prdct1" class="dropdown-content" style="display: none; max-height: 18vh;">
+                            {% for item in inventory %}
+                              <a href="#" onclick="searchPrdct('{{item[1]}}', 'myInput-prdct1', 'product1', 'prdct1', 'exist_count1', 'price1', 'discount1', 'weight1')">{{item[0]}}</a>
+                            {% endfor %}
+                          </div>
+                        </div>
+                      </div>
+
+                      <select style="display: none;" id="product1" style="width: 15.5vw;" name="product_1" onchange="caseProduct('product1')" required>
+                        <option value="" disabled selected>(انخاب کنید)</option>
+                        {% for item in inventory %}
+                          <option value="{{item[1]}}">{{item[0]}}</option>
+                          }
+                        {% endfor %}
+                      </select>
                     </td>
                     <td>
                       <span style="color: red;" id="exist_count1"></span>
@@ -429,11 +446,30 @@
               }
          }
       }
-      xhr.open('GET', '/postAvvalAjax?code=' + state_code, true);
+      xhr.open('GET', '/ajax?code=' + state_code, true);
       xhr.send(); 
     } else {
       city.options.length = 1;
     }
+  }
+
+  function caseProduct(id_name) {
+    var product_id = document.getElementById(id_name).value;
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+          var json = JSON.parse(this.responseText);
+          document.getElementById('price'+id_name.substring(7, id_name.length)).value = json.price
+          document.getElementById('weight'+id_name.substring(7, id_name.length)).value = json.weight
+          document.getElementById('discount'+id_name.substring(7, id_name.length)).value = json.discount
+
+          anyChange();
+       }
+    }
+    xhr.open('GET', '/case-ajax?code=' + product_id, true);
+    xhr.send();
   }
 
   function getDeliveryPrice() {
@@ -588,12 +624,20 @@
     }
   }
 
+  function show_prdct(div_id) {
+    show_flag = 1;
+    document.getElementById(div_id).style.display = 'block';
+  }
+
   function notShow() {
     if (!show_flag) {
       document.getElementById("states").style.display = 'none';
       document.getElementById("cities").style.display = 'none';
       document.getElementById("s-states").style.display = 'none';
       document.getElementById("s-cities").style.display = 'none';
+      for (i = 1; i < 100; i++) {
+        document.getElementById("prdct"+i).style.display = 'none';
+      }
     }
     show_flag = 0;
   }
@@ -651,6 +695,22 @@
     input = document.getElementById("s-myInput-city");
     filter = input.value.toUpperCase();
     div = document.getElementById("s-myDropdown-city");
+    a = div.getElementsByTagName("a");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
+      }
+    }
+  }
+
+  function filter_prdct(input_id, div_id) {
+    var input, filter, ul, tr, a, i;
+    input = document.getElementById(input_id);
+    filter = input.value.toUpperCase();
+    div = document.getElementById(div_id);
     a = div.getElementsByTagName("a");
     for (i = 0; i < a.length; i++) {
       txtValue = a[i].textContent || a[i].innerText;
@@ -740,6 +800,51 @@
     xhr.send();
   }
 
+  function searchPrdct(code, input_id, select_id, div_id, exist_id, price_id, discount_id, weight_id) {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        document.getElementById(div_id).style.display = 'none';
+        var json = JSON.parse(this.responseText);
+        document.getElementById(input_id).value = json.productName;
+        document.getElementById(select_id).value = json.productId;
+        document.getElementById(price_id).value = json.price;
+        document.getElementById('product-price').value = json.price;
+        document.getElementById('onChange-product-price').value = json.price;
+        document.getElementById(discount_id).value = json.discount;
+        document.getElementById(weight_id).value = json.weight;
+        document.getElementById(exist_id).innerHTML = json.count;
+        anyChange();
+      }
+    }
+    xhr.open('GET', '/case-ajax?code=' + code, true);
+    xhr.send();
+  }
+
+  //function wageCalculator(weight) {
+    //const xhr = new XMLHttpRequest();
+    //xhr.onreadystatechange = function() {
+        //if (this.readyState == 4 && this.status == 200) {
+          //var json = JSON.parse(this.responseText);
+          //var cod = document.getElementById('payType1').checked;
+          //var online = document.getElementById('payType2').checked;
+          //if (online) {
+            //if (wage_flag) {
+              //document.getElementById('wage').value = json.wage;
+            //}
+            //document.getElementById('first-wage').value = json.wage;
+          //} else if (cod) {
+              //if (wage_flag) {
+                //document.getElementById('wage').value = json.wage + 5000;
+              //}
+              //document.getElementById('first-wage').value = json.wage + 5000;
+          //}
+       //}
+    //}
+    //xhr.open('GET', '/wage-calculator?weight='+weight, true);
+    //xhr.send();
+  //}
+
   function wageCalculator(weight) {
     var cgd = document.getElementById('cgd').checked;
     var rad = document.getElementById('rad').checked;
@@ -775,6 +880,47 @@
     }
     xhr.open('GET', '/wage-calculator?weight='+weight+'&service='+service, true);
     xhr.send();
+  }
+
+  function rentalAtDest() {
+    var rad = document.getElementById('rad').checked;
+    var wage = parseInt(document.getElementById('wage').value);
+    var packing = parseInt(document.getElementById('packing').value);
+    var carton = parseInt(document.getElementById('carton').value);
+    var gathering = parseInt(document.getElementById('gathering').value);
+    var sum = wage+packing+carton+gathering;
+    if (rad) {
+      document.getElementById('free').checked = false;
+      document.getElementById('free').disabled = true;
+      document.getElementById('payType1').checked = true;
+      document.getElementById('cgd').checked = false;
+      document.getElementById('price1').value = sum;
+      document.getElementById('price-sum').value = sum;
+      anyChange();
+    } else {
+      document.getElementById('free').disabled = false;
+      document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
+      document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
+      anyChange();
+    }
+  }
+
+  function productPriceAtDest() {
+    var cgd = document.getElementById('cgd').checked;
+    if (cgd) {
+      document.getElementById('free').checked = true;
+      document.getElementById('free').disabled = false;
+      document.getElementById('payType1').checked = true;
+      document.getElementById('rad').checked = false;
+      document.getElementById('price1').value = document.getElementById('product-price').value;
+      document.getElementById('price-sum').value = document.getElementById('product-price').value;
+      anyChange();
+    } else {
+      document.getElementById('free').checked = false;
+      document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
+      document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
+      anyChange();
+    }
   }
 
   function wageOnChange() {
@@ -816,5 +962,22 @@
     var price = refreshWeightPrice();
     getDeliveryPrice();
     document.getElementById('product-price').value = price;
+  }
+
+  function onlineChange() {
+    document.getElementById('price1').value = document.getElementById('product-price').value;
+    document.getElementById('price-sum').value = document.getElementById('product-price').value;
+    getDeliveryPrice();
+    wageCalculator(document.getElementById('weight1').value);
+    document.getElementById('cgd').checked = false;
+    document.getElementById('rad').checked = false;
+    document.getElementById('free').checked = false;
+  }
+
+  function codChange() {
+    document.getElementById('price1').value = document.getElementById('onChange-product-price').value;
+    document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
+    getDeliveryPrice();
+    wageCalculator(document.getElementById('weight1').value);
   }
 </script>

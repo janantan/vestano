@@ -401,9 +401,15 @@
 									{% endif %}
 								{% else %}
 									{% if details[7] == 'پرداخت آنلاین' %}
-										<td class="vw18 bg-green">
-											<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
-										</td>
+										{% if details[32] %}
+											<td class="vw18 bg-green">
+												<span>{{details[15]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% else %}
+											<td class="vw18 bg-green">
+												<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% endif %}
 									{% else %}
 										<td class="vw18 bg-green">
 											<span>{{details[11]-(details[11]*details[12]/100)+details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
@@ -442,9 +448,15 @@
 									{% endif %}
 								{% else %}
 									{% if details[7] == 'پرداخت آنلاین' %}
-										<td class="vw18 bg-green">
-											<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
-										</td>
+										{% if details[32] %}
+											<td class="vw18 bg-green">
+												<span>{{details[15]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% else %}
+											<td class="vw18 bg-green">
+												<span>{{details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>
+											</td>
+										{% endif %}
 									{% else %}
 										<td class="vw18 bg-green">
 											<span>{{details[11]+details[15]+details[17]+details[22]+details[23]+details[24]}} ریال</span>

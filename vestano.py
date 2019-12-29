@@ -80,6 +80,16 @@ nationalCode_schema = {
 }
 }
 
+postalCode_schema = {
+'number':{
+    'type': 'string',
+    'required': True,
+    'regex': '^[\d -]+$',
+    'minlength': 10,
+    'maxlength': 10
+}
+}
+
 date_schema = {
 'number':{
     'type': 'string',
@@ -710,7 +720,6 @@ def confirm_orders(code):
 
             if soap_result['ErrorCode'] == -6:
                 postal_code_db = cursor.postal_codes.find_one({'Code': result['stateCode']})
-                print("postal_code_db['Code']: ", postal_code_db['Code'])
                 postalCode_flag = 1
                 for i in range (len(postal_code_db['postalCodes'])):
                     if result['cityCode'] == postal_code_db['postalCodes'][i]['Code']:
@@ -1029,8 +1038,6 @@ def casePostAvval_confirm_order(orderId):
     SNationalCompanyCode = ""
     SCompanyName = ""
 
-    print('entered')
-
     result = cursor.caseTemp_orders.find_one({"orderId": orderId})
     case_result = cursor.case_orders.find_one({"orderId": orderId})
 
@@ -1046,8 +1053,6 @@ def casePostAvval_confirm_order(orderId):
         weight = weight + result['products'][i]['weight']
 
     token = utils.postAvval_token_generator()
-
-    print(token)
 
     now = datetime.datetime.now() - datetime.timedelta(minutes=1)
 
@@ -1625,7 +1630,6 @@ def edit_orders(orderId):
 
         service = utils.servicesForWageCalculation(pTypeCode)
         temp_wage = utils.calculateWage(cursor, edit_result['vendorName'], weight, service)
-        print(service, temp_wage)
         #temp_wage = utils.calculate_wage(edit_result['vendorName'], weight)
         deliveryPriceResult = utils.GetDeliveryPrice(int(request.form.get('cityCode')), price, weight, int(request.form.get('serviceType')), pTypeCode)
         temp_delivery_costs = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
@@ -2101,23 +2105,27 @@ def postAvval_orders():
             temp_order_products = []
             for i in range (1, 100):
                 if request.form.get('product_'+str(i)):
-                    cursor.case_inventory.update_many(
-                        {'productId': request.form.get('product_'+str(i))},
-                        {'$set':{
-                        'price': int(request.form.get('price_'+str(i))),
-                        'weight': int(request.form.get('weight_'+str(i))),
-                        }
-                        }
-                        )
-                    p_details = cursor.case_inventory.find_one({'productId': request.form.get('product_'+str(i))})
+                    #cursor.case_inventory.update_many(
+                        #{'productId': request.form.get('product_'+str(i))},
+                        #{'$set':{
+                        #'price': int(request.form.get('price_'+str(i))),
+                        #'weight': int(request.form.get('weight_'+str(i))),
+                        #}
+                        #}
+                        #)
+                    #p_details = cursor.case_inventory.find_one({'productId': request.form.get('product_'+str(i))})
                     temp_order_product = {}
-                    temp_order_product['productId'] = request.form.get('product_'+str(i))
-                    temp_order_product['productName'] = p_details['productName']
+                    #temp_order_product['productId'] = request.form.get('product_'+str(i))
+                    #temp_order_product['productName'] = p_details['productName']
+                    temp_order_product['productId'] = ""
+                    temp_order_product['productName'] = request.form.get('product_'+str(i))
                     temp_order_product['count'] = int(request.form.get('count_'+str(i)))
                     temp_order_product['price'] = int(request.form.get('price_'+str(i)))
-                    temp_order_product['weight'] = p_details['weight']
+                    #temp_order_product['weight'] = p_details['weight']
+                    temp_order_product['weight'] = int(request.form.get('weight_'+str(i)))
                     temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
-                    temp_order_product['description'] = p_details['description']
+                    #temp_order_product['description'] = p_details['description']
+                    temp_order_product['description'] = ""
 
                     temp_order_products.append(temp_order_product)
 
@@ -2394,7 +2402,6 @@ def inventory_management(sub_item):
                 int(request.form.get('weight')),
                 int(request.form.get('price')) + defaultWageForDefineStuff
                 )
-            print(edit_result)
             flash(u'ثبت شد!', 'success')
 
         elif sub_item == 'pack':
@@ -2833,7 +2840,6 @@ def inventory_transfer_accept(number):
 
     elif result['request_type'] == 'inc':
         vest_res = cursor.vestano_inventory.find_one({'productId': result['productId']})
-        print(vest_res['count'])
         if result['returned']:
             add = {
             'action': 'returned',
@@ -2935,7 +2941,6 @@ def inventory_transfer_accept(number):
         'exist_count': ves_res['count'] - result['count'],
         'person': u'حواله '+number
         }
-        print(dec)
         ves_res['record'].append(dec)
         if result['count'] > ves_res['count']:
             flash(u'تعداد مرجوعی از موجودی انبار بیشتر است!', 'danger')
@@ -3335,8 +3340,6 @@ def show_ticket(ticket_num):
                 {'$set': {'read': True}})
 
     if request.method == 'POST':
-        print('POST')
-        #print(request.form.get('ticket-sender-departement'))
         if request.form.get('ticket-departement'):
             dep = utils.tickets_departements(request.form.get('ticket-departement'))
             result['forward']['forward_from'].append(request.form.get('ticket-sender-departement'))
@@ -3356,7 +3359,6 @@ def show_ticket(ticket_num):
             return redirect(request.referrer)
 
         else:
-            print('hear')
             if not request.form.get('ticket-reply'):
                 flash(u'فیلد پاسخ خالی است!', 'danger')
                 return redirect(request.referrer)
@@ -3586,7 +3588,6 @@ def lias_export(sub_item):
     filename = '/root/vestano/static/pdf/xls/lias.xls'
     query_result = cursor.search_query.find({'search_item':'lias'}).limit(1).sort("_id", -1)
     if query_result.count():
-        print(query_result[0]['unique_id'])
         date_from = query_result[0]['datetime']
         prev_lias = query_result[0]['query_result']
         query_results_in_same_date = cursor.search_query.find({'search_item':'lias', 'datetime':date_from})
@@ -3602,7 +3603,6 @@ def lias_export(sub_item):
         prev_rec = []
         for order_id in prev_lias:
             prev_rec.append(cursor.orders.find_one({'orderId': order_id}))
-        print(prev_rec)
         utils.lias_write_excel(cursor, prev_rec)
         return send_file(filename, as_attachment=True)
 
@@ -4159,13 +4159,20 @@ def postAvval_price_ajax():
         price = int(request.args.get('price'))
         cityCode = int(request.args.get('city'))
         pType = int(request.args.get('pType'))
-        city = utils.convertPostAvvalCities(cityCode)[1]
-        sefareshi = utils.GetDeliveryPrice(city, price, weight, 1, pType)
-        pishtaz = utils.GetDeliveryPrice(city, price, weight, 2, pType)
-        result = {
-        'sefareshi': sefareshi['DeliveryPrice'] + sefareshi['VatTax'],
-        'pishtaz': pishtaz['DeliveryPrice'] + pishtaz['VatTax']
-        }
+        convert_result = utils.convertPostAvvalCities(cityCode)
+        if convert_result:
+            city = utils.convertPostAvvalCities(cityCode)[1]
+            sefareshi = utils.GetDeliveryPrice(city, price, weight, 2, pType)
+            pishtaz = utils.GetDeliveryPrice(city, price, weight, 1, pType)
+            result = {
+            'sefareshi': sefareshi['DeliveryPrice'] + sefareshi['VatTax'],
+            'pishtaz': pishtaz['DeliveryPrice'] + pishtaz['VatTax']
+            }
+        else:
+            result = {
+            'sefareshi': '-',
+            'pishtaz': '-'
+            }
     else:
         return redirect(request.referrer)
         
@@ -4206,6 +4213,14 @@ def validator_ajax():
         'number' : Data
         }
         if v.validate(data, nationalCode_schema):
+            return jsonify({'result': True})
+        else:
+            return jsonify({'result': False})
+    elif Type == 'postalCode':
+        data = {
+        'number' : Data
+        }
+        if v.validate(data, postalCode_schema):
             return jsonify({'result': True})
         else:
             return jsonify({'result': False})
@@ -4356,14 +4371,12 @@ def shipmentTrack_ajax():
 def fetch_stuff():
     if 'username' in session:
         product_id = request.args.get('code')
-        print(product_id)
         result = cursor.vestano_inventory.find_one({'productId': product_id})
         if not result:
             flash(u'شناسه کالا در انبار ثبت نشده است!', 'error')
             return False
         else:
             del result["_id"]
-            print(result)
     else:
         flash(u'لطفا ابتدا وارد شوید', 'error')
         return False
@@ -4522,7 +4535,7 @@ def pdf_generator(orderId):
             city = c['Name']
             break
 
-    delivery_result = utils.GetDeliveryPrice(case_result['cityCode'], price, weight, case_result['serviceType'], case_result['payType'])
+    #delivery_result = utils.GetDeliveryPrice(case_result['cityCode'], price, weight, case_result['serviceType'], case_result['payType'])
 
 
     pdfkit.from_string(render_template('includes/_caseOrderPdf.html',
