@@ -10,11 +10,11 @@
     <body class="card" style="direction: rtl; margin: 0 auto;">
       {% include 'includes/_messages.html' %}
       <form method="POST" action="">
-        <fieldset style="margin-bottom: 0; background: #fafafa;">
+        <fieldset style="margin-bottom: 0; background: #fafafa; height: 87vh;">
           <legend>ویرایش سفارش شماره {{data['orderId']}}</legend>
-          <table id="ordering">
+          <table style="height: 82vh; display: inline-block; overflow-y: scroll;">
             <thead></thead>
-            <tbody style="height: 100vh;">
+            <tbody>
               <tr>
                 <td>
                   <fieldset style="background: rgb(255,248,248);">
@@ -100,7 +100,7 @@
                             </select>
                           </td>
                           <td>
-                            <input id="count1" type="text" name="count_{{i+1}}" value="{{data['products'][i]['count']}}" size="4" onchange="anyChange()" required/>
+                            <input id="count{{i+1}}" type="text" name="count_{{i+1}}" value="{{data['products'][i]['count']}}" size="4" onchange="anyChange()" required/>
                           </td>
                           <td>
                             <input id="price{{i+1}}" type="text" name="price_{{i+1}}" value="{{data['products'][i]['price']}}" size="6" onchange="priceChange()" required/>
@@ -147,7 +147,7 @@
                     <legend>شیوه ارسال</legend>
                     <table id="order-1">
                       <tr>
-                        {% if sType==2 %}{% set ck2='checked' %}{% else %}{% set ck2ck2 = '' %}{% endif %}
+                        {% if sType==2 %}{% set ck2='checked' %}{% else %}{% set ck2 = '' %}{% endif %}
                         {% if sType==1 %}{% set ck1 = 'checked' %}{% else %}{% set ck1 = '' %}{% endif %}
                         {% if pType==88 %}{% set ck88 = 'checked' %}{% else %}{% set ck88 = '' %}{% endif %}
                         <td>
@@ -236,11 +236,13 @@
                   </fieldset>
                 </td>
               </tr>
+              <tr>
+                <td>
+                  <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت سفارش" />
+                </td>
+              </tr>
             </tbody>
           </table>
-          <div style="margin-right: 15px;">
-            <input style="font-size: 17px; font-family: BNazanin;" type="submit" value="ثبت سفارش" /> 
-          </div>
         </fieldset>
       </form>
 

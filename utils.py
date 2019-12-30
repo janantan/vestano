@@ -1785,9 +1785,7 @@ def postAvvalTypeOfServicesToString(serviceType, payType):
     else:
         return None
 
-    if payType==88:
-        pType = u'ارسال رایگان'
-    elif payType==1:
+    if payType==1:
         pType = u'پرداخت در محل'
     elif payType==2:
         pType = u'پرداخت آنلاین'
@@ -3251,6 +3249,27 @@ def dimension(value):
     elif value == "8":
         dimension = {"length": "60", "width": "45", "height": "30"}
     return dimension
+
+def dimensionToValue(dimension):
+    if dimension == {"length": "15", "width": "10", "height": "8"}:
+        value = (u'سایز نیم', "0")
+    elif dimension == {"length": "20", "width": "14", "height": "10"}:
+        value = (u'سایز 1', "1")
+    elif dimension == {"length": "24.5", "width": "17.5", "height": "12.5"}:
+        value = (u'سایز 2', "2")
+    elif dimension == {"length": "28", "width": "20", "height": "14"}:
+        value = (u'سایز 3', "3")
+    elif dimension == {"length": "30", "width": "22.5", "height": "15"}:
+        value = (u'سایز 4', "4")
+    elif dimension == {"length": "35", "width": "25", "height": "18"}:
+        value = (u'سایز 5', "5")
+    elif dimension == {"length": "40", "width": "27.5", "height": "20"}:
+        value = (u'سایز 6', "6")
+    elif dimension == {"length": "45", "width": "35", "height": "22.5"}:
+        value = (u'سایز 7', "7")
+    elif dimension == {"length": "60", "width": "45", "height": "30"}:
+        value = (u'سایز بزرگ', "8")
+    return value
 
 def convertPostAvvalCities(cityCode):
     states_result = cursor.postAvvalStates.find()

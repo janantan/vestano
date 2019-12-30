@@ -406,8 +406,16 @@ a.export {
     height: 5vh;
 }
 
+#order-1 tbody td {
+    width: 90vw;
+}
+
 #order-2 tbody {
     height: 8vh;
+}
+
+#order-2 tbody td {
+    width: 15vw;
 }
 
 /*sudo class*/

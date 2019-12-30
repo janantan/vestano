@@ -1,8 +1,8 @@
 <form method="POST" action="">
   <fieldset onclick="notShow()" style="margin-bottom: 0; background: #fafafa; height: 82vh;">
     <legend>لطفا سفارش خود را ثبت  کنید:</legend>
-    <table id="ordering">
-      <tbody style="height: 77vh;">
+    <table style="height: 77vh; display: inline-block; overflow-y: scroll;">
+      <tbody>
         <tr>
           <td>
             <fieldset style="background: rgb(255,248,248);">
@@ -42,7 +42,7 @@
                   </div>
                 </div>
 
-                <select id="s-state" style="display: none;" name="s_stateCode" onchange='cities()' required>
+                <select id="s-state" style="display: none;" name="s_stateCode" onchange='sCities()' required>
                   <option value="" disabled selected>استان</option>
                   {% for item in states %}
                     <option value="{{item[0]}}">{{item[1]}}</option>
@@ -363,7 +363,7 @@
     if (action == 'add'){
       clone.id = "row" + ++q;
       i_list.push(clone.id);
-      for (ii=0; ii<"{{(inventory|length)+2}}"; ii++) {
+      for (ii=0; ii<2; ii++) {
         var ex = "exist_count"+id_name.substring(3, id_name.length);
         clone.innerHTML = clone.innerHTML.replace(ex, "exist_count"+q);
         var p = "price"+id_name.substring(3, id_name.length);
@@ -372,14 +372,8 @@
         clone.innerHTML = clone.innerHTML.replace(d, "discount"+q);
         var w = "weight"+id_name.substring(3, id_name.length);
         clone.innerHTML = clone.innerHTML.replace(w, "weight"+q);
-      }
-      for (ii=0; ii<"{{(inventory|length)+3}}"; ii++) {
         var pr = "product"+id_name.substring(3, id_name.length);
         clone.innerHTML = clone.innerHTML.replace(pr, "product"+q);
-      }
-      for (ii=0; ii<"{{2*(inventory|length)+6}}"; ii++) {
-        var pr = "prdct"+id_name.substring(3, id_name.length);
-        clone.innerHTML = clone.innerHTML.replace(pr, "prdct"+q);
       }
       var title = "product_"+id_name.substring(3, id_name.length);
       clone.innerHTML = clone.innerHTML.replace(title, "product_"+q);
@@ -410,6 +404,35 @@
   function cities(){
     var state_code = document.getElementById("state").value;
     var city = document.getElementById("city");
+
+    if (state_code) {
+      const xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+
+              var json = JSON.parse(this.responseText);
+
+
+              city.options.length = 1;
+
+              for (var i = 0; i < json.Name.length; i++) {
+                  var opt = document.createElement('option');
+                  opt.value = json.Code[i];
+                  opt.innerHTML = json.Name[i];
+                  city.appendChild(opt);
+              }
+         }
+      }
+      xhr.open('GET', '/postAvvalAjax?code=' + state_code, true);
+      xhr.send(); 
+    } else {
+      city.options.length = 1;
+    }
+  }
+
+  function sCities(){
+    var state_code = document.getElementById("s-state").value;
+    var city = document.getElementById("s-city");
 
     if (state_code) {
       const xhr = new XMLHttpRequest();
