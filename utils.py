@@ -93,8 +93,8 @@ def caseTemp_orders(cursor):
     else:
         result = cursor.caseTemp_orders.find({'init_username': session['username']})
     temp = []
-    postAvvalOrder = False
     for r in result:
+        postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
         case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
@@ -128,8 +128,9 @@ def today_orders(cursor):
         result = cursor.today_orders.find({'vendorName': session['vendor_name']})
     else:
         result = cursor.today_orders.find()
-    postAvvalOrder = False
+    
     for r in result:
+        postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
         #write sender name instead of vendor name in case of case orders:
@@ -157,8 +158,9 @@ def canceled_orders(cursor):
     else:
         result = cursor.canceled_orders.find()
     cnl = []
-    postAvvalOrder = False
+    
     for r in result:
+        postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
         pNameList = []
@@ -179,8 +181,9 @@ def readyToShip_orders(cursor):
     else:
         result = cursor.ready_to_ship.find()
     rts = []
-    postAvvalOrder = False
+    
     for r in result:
+        postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
         pNameList = []
@@ -290,8 +293,9 @@ def all_orders(cursor, page):
     else:
         for i in range((REC_IN_EACH_PAGE*(page-1)), L):
             res.append(result[i])
-    postAvvalOrder = False
+    
     for r in result:
+        postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
     #)
@@ -312,8 +316,9 @@ def all_orders(cursor, page):
 def case_all_orders(cursor):
     result = cursor.orders.find({'vendorName': 'سفارش موردی'})
     all_list = []
-    postAvvalOrder = False
+    
     for r in result:
+        postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
         case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
@@ -336,8 +341,9 @@ def case_all_orders(cursor):
 def vendors_all_orders(cursor):
     result = cursor.orders.find({'vendorName': {'$ne': 'سفارش موردی'}})
     all_list = []
-    postAvvalOrder = False
+
     for r in result:
+        postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
         pNameList = []
@@ -354,8 +360,9 @@ def vendors_all_orders(cursor):
 
 def search_result(cursor, result):
     all_list = []
-    postAvvalOrder = False
+    
     for r in result:
+        postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
         case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
@@ -1591,6 +1598,13 @@ def details(cursor, orderId, code):
         else:
             rad = None
             cgd = None
+
+        #add wages to product price in cod orders for calculate deliveryPrice
+        if (not postAvvalOrder) and (not rad) and (not cgd) and (pType == 1):
+            s = wage + packing + carton + gathering
+            price_total = price + s
+        else:
+            price_total = price
     else:
         service = servicesForWageCalculation(pType)
         wage = calculateWage(cursor, r['vendorName'], Weight, service)
@@ -1623,7 +1637,7 @@ def details(cursor, orderId, code):
             if postAvvalOrder:
                 deliveryPrice = 0
             else:
-                deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price, Weight, sType, pType)
+                deliveryPriceResult = GetDeliveryPrice(r['cityCode'], price_total, Weight, sType, pType)
                 deliveryPrice = deliveryPriceResult['DeliveryPrice'] + deliveryPriceResult['VatTax']
             if 'temp_wage' in r.keys():
                 temp_wage = r['temp_wage']
@@ -1659,7 +1673,8 @@ def details(cursor, orderId, code):
         r['serviceType'], r['payType'], state_result['Name']+' - '+city+' - '+r['registerAddress'],
         r['products'],count, price, discount, orderId, status, temp_wage, parcelCode, deliveryPrice,
         senderName, senderCellNumber, senderPostalCode, Weight, packing, carton, gathering, rad,
-        cgd, grnt, r['registerPhoneNumber'], r['username'], r['init_username'], senderPhoneNumber, postAvvalOrder)
+        cgd, grnt, r['registerPhoneNumber'], r['username'], r['init_username'], senderPhoneNumber,
+        postAvvalOrder, price_total)
 
     return details
 

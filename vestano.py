@@ -575,6 +575,7 @@ def confirm_orders(code):
     result = cursor.temp_orders.find_one({"orderId": code})
     if not result:
         result = cursor.caseTemp_orders.find_one({"orderId": code})
+        case_result = cursor.case_orders.find_one({'orderId': code})
     if result:
         if 'registerPhoneNumber' not in result.keys():
             result['registerPhoneNumber'] = ""
@@ -604,11 +605,20 @@ def confirm_orders(code):
         for i in range(len(result['products'])):
             if result['vendorName'] == u'سفارش موردی':
 
+                if 'postAvvalFlag' not in case_result.keys():
+                    postAvvalOrder = False
+                else:
+                    postAvvalOrder = True
+
                 #define a new stuff for every case orders:
 
                 inv = cursor.case_inventory.find_one({'productId':result['products'][i]['productId']})
                 record = {}
                 record['productName'] = inv['productName']
+                #add wages to product price in cod orders
+                if (i==0) and (not postAvvalOrder) and (not case_result['rad']) and (not case_result['cgd']) and (case_result['payType'] == 1):
+                    s = case_result['wage'] + case_result['carton'] + case_result['gathering'] + case_result['packing']
+                    result['products'][i]['price'] = result['products'][i]['price'] + s
                 record['price'] = result['products'][i]['price']
                 record['weight'] = result['products'][i]['weight']
                 record['count'] = result['products'][i]['count']
@@ -752,7 +762,6 @@ def confirm_orders(code):
                 new_rec['status_updated'] = False
 
                 if new_rec['vendorName'] == u'سفارش موردی':
-                    case_result = cursor.case_orders.find_one({'orderId': new_rec['orderId']})
                     vestano_wage = case_result['wage']
                 else:
                     #vestano_wage = utils.calculate_wage(new_rec['vendorName'], weight)
@@ -1563,6 +1572,8 @@ def edit_orders(orderId):
             state_result = cursor.postAvvalStates.find_one({'Code': edit_result['stateCode']})
         else:
             state_result = cursor.states.find_one({'Code': edit_result['stateCode']})
+    else:
+        state_result = cursor.states.find_one({'Code': edit_result['stateCode']})
     stateName = state_result['Name']
     for rec in state_result['Cities']:
         if edit_result['cityCode'] == rec['Code']:

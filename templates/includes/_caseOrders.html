@@ -380,6 +380,17 @@
   function getDeliveryPrice() {
     var c = document.getElementById('city').value;
     if (document.getElementById('payType1').checked) {
+      var cgd = document.getElementById('cgd').checked;
+      var rad = document.getElementById('rad').checked;
+      if (!cgd && !rad) {
+        var wage = parseInt(document.getElementById('wage').value);
+        var packing = parseInt(document.getElementById('packing').value);
+        var carton = parseInt(document.getElementById('carton').value);
+        var gathering = parseInt(document.getElementById('gathering').value);
+        PRICE = Price + wage + packing + carton + gathering;
+      } else {
+        PRICE = Price;
+      }
       var pType = document.getElementById('payType1').value;
     } else if (document.getElementById('payType2').checked) {
       var pType = document.getElementById('payType2').value;
@@ -399,7 +410,7 @@
           //}
        }
     }
-    xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+Price+'&city='+c+'&pType='+pType, true);
+    xhr2.open('GET', '/price-ajax?weight='+Weight+'&price='+PRICE+'&city='+c+'&pType='+pType, true);
     xhr2.send();
   }
 
@@ -723,9 +734,9 @@
       productPriceAtDest();
     }
     else if ((cod) & (!post_free)) {
-      document.getElementById('price1').value = product_price + sum;
-      document.getElementById('price-sum').value = product_price + sum;
-      document.getElementById('onChange-product-price').value = product_price + sum;
+      //document.getElementById('price1').value = product_price + sum;
+      //document.getElementById('price-sum').value = product_price + sum;
+      //document.getElementById('onChange-product-price').value = product_price + sum;
       anyChange();
     }
     else if ((online) & (!post_free)) {
