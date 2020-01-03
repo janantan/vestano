@@ -1140,7 +1140,22 @@ def casePostAvval_confirm_order(orderId):
     new_rec['username'] = session['username']
     new_rec['datetime'] = jdatetime.datetime.today().strftime('%Y/%m/%d')
 
-    new_rec['status'] = 0
+    #calling ChangeStatus api
+    data3 = {
+    "code": str(response2['parcelCode']),
+    "providerBranchId": "12",
+    "providerStatusId": "4",
+    "dateAndTime": (datetime.datetime.now()).strftime('%Y-%m-%d %H:%M:%S')
+    }
+    print(data3)
+    change_status_result = utils.postAvval_change_status(data3, token)
+    print('change_status_result: ', change_status_result)
+
+    if not change_status_result:
+        flash(u'خطا در اعلام تغییر وضعیت!', 'error')
+        return redirect(request.referrer)
+    
+    new_rec['status'] = 4
     new_rec['status_updated'] = False
 
     costs = {
@@ -1152,7 +1167,6 @@ def casePostAvval_confirm_order(orderId):
     }
 
     new_rec['costs'] = costs
-
 
     new_rec['lastUpdate'] = datetime.datetime.now()
     cursor.orders.insert_one(new_rec)
@@ -4456,6 +4470,13 @@ def shipmentTrack_ajax():
             status = u'در صف پردازش و ارسال'
             status_datetime = ''
 
+        if r['rad']:
+            payType = u'کرایه در مقصد'
+        elif r['cgd']:
+            payType = u'هزینه کالا در مقصد'
+        else:
+            payType = result['payType']
+
     else:
         #senderName = u'سامانه پستی وستانو'
         senderName = u'فروشگاه ' + result['vendorName']
@@ -4467,7 +4488,12 @@ def shipmentTrack_ajax():
             status = u'در صف پردازش و ارسال'
             status_datetime = ''
 
-    state_result = cursor.states.find_one({'Code': result['stateCode']})
+        payType = result['payType']
+
+    if 'postAvvalFlag' in result.keys():
+        state_result = cursor.postAvvalStates.find_one({'Code': result['stateCode']})
+    else:
+        state_result = cursor.states.find_one({'Code': result['stateCode']})
     for rec in state_result['Cities']:
         if result['cityCode'] == rec['Code']:
             state = state_result['Name']
@@ -4493,6 +4519,7 @@ def shipmentTrack_ajax():
     'products': ('<br />'.join(pNameList)),
     'weight': str(weight_sum) + ' ' + u'گرم',
     'serviceType': result['serviceType'],
+    'payType': payType,
     'status': status + status_datetime,
     'parcelCode': result['parcelCode']
     }
@@ -4658,9 +4685,15 @@ def pdf_generator(orderId):
     else:
         state_result = cursor.states.find_one({'Code': case_result['stateCode']})
         (sType, pType) = utils.typeOfServicesToString(case_result['serviceType'], case_result['payType'])
+
+        if (not case_result['rad']) and (not case_result['cgd']) and (case_result['payType'] == 1):
+            s = case_result['wage'] + case_result['carton'] + case_result['gathering'] + case_result['packing']
+            price = price + s
+
         delivery_result = utils.GetDeliveryPrice(case_result['cityCode'], price, weight, case_result['serviceType'], case_result['payType'])
         deliveryPrice = delivery_result['DeliveryPrice']
         VatTax = delivery_result['VatTax']
+
     for c in state_result['Cities']:
         if c['Code'] == case_result['cityCode']:
             city = c['Name']

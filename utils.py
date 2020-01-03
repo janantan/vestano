@@ -97,6 +97,9 @@ def caseTemp_orders(cursor):
         postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
+            status = postAvvalStatusToString(r['status'])
+        else:
+            status = statusToString(r['status'])
         case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
         if case_result:
             sender_name = case_result['senderFirstName']+' '+case_result['senderLastName']
@@ -111,7 +114,7 @@ def caseTemp_orders(cursor):
             state_result = cursor.states.find_one({'Code': r['stateCode']})
         temp.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList, sender_name, postAvvalOrder))
+            status, pNameList, sender_name, postAvvalOrder))
     return temp
 
 def today_orders(cursor):
@@ -133,6 +136,9 @@ def today_orders(cursor):
         postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
+            status = postAvvalStatusToString(r['status'])
+        else:
+            status = statusToString(r['status'])
         #write sender name instead of vendor name in case of case orders:
         if r['vendorName'] == u'سفارش موردی':
             case_ord_res = cursor.case_orders.find_one({'orderId': r['orderId']})
@@ -149,7 +155,7 @@ def today_orders(cursor):
             state_result = cursor.states.find_one({'Code': r['stateCode']})
         today.append((r['orderId'], vendorName, r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList, postAvvalOrder))
+            status, pNameList, postAvvalOrder))
     return today
 
 def canceled_orders(cursor):
@@ -163,6 +169,9 @@ def canceled_orders(cursor):
         postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
+            status = postAvvalStatusToString(r['status'])
+        else:
+            status = statusToString(r['status'])
         pNameList = []
         for i in range(len(r['products'])):
             pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
@@ -172,7 +181,7 @@ def canceled_orders(cursor):
             state_result = cursor.states.find_one({'Code': r['stateCode']})
         cnl.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList, postAvvalOrder))
+            status, pNameList, postAvvalOrder))
     return cnl
 
 def readyToShip_orders(cursor):
@@ -185,7 +194,11 @@ def readyToShip_orders(cursor):
     for r in result:
         postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
+            print(r['orderId'])
             postAvvalOrder = True
+            status = postAvvalStatusToString(r['status'])
+        else:
+            status = statusToString(r['status'])
         pNameList = []
         for i in range(len(r['products'])):
             pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
@@ -195,7 +208,7 @@ def readyToShip_orders(cursor):
             state_result = cursor.states.find_one({'Code': r['stateCode']})
         rts.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList, postAvvalOrder))
+            status, pNameList, postAvvalOrder))
     return rts
 
 def guarantee_orders(cursor):
@@ -298,6 +311,9 @@ def all_orders(cursor, page):
         postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
+            status = postAvvalStatusToString(r['status'])
+        else:
+            status = statusToString(r['status'])
     #)
     #for r in result:
         pNameList = []
@@ -309,7 +325,7 @@ def all_orders(cursor, page):
             state_result = cursor.states.find_one({'Code': r['stateCode']})
         all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList, postAvvalOrder))
+            status, pNameList, postAvvalOrder))
     #return (all_list)
     return (all_list, L)
 
@@ -321,6 +337,9 @@ def case_all_orders(cursor):
         postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
+            status = postAvvalStatusToString(r['status'])
+        else:
+            status = statusToString(r['status'])
         case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
         if case_result:
             sender_name = case_result['senderFirstName']+' '+case_result['senderLastName']
@@ -335,7 +354,7 @@ def case_all_orders(cursor):
             state_result = cursor.states.find_one({'Code': r['stateCode']})
         all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList, sender_name, postAvvalOrder))
+            status, pNameList, sender_name, postAvvalOrder))
     return all_list
 
 def vendors_all_orders(cursor):
@@ -346,6 +365,9 @@ def vendors_all_orders(cursor):
         postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
+            status = postAvvalStatusToString(r['status'])
+        else:
+            status = statusToString(r['status'])
         pNameList = []
         for i in range(len(r['products'])):
             pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
@@ -355,16 +377,19 @@ def vendors_all_orders(cursor):
             state_result = cursor.states.find_one({'Code': r['stateCode']})
         all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList, postAvvalOrder))
+            status, pNameList, postAvvalOrder))
     return all_list
 
 def search_result(cursor, result):
     all_list = []
     
     for r in result:
-        postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
+            status = postAvvalStatusToString(r['status'])
+        else:
+            postAvvalOrder = False
+            status = statusToString(r['status'])
         case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
         if case_result:
             sender_name = case_result['senderFirstName']+' '+case_result['senderLastName']
@@ -379,7 +404,7 @@ def search_result(cursor, result):
             state_result = cursor.states.find_one({'Code': r['stateCode']})
         all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
-            statusToString(r['status']), pNameList, sender_name, postAvvalOrder))
+            status, pNameList, sender_name, postAvvalOrder))
     return all_list
 
 def inventory(cursor):
@@ -559,7 +584,12 @@ def financial_full(cursor):
             registerCost += r['costs']['registerCost']
             wage += r['costs']['wage']
 
-            status = statusToString(r['status'])
+            if 'postAvvalFlag' in r.keys():
+                postAvvalOrder = True
+                status = postAvvalStatusToString(r['status'])
+            else:
+                postAvvalOrder = False
+                status = statusToString(r['status'])
 
             if 'credit_req_status' not in r.keys():
                 r['credit_req_status'] = '-'
@@ -597,7 +627,7 @@ def case_financial_full(cursor):
     
     for r in result:
         #filter just three status
-        if (r['status'] in [11, 70, 71]) :
+        if (r['status'] in [11, 70, 71]) and ('postAvvalFlag' not in r.keys()):
             (sType, pType) = typeOfServicesToCode(r['serviceType'], r['payType'])
 
             #recalulate post delivery costs for returned orders
@@ -645,7 +675,12 @@ def case_financial_full(cursor):
             registerCost += r['costs']['registerCost']
             wage += r['costs']['wage']
 
-            status = statusToString(r['status'])
+            if 'postAvvalFlag' in r.keys():
+                postAvvalOrder = True
+                status = postAvvalStatusToString(r['status'])
+            else:
+                postAvvalOrder = False
+                status = statusToString(r['status'])
 
             if 'credit_req_status' not in r.keys():
                 r['credit_req_status'] = '-'
@@ -799,7 +834,7 @@ def case_financial(cursor, page):
     
     #filter just three status
     for r in result:
-        if (r['status'] in [11, 70, 71]) :
+        if (r['status'] in [11, 70, 71]) and ('postAvvalFlag' not in r.keys()) :
             filtered_res.append(r)
 
     L = len(filtered_res)
@@ -859,7 +894,12 @@ def case_financial(cursor, page):
         registerCost += r['costs']['registerCost']
         wage += r['costs']['wage']
 
-        status = statusToString(r['status'])
+        if 'postAvvalFlag' in r.keys():
+            postAvvalOrder = True
+            status = postAvvalStatusToString(r['status'])
+        else:
+            postAvvalOrder = False
+            status = statusToString(r['status'])
 
         if 'credit_req_status' not in r.keys():
             r['credit_req_status'] = '-'
@@ -1514,7 +1554,11 @@ def details(cursor, orderId, code):
             city = rec['Name']
             break
 
-    status = statusToString(r['status'])
+    if postAvvalOrder:
+        print(r['status'])
+        status = postAvvalStatusToString(r['status'])
+    else:
+        status = statusToString(r['status'])
 
     i = 0
     for p in r['products']:
@@ -1622,6 +1666,8 @@ def details(cursor, orderId, code):
             grnt = None
         rad = None
         cgd = None
+
+        price_total = price
 
     if 'costs' in r.keys():
         deliveryPrice = r['costs']['PostDeliveryPrice'] + r['costs']['VatTax']
@@ -2193,6 +2239,8 @@ def GetStatus(cursor, s):
     status_records = cursor.status.find()
     for rec in status_records:
 
+        if 'postAvvalFlag' in rec.keys():
+            continue
         if s == '0':
             if rec['status'] != 0:
                 continue
@@ -3163,7 +3211,7 @@ def postAvval_preCode(data, token):
     "User-Agent": "PostmanRuntime/7.21.0",
     }
     response = requests.post(test_url, data=data, headers=header)
-    #print(response.status_code)
+    print(response.status_code)
     #print(type(response.status_code))
     #print(response.json())
     if response.status_code not in [201, 200]:
@@ -3218,6 +3266,23 @@ def postAvval_cities(token, p_id):
     #print(response.status_code)
     #print(response.json())
     return response.json()
+
+def postAvval_change_status(data, token):
+    data = json.dumps(data)
+    test_url = "https://fpt.titec.ir/api/v1/parcel/changestatus"
+    url = 'https://tcapi.titec.ir/api/v1/parcel/changestatus'
+    bearer_token = "Bearer {}".format(token)
+    header = {
+    "authorization": bearer_token,
+    "Content-Type": "application/json",
+    "User-Agent": "PostmanRuntime/7.21.0",
+    }
+    response = requests.post(test_url, data=data, headers=header)
+    if response.status_code not in [201, 200]:
+        result = False
+    else:
+        result = response.json()
+    return result
 
 #set the "postAvvalStates" collection in database
 def creat_postAvvalStates_collection():
@@ -3302,3 +3367,62 @@ def convertPostAvvalCities(cityCode):
                 if r['Name'] == city:
                     return (State['Code'], r['Code'])
     return None
+
+def postAvvalStatusToString(statusCode):
+    statusCode = int(statusCode)
+    if statusCode==1:
+        statusString = u'ثبت سفارش'
+    if statusCode==2:
+        statusString = u'قبول'
+    if statusCode==3:
+        statusString = u'دریافت از محل فرستنده'
+    if statusCode==4:
+        statusString = u'دریافت از شعبه مبدا'
+    if statusCode==5:
+        statusString = u'دریافت از هاب مبدا'
+    if statusCode==6:
+        statusString = u'در مسیر شهر مقصد'
+    if statusCode==7:
+        statusString = u'دریافت در شعبه مقصد'
+    if statusCode==8:
+        statusString = u'دریافت در هاب مقصد'
+    if statusCode==9:
+        statusString = u'در مسیر توزیع'
+    if statusCode==10:
+        statusString = u'در مسیر هاب'
+    if statusCode==11:
+        statusString = u'در هاب'
+    if statusCode==12:
+        statusString = u'امتناع از تحویل گرفتن'
+    if statusCode==13:
+        statusString = u'عدم حضور در نشانی'
+    if statusCode==14:
+        statusString = u'نشانی صحیح نمی باشد'
+    if statusCode==15:
+        statusString = u'عودت (لطفا تا چهار روز با شعبه فرستنده تماس بگیرید)'
+    if statusCode==16:
+        statusString = u'مفقودی (با دفتر مرکزی تماس بگیرید)'
+    if statusCode==17:
+        statusString = u'پرونده خسارتی (با دفتر مرکزی تماس بگیرید)'
+    if statusCode==18:
+        statusString = u'تحویل مرسوله'
+    if statusCode==19:
+        statusString = u'تحویل عودتی به فرستنده'
+    if statusCode==20:
+        statusString = u'رسيدگی و جبران خسارت شد'
+    if statusCode==80:
+        statusString = u'در صف پردازش'
+    if statusCode==81:
+        statusString = u'ارسال شده از وستانو'
+    if statusCode==82:
+        statusString = u'در انتظار کالا'
+    if statusCode==83:
+        statusString = u'لغو شده'
+    if statusCode==84:
+        statusString = u'حذف از در انتظار کالا'
+    if statusCode==101:
+        statusString = u'عدم قبول'
+    if statusCode==102:
+        statusString = u'عدم تایيد'
+
+    return statusString

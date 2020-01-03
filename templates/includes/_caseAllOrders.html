@@ -48,9 +48,15 @@
 					<td style="width: 50px;">
 						<span>{{loop.index}}</span>
 					</td>
+					{% if all_orders[i][11] %}
+					<td>
+						<a title="{{('\n'.join(all_orders[i][9]))}}"><span id="postAvval-logo"></span><span style="float: right;">{{all_orders[i][0]}}</span></a>
+					</td>
+					{% else %}
 					<td>
 						<a title="{{('\n'.join(all_orders[i][9]))}}"><span>{{all_orders[i][0]}}</span></a>
 					</td>
+					{% endif %}
 					<td>
 						<span>{{all_orders[i][10]}}</span>
 					</td>

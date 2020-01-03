@@ -48,9 +48,15 @@
 					<td style="width: 50px;">
 						<span>{{loop.index}}</span>
 					</td>
+					{% if rec[10] %}
+					<td>
+						<a title="{{('\n'.join(rec[9]))}}"><span id="postAvval-logo"></span><span style="float: right;">{{rec[0]}}</span></a>
+					</td>
+					{% else %}
 					<td>
 						<a title="{{('\n'.join(rec[9]))}}"><span>{{rec[0]}}</span></a>
 					</td>
+					{% endif %}
 					<td>
 						<span>{{rec[1]}}</span>
 					</td>
