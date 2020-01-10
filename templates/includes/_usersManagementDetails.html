@@ -156,6 +156,7 @@
 								</tr>
 								{% if not api_user %}
 									
+									{% if 'postAvvalOrdering' in data['access'] %}{% set ck0='checked' %}{% else %}{% set ck0='' %}{% endif %}
 									{% if 'caseOrdering' in data['access'] %}{% set ck1='checked' %}{% else %}{% set ck1='' %}{% endif %}
 									{% if 'Ordering' in data['access'] %}{% set ck2='checked' %}{% else %}{% set ck2='' %}{% endif %}
 									{% if 'caseProcessList' in data['access'] %}{% set ck3='checked' %}{% else %}{% set ck3='' %}{% endif %}
@@ -311,6 +312,9 @@
 												<label><input id="access1" type="checkbox" {{ck1}} name="access" value="caseOrdering">ثبت سفارش موردی</label>
 											</td>
 											<td>
+												<label><input id="access0" type="checkbox" {{ck0}} name="access" value="postAvvalOrdering">ثبت سفارش پست اول</label>
+											</td>
+											<td>
 												<label><input id="access2" type="checkbox" {{ck2}} name="access" value="Ordering">ثبت سفارش</label>
 											</td>
 											<td>
@@ -458,11 +462,11 @@
 			function defaultAccess() {
 				var role = document.getElementById('role').value;
 				if (role == 'admin') {
-					for (i = 1; i < 37; i++) {
+					for (i = 0; i < 37; i++) {
 						document.getElementById('access'+i).checked = true;
 					}
 				} else if (role == 'office') {
-					for (i = 1; i < 37; i++) {
+					for (i = 0; i < 37; i++) {
 						document.getElementById('access'+i).checked = true;
 					}
 					for (i = 26; i <= 35; i++) {
@@ -470,7 +474,7 @@
 					}
 					document.getElementById('access22').checked = false;
 				} else if (role == 'vendor_admin') {
-					for (i = 1; i < 37; i++) {
+					for (i = 0; i < 37; i++) {
 						document.getElementById('access'+i).checked = false;
 					}
 					document.getElementById('access2').checked = true;
@@ -485,7 +489,7 @@
 						document.getElementById('access'+i).checked = true;
 					}
 				} else if (role == 'support') {
-					for (i = 1; i < 37; i++) {
+					for (i = 0; i < 37; i++) {
 						document.getElementById('access'+i).checked = false;
 					}
 					document.getElementById('access25').checked = true;

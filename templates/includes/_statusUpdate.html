@@ -1,17 +1,22 @@
 <div id="login-form">
-	<form method="POST" action="">
+	<form method="POST" action="" enctype="multipart/form-data">
 		<fieldset style="height: 82vh;">
 			<legend>بروز رسانی وضعیت مرسولات:</legend>
 			<div class="mrg-vh2">
 				<label class="right" for="status">لطفا یکی از حالتهای زیر را انتخاب کنید</label>
 				<select class="mrg-vh2" style="padding: 10px;" id="status" name="status">
+					<option value="">انتخاب کنید</option>
 					<option value="0">تحت بررسی</option>
 					<option value="2">آماده ارسال</option>
 					<option value="5">ارسال شده</option>
 					<option value="7">توزیع شده</option>
-					<option value="70">تایید مالی</option>
+					<!--<option value="70">تایید مالی</option>-->
 					<option value="other">سایر وضعیت  ها</option>
 				</select>
+			</div>
+			<div class="mrg-vh4">
+				<label class="right" for="settlement-file">لطفا فایل تسویه حساب را بارگذاری کنید</label>
+				<input class="mrg-vh2" type="file" name="settlement_file" id="settlement-file" placeholder="بارگذاری فایل" />
 			</div>
 			<div class="mrg-vh4">
 				<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="انجام بروزرسانی" />

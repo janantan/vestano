@@ -843,7 +843,7 @@ def confirm_orders(code):
                         without_ck = case_result['without_ck'],
                         rad = case_result['rad'],
                         cgd = case_result['cgd'],
-                        deliveryPrice = soap_result['PostDeliveryPrice'] + vestano_wage,
+                        deliveryPrice = soap_result['PostDeliveryPrice']+soap_result['VatTax']+vestano_wage,
                         VatTax = soap_result['VatTax']
                         ), 'static/pdf/caseOrders/orderId_'+new_rec['orderId']+'.pdf')
 
@@ -1103,7 +1103,7 @@ def casePostAvval_confirm_order(orderId):
     "serviceTypeId": str(case_result['serviceType']),
     "parcelTypeId": str(case_result['parcelType']),
     "providerBranchId": "12",
-    "providerCode": orderId,
+    "providerCode": str(orderId),
     "postage": str(case_result['wage']),
     "weight": str(float(weight)/1000),
     "insuredValue": str(price),
@@ -1145,7 +1145,7 @@ def casePostAvval_confirm_order(orderId):
     "code": str(response2['parcelCode']),
     "providerBranchId": "12",
     "providerStatusId": "4",
-    "dateAndTime": (datetime.datetime.now()).strftime('%Y-%m-%d %H:%M:%S')
+    "dateAndTime": str((now + datetime.timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S'))
     }
     print(data3)
     change_status_result = utils.postAvval_change_status(data3, token)
@@ -2236,7 +2236,7 @@ def case_orders():
 @app.route('/user-pannel/postAvval-orders', methods=['GET', 'POST'])
 @token_required
 def postAvval_orders():
-    if 'caseOrdering' not in session['access']:
+    if 'postAvvalOrdering' not in session['access']:
         flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
         return redirect(request.referrer)
 
@@ -2268,7 +2268,10 @@ def postAvval_orders():
                     temp_order_product['price'] = int(request.form.get('price_'+str(i)))
                     #temp_order_product['weight'] = p_details['weight']
                     temp_order_product['weight'] = int(request.form.get('weight_'+str(i)))
-                    temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
+                    if not request.form.get('discount_'+str(i)):
+                        temp_order_product['percentDiscount'] = 0
+                    else:
+                        temp_order_product['percentDiscount'] = int(request.form.get('discount_'+str(i)))
                     #temp_order_product['description'] = p_details['description']
                     temp_order_product['description'] = ""
 
@@ -4604,13 +4607,30 @@ def update_status():
 
     if request.method == 'POST':
         status = request.form.get('status')
-
-        update = utils.GetStatus(cursor, status)
-        if update:
-            flash(u"تغییرات بروزرسانی شد.", 'success')
+        settlement_file = request.files['settlement_file']
+        if not settlement_file.filename:
+            if status:
+                update = utils.GetStatus(cursor, status)
+                if update:
+                    flash(u"تغییرات بروزرسانی شد.", 'success')
+                else:
+                    flash(u"تغییری مشاهده نشد.", 'success')
+            else:
+                flash(u"فایلی انتخاب نشده است!", 'error')
         else:
-            flash(u"تغییری مشاهده نشد.", 'success')
-    #return redirect(request.referrer)
+            if settlement_file and utils.allowed_file(settlement_file.filename):
+                filename = secure_filename(settlement_file.filename)
+                file_path = '/root/vestano/static/pdf/settlementFile/'
+                #file_path = 'E:/projects/VESTANO/Vestano/static/pdf/settlementFile/'
+                settlement_file.save(os.path.join(file_path, filename))
+                update = utils.update_settlement_status(file_path+filename)
+                if update:
+                    flash(u"تغییرات بروزرسانی شد.", 'success')
+                else:
+                    flash(u"تغییری مشاهده نشد.", 'success')
+            else:
+                flash(u"نوع فایل معتبر نیست!", 'error')
+
     return render_template('user_pannel.html',
         item = "statusUpdate",
         )
@@ -4668,6 +4688,7 @@ def pdf_generator(orderId):
     weight = 0
     discount = 0
     case_result = cursor.case_orders.find_one({'orderId': orderId})
+    result = cursor.caseTemp_orders.find_one({'orderId': orderId})
 
     for i in range(len(case_result['products'])):
         price = price + case_result['products'][i]['price']*case_result['products'][i]['count']
@@ -4690,9 +4711,9 @@ def pdf_generator(orderId):
             s = case_result['wage'] + case_result['carton'] + case_result['gathering'] + case_result['packing']
             price = price + s
 
-        delivery_result = utils.GetDeliveryPrice(case_result['cityCode'], price, weight, case_result['serviceType'], case_result['payType'])
-        deliveryPrice = delivery_result['DeliveryPrice']
-        VatTax = delivery_result['VatTax']
+        #delivery_result = utils.GetDeliveryPrice(case_result['cityCode'], price, weight, case_result['serviceType'], case_result['payType'])
+        #deliveryPrice = delivery_result['DeliveryPrice']
+        #VatTax = delivery_result['VatTax']
 
     for c in state_result['Cities']:
         if c['Code'] == case_result['cityCode']:
@@ -4726,8 +4747,9 @@ def pdf_generator(orderId):
         without_ck = case_result['without_ck'],
         rad = case_result['rad'],
         cgd = case_result['cgd'],
-        deliveryPrice = deliveryPrice + vestano_wage,
-        VatTax = VatTax
+        #deliveryPrice = deliveryPrice + VatTax + vestano_wage,
+        deliveryPrice = result['temp_delivery_costs'] + vestano_wage
+        #VatTax = VatTax
         ), 'static/pdf/tempCaseOrders/orderId_'+orderId+'.pdf')
 
     filename = '/root/vestano/static/pdf/tempCaseOrders/orderId_'+orderId+'.pdf'

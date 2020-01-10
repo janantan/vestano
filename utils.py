@@ -1549,6 +1549,12 @@ def details(cursor, orderId, code):
     else:
         state_result = cursor.states.find_one({'Code': r['stateCode']})
 
+    #sabte code varizi (payInCode)
+    if 'payInCode' in r.keys():
+        payInCode = r['payInCode']
+    else:
+        payInCode = "-"
+
     for rec in state_result['Cities']:
         if r['cityCode'] == rec['Code']:
             city = rec['Name']
@@ -1720,7 +1726,7 @@ def details(cursor, orderId, code):
         r['products'],count, price, discount, orderId, status, temp_wage, parcelCode, deliveryPrice,
         senderName, senderCellNumber, senderPostalCode, Weight, packing, carton, gathering, rad,
         cgd, grnt, r['registerPhoneNumber'], r['username'], r['init_username'], senderPhoneNumber,
-        postAvvalOrder, price_total)
+        postAvvalOrder, price_total, payInCode)
 
     return details
 
@@ -1943,6 +1949,8 @@ def RolesToFarsi(role):
 def accessToFarsi(access):
     if access == 'caseOrdering':
         accessFarsi = u'ثبت سفارش موردی'
+    if access == 'postAvvalOrdering':
+        accessFarsi = u'ثبت سفارش پست اول'
     if access == 'Ordering':
         accessFarsi = u'ثبت سفارش'
     if access == 'caseProcessList':
@@ -3213,7 +3221,7 @@ def postAvval_preCode(data, token):
     response = requests.post(test_url, data=data, headers=header)
     print(response.status_code)
     #print(type(response.status_code))
-    #print(response.json())
+    print(response.json())
     if response.status_code not in [201, 200]:
         result = False
     else:
@@ -3278,6 +3286,9 @@ def postAvval_change_status(data, token):
     "User-Agent": "PostmanRuntime/7.21.0",
     }
     response = requests.post(test_url, data=data, headers=header)
+    print(response.status_code)
+    #print(type(response.status_code))
+    print(response.json())
     if response.status_code not in [201, 200]:
         result = False
     else:
@@ -3315,17 +3326,17 @@ def dimension(value):
     elif value == "1":
         dimension = {"length": "20", "width": "14", "height": "10"}
     elif value == "2":
-        dimension = {"length": "24.5", "width": "17.5", "height": "12.5"}
+        dimension = {"length": "24", "width": "17", "height": "12"}
     elif value == "3":
         dimension = {"length": "28", "width": "20", "height": "14"}
     elif value == "4":
-        dimension = {"length": "30", "width": "22.5", "height": "15"}
+        dimension = {"length": "30", "width": "22", "height": "15"}
     elif value == "5":
         dimension = {"length": "35", "width": "25", "height": "18"}
     elif value == "6":
-        dimension = {"length": "40", "width": "27.5", "height": "20"}
+        dimension = {"length": "40", "width": "27", "height": "20"}
     elif value == "7":
-        dimension = {"length": "45", "width": "35", "height": "22.5"}
+        dimension = {"length": "45", "width": "35", "height": "22"}
     elif value == "8":
         dimension = {"length": "60", "width": "45", "height": "30"}
     return dimension
@@ -3335,17 +3346,17 @@ def dimensionToValue(dimension):
         value = (u'سایز نیم', "0")
     elif dimension == {"length": "20", "width": "14", "height": "10"}:
         value = (u'سایز 1', "1")
-    elif dimension == {"length": "24.5", "width": "17.5", "height": "12.5"}:
+    elif dimension == {"length": "24", "width": "17", "height": "12"}:
         value = (u'سایز 2', "2")
     elif dimension == {"length": "28", "width": "20", "height": "14"}:
         value = (u'سایز 3', "3")
-    elif dimension == {"length": "30", "width": "22.5", "height": "15"}:
+    elif dimension == {"length": "30", "width": "22", "height": "15"}:
         value = (u'سایز 4', "4")
     elif dimension == {"length": "35", "width": "25", "height": "18"}:
         value = (u'سایز 5', "5")
-    elif dimension == {"length": "40", "width": "27.5", "height": "20"}:
+    elif dimension == {"length": "40", "width": "27", "height": "20"}:
         value = (u'سایز 6', "6")
-    elif dimension == {"length": "45", "width": "35", "height": "22.5"}:
+    elif dimension == {"length": "45", "width": "35", "height": "22"}:
         value = (u'سایز 7', "7")
     elif dimension == {"length": "60", "width": "45", "height": "30"}:
         value = (u'سایز بزرگ', "8")
@@ -3426,3 +3437,103 @@ def postAvvalStatusToString(statusCode):
         statusString = u'عدم تایيد'
 
     return statusString
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ['xlsx', 'xls']
+
+def update_settlement_status(src):
+    if_change = False
+    file = exel(src)
+    for i in range(1, file.nrows):
+        rec = cursor.status.find_one({'parcelCode': str(file.cell(i, 1).value)})
+        if rec:
+            if str(file.cell(i, 5).value) in ['1', '4']:
+                if_change = True
+                cursor.orders.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': 71,
+                    'payInCode' : str(file.cell(i, 4).value),
+                    'lastUpdate' : datetime.datetime.now(),
+                    'status_updated' : True
+                    }
+                    }
+                    )
+                cursor.today_orders.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': 71,
+                    'payInCode' : str(file.cell(i, 4).value)
+                    }
+                    }
+                    )
+                cursor.ready_to_ship.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': 71,
+                    'payInCode' : str(file.cell(i, 4).value)
+                    }
+                    }
+                    )
+                cursor.guarantee_orders.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': 71,
+                    'payInCode' : str(file.cell(i, 4).value)
+                    }
+                    }
+                    )
+                cursor.status.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': 71,
+                    'lastUpdate' : datetime.datetime.now()
+                    }
+                    }
+                    )
+            elif str(file.cell(i, 5).value) == '2':
+                if_change = True
+                cursor.orders.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': 11,
+                    'payInCode' : str(file.cell(i, 4).value),
+                    'lastUpdate' : datetime.datetime.now(),
+                    'status_updated' : True
+                    }
+                    }
+                    )
+                cursor.today_orders.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': 11,
+                    'payInCode' : str(file.cell(i, 4).value)
+                    }
+                    }
+                    )
+                cursor.ready_to_ship.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': 11,
+                    'payInCode' : str(file.cell(i, 4).value)
+                    }
+                    }
+                    )
+                cursor.guarantee_orders.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': 11,
+                    'payInCode' : str(file.cell(i, 4).value)
+                    }
+                    }
+                    )
+                cursor.status.update_many(
+                    {'parcelCode': rec['parcelCode']},
+                    {'$set':{
+                    'status': 11,
+                    'lastUpdate' : datetime.datetime.now()
+                    }
+                    }
+                    )
+    return if_change

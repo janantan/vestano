@@ -230,6 +230,9 @@
 												<label><input id="access1" type="checkbox" name="access" value="caseOrdering">ثبت سفارش موردی</label>
 											</td>
 											<td>
+												<label><input id="access0" type="checkbox" name="access" value="postAvvalOrdering">ثبت سفارش پست اول</label>
+											</td>
+											<td>
 												<label><input id="access2" type="checkbox" name="access" value="Ordering">ثبت سفارش</label>
 											</td>
 											<td>
@@ -382,7 +385,7 @@
 				document.getElementById('role').value = "";
 				document.getElementById('account-number').value = "";
 				document.getElementById('account-holder').value = "";
-				for (i = 1; i < 43; i++) {
+				for (i = 0; i < 43; i++) {
 					document.getElementById('access'+i).disabled = true;
 					document.getElementById('access'+i).checked = false;
 				}
@@ -395,7 +398,7 @@
 				document.getElementById('role').disabled = false;
 				document.getElementById('account-number').disabled = false;
 				document.getElementById('account-holder').disabled = false;
-				for (i = 1; i < 43; i++) {
+				for (i = 0; i < 43; i++) {
 					document.getElementById('access'+i).disabled = false;
 				}
 			}
@@ -405,11 +408,11 @@
 		function defaultAccess() {
 			var role = document.getElementById('role').value;
 			if (role == 'admin') {
-				for (i = 1; i < 43; i++) {
+				for (i = 0; i < 43; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
 			} else if (role == 'office') {
-				for (i = 1; i < 43; i++) {
+				for (i = 0; i < 43; i++) {
 					document.getElementById('access'+i).checked = true;
 				}
 				for (i = 24; i <= 37; i++) {
@@ -436,7 +439,7 @@
 				document.getElementById('access39').checked = false;
 				document.getElementById('access42').checked = false;
 			} else if (role == 'support') {
-				for (i = 1; i < 43; i++) {
+				for (i = 0; i < 43; i++) {
 					document.getElementById('access'+i).checked = false;
 				}
 				for (i = 38; i < 42; i++) {
