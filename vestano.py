@@ -3299,6 +3299,10 @@ def financial_settlement(number):
         return redirect(request.referrer)
 
     result = cursor.credit_requests.find_one({'number':number})
+    if 'settlement_remark' in result.keys():
+        settlement_remark = result['settlement_remark']
+    else:
+        settlement_remark = ''
     data = {
     'credit_price': result['credit_price'],
     'orders_count': len(result['orderId_list']),
@@ -3306,6 +3310,7 @@ def financial_settlement(number):
     'account_holder': result['account_holder'],
     'ref_number': result['ref_number'],
     'req_status': result['req_status'],
+    'settlement_remark': settlement_remark
     }
     if session['role'] != 'vendor_admin':
         if request.method == 'POST':
@@ -3313,6 +3318,7 @@ def financial_settlement(number):
                 {"number": number},
                 {'$set': {'req_status': u'واریز شد',
                 'ref_number': request.form.get('ref_number'),
+                'settlement_remark': request.form.get('settlement_remark'),
                 'paid_datetime': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M'),
                 'read': False}})
 

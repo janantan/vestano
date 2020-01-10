@@ -124,19 +124,31 @@
 		    				<label class="">شماره پیگیری واریز وجه:</label>
 		    				<input id="ref_number" type="text" name="ref_number" required />
 		    			</div>
+		    			<div class="mrg-vh4" style="margin-right: 4vw; float: right;">
+		    				<label class="">توضیحات:</label>
+		    				<textarea cols="40" id="settlement_remark" name="settlement_remark"></textarea>
+		    			</div>
 		    			<div style="float: right; margin-right: 4vw; margin-top: 8.5vh;">
 		    				<input style="font-size: 17px; font-family: BNazanin;" type="submit" onclick="closeWindow()" value="ثبت واریز وجه" />
 		    			</div><br>
 	    			{% else %}
-	    				<div class="mrg-vh4" style="margin-right: 4vw;">
+	    				<div class="mrg-vh4" style="margin-right: 4vw; float: right;">
 		    				<label class="">شماره پیگیری واریز وجه:</label>
 		    				<input id="ref_number" type="text" name="ref_number" value="{{data['ref_number']}}" disabled />
 		    			</div>
+		    			<div class="mrg-vh4" style="margin-right: 4vw; float: right;">
+		    				<label class="">توضیحات:</label>
+		    				<textarea cols="40" id="settlement_remark" name="settlement_remark" disabled>{{data['settlement_remark']}}</textarea>
+		    			</div>
 	    			{% endif %}
 	    		{% else %}
-	    			<div class="mrg-vh4" style="margin-right: 4vw;">
+	    			<div class="mrg-vh4" style="margin-right: 4vw; float: right;">
 	    				<label class="">شماره پیگیری واریز وجه:</label>
 	    				<input id="ref_number" type="text" name="ref_number" value="{{data['ref_number']}}" disabled />
+	    			</div>
+	    			<div class="mrg-vh4" style="margin-right: 4vw; float: right;">
+	    				<label class="">توضیحات:</label>
+	    				<textarea cols="40" id="settlement_remark" name="settlement_remark" disabled>{{data['settlement_remark']}}</textarea>
 	    			</div>
 	    		{% endif %}
     		</form>
