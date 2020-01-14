@@ -4607,7 +4607,7 @@ def enterance_details(productId):
 @app.route('/update-status', methods=['GET', 'POST'])
 @token_required
 def update_status():
-    if session['role'] == 'vendor_admin':
+    if (session['role'] == 'vendor_admin')  or (session['role'] == 'office'):
         flash(u'مجاز به حذف این درخواست نیستید!', 'error')
         return redirect(request.referrer)
 

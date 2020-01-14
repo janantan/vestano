@@ -1550,10 +1550,15 @@ def details(cursor, orderId, code):
         state_result = cursor.states.find_one({'Code': r['stateCode']})
 
     #sabte code varizi (payInCode)
-    if 'payInCode' in r.keys():
-        payInCode = r['payInCode']
+    payInCode = r['payInCode'] if 'payInCode' in r.keys() else "-"
+
+    #e'lane vaziate darkhaste vajh
+    if 'credit_req_status' in r.keys():
+        ifCreditPaid = True if r['credit_req_status'] == u'واریز شد' else False
+        settlement_ref_num = r['settlement_ref_number'] if 'settlement_ref_number' in r.keys() else ""
     else:
-        payInCode = "-"
+        ifCreditPaid = False
+        settlement_ref_num = ''
 
     for rec in state_result['Cities']:
         if r['cityCode'] == rec['Code']:
@@ -1726,7 +1731,7 @@ def details(cursor, orderId, code):
         r['products'],count, price, discount, orderId, status, temp_wage, parcelCode, deliveryPrice,
         senderName, senderCellNumber, senderPostalCode, Weight, packing, carton, gathering, rad,
         cgd, grnt, r['registerPhoneNumber'], r['username'], r['init_username'], senderPhoneNumber,
-        postAvvalOrder, price_total, payInCode)
+        postAvvalOrder, price_total, payInCode, ifCreditPaid, settlement_ref_num)
 
     return details
 
