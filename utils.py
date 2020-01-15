@@ -307,7 +307,7 @@ def all_orders(cursor, page):
         for i in range((REC_IN_EACH_PAGE*(page-1)), L):
             res.append(result[i])
     
-    for r in result:
+    for r in res:
         postAvvalOrder = False
         if 'postAvvalFlag' in r.keys():
             postAvvalOrder = True
@@ -3451,7 +3451,7 @@ def update_settlement_status(src):
     if_change = False
     file = exel(src)
     for i in range(1, file.nrows):
-        rec = cursor.status.find_one({'parcelCode': str(file.cell(i, 1).value)})
+        rec = cursor.orders.find_one({'parcelCode': str(file.cell(i, 1).value)})
         if rec:
             if str(file.cell(i, 5).value) in ['1', '4']:
                 if_change = True

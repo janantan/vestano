@@ -29,7 +29,7 @@
 						<span>{{details[0]}}</span>
 					</td>
 					<td>
-						<span class="blue bold">کد واریزی:</span>
+						<span class="blue bold font14">کد تسویه حساب:</span>
 					</td>
 					<td class="vw12">
 						<span class="font14">{{details[34]}}</span>
@@ -267,11 +267,11 @@
 								<span><input type="checkbox" {{grnt}} /></span>
 							</td>
 							<td>
-								<span class="blue bold font14">واریز وجه درخواستی:</span>
+								<span class="blue bold font14">واریز وستانو:</span>
 							</td>
 							<td>
 								{% if details[35] %}
-								<span><input type="checkbox" {{ifCreditPaid}} /></span><span class="font14">({{details[36]}})</span>
+								<span><input type="checkbox" {{ifCreditPaid}} /></span><span style="font-size: 12px;">{{details[36]}}</span>
 								{% else %}
 								<span><input type="checkbox" {{ifCreditPaid}} /></span>
 								{% endif %}
