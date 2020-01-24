@@ -3839,6 +3839,7 @@ def register():
                     cod['25-30'] = request.form.get('cod25_30')
                     cod['GT30'] = request.form.get('codGT30')
 
+                    users['variable_wage'] = {}
                     users['variable_wage']['online'] = online
                     users['variable_wage']['cod'] = cod
 
