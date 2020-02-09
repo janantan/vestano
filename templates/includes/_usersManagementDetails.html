@@ -207,87 +207,141 @@
 											</td>
 										</tr>
 										<tr class="access">
+											{% if 'Ordering' in session['access'] %}
 											<td>
 												<label><input id="access2" type="checkbox" {{ck2}} name="access" value="Ordering">ثبت سفارش</label>
 											</td>
+											{% endif %}
+											{% if 'processList' in session['access'] %}
 											<td>
 												<label><input id="access4" type="checkbox" {{ck4}} name="access" value="processList">صف پردازش (فروشگاه)</label>
 											</td>
+											{% endif %}
+											{% if 'todayOrders' in session['access'] %}
 											<td>
 												<label><input id="access5" type="checkbox" {{ck5}} name="access" value="todayOrders">سفارشات امروز</label>
 											</td>
+											{% endif %}
+											{% if 'cnlOrders' in session['access'] %}
 											<td>
 												<label><input id="access6" type="checkbox" {{ck6}} name="access" value="cnlOrders">سفارشات لغو شده</label>
 											</td>
+											{% endif %}
+											{% if 'pndOrders' in session['access'] %}
 											<td>
 												<label><input id="access8" type="checkbox" {{ck8}} name="access" value="pndOrders">سفارشات در انتظار کالا</label>
 											</td>
+											{% endif %}
+											{% if 'grntOrders' in session['access'] %}
 											<td>
 												<label><input id="access9" type="checkbox" {{ck9}} name="access" value="grntOrders">سفارشات گارانتی</label>
 											</td>
+											{% endif %}
+											{% if 'allOrders' in session['access'] %}
 											<td>
 												<label><input id="access12" type="checkbox" {{ck12}} name="access" value="allOrders">مشاهده همه سفارشات</label>
 											</td>
+											{% endif %}
+											{% if 'requestForStuff' in session['access'] %}
 											<td>
 												<label><input id="access14" type="checkbox" {{ck14}} name="access" value="requestForStuff">درخواست حواله و خروج از انبار</label>
 											</td>
+											{% endif %}
+											{% if 'newStuff' in session['access'] %}
 											<td>
 												<label><input id="access17" type="checkbox" {{ck17}} name="access" value="newStuff">افزودن کالای جدید</label>
 											</td>
+											{% endif %}
+											{% if 'incStuff' in session['access'] %}
 											<td>
 												<label><input id="access18" type="checkbox" {{ck18}} name="access" value="incStuff">افزودن کالای موجود</label>
 											</td>
+											{% endif %}
+											{% if 'editStuff' in session['access'] %}
 											<td>
 												<label><input id="access19" type="checkbox" {{ck19}} name="access" value="editStuff">ویرایش کالا</label>
 											</td>
+											{% endif %}
+											{% if 'newPack' in session['access'] %}
 											<td>
 												<label><input id="access20" type="checkbox" {{ck20}} name="access" value="newPack">ایجاد بسته</label>
 											</td>
+											{% endif %}
+											{% if 'releaseStuff' in session['access'] %}
 											<td>
 												<label><input id="access21" type="checkbox" {{ck21}} name="access" value="releaseStuff">خروج از انبار</label>
 											</td>
+											{% endif %}
+											{% if 'searchStuff' in session['access'] %}
 											<td>
 												<label><input id="access22" type="checkbox" {{ck22}} name="access" value="searchStuff">جستجو در انبار</label>
 											</td>
+											{% endif %}
+											{% if 'inventory' in session['access'] %}
 											<td>
 												<label><input id="access23" type="checkbox" {{ck23}} name="access" value="inventory">انبارداری</label>
 											</td>
+											{% endif %}
+											{% if 'financialRep' in session['access'] %}
 											<td>
 												<label><input id="access24" type="checkbox" {{ck24}} name="access" value="financialRep">صفحه مالی</label>
 											</td>
+											{% endif %}
+											{% if 'accounting' in session['access'] %}
 											<td>
 												<label><input id="access25" type="checkbox" {{ck25}} name="access" value="accounting">حسابداری</label>
 											</td>
+											{% endif %}
+											{% if 'vendorCredit' in session['access'] %}
 											<td>
 												<label><input id="access26" type="checkbox" {{ck26}} name="access" value="vendorCredit">بستانکاری فروشگاه</label>
 											</td>
+											{% endif %}
+											{% if 'creditList' in session['access'] %}
 											<td>
 												<label><input id="access27" type="checkbox" {{ck27}} name="access" value="creditList">لیست درخواست های واریز وجه</label>
 											</td>
+											{% endif %}
+											{% if 'paidList' in session['access'] %}
 											<td>
 												<label><input id="access28" type="checkbox" {{ck28}} name="access" value="paidList">مبالغ واریزی</label>
 											</td>
+											{% endif %}
+											{% if 'vendorTicket' in session['access'] %}
 											<td>
 												<label><input id="access29" type="checkbox" {{ck29}} name="access" value="vendorTicket">تیکت فروشگاه</label>
 											</td>
+											{% endif %}
+											{% if 'incCredit' in session['access'] %}
 											<td>
 												<label><input id="access35" type="checkbox" {{ck35}}  name="access" value="incCredit">افزایش اعتبار </label>
 											</td>
+											{% endif %}
+											{% if 'dashboard' in session['access'] %}
 											<td>
 												<label><input id="access36" type="checkbox" {{ck36}}  name="access" value="dashboard">داشبورد</label>
 											</td>
+											{% endif %}
+											{% if 'defineUser' in session['access'] %}
 											<td>
 												<label><input id="access37" type="checkbox" {{ck37}}  name="access" value="defineUser">ایجاد کاربری</label>
 											</td>
+											{% endif %}
+											{% if 'searchPage' in session['access'] %}
 											<td>
 												<label><input id="access38" type="checkbox" {{ck38}}  name="access" value="searchPage">صفحه جستجو</label>
 											</td>
+											{% endif %}
+											{% if 'searchInVendors' in session['access'] %}
 											<td>
 												<label><input id="access40" type="checkbox" {{ck40}} name="access" value="searchInVendors">جستجو - سفارشات فروشگاهی</label>
 											</td>
+											{% endif %}
+											{% if 'searchInAccounting' in session['access'] %}
 											<td>
 												<label><input id="access41" type="checkbox" {{ck41}} name="access" value="searchInAccounting">جستجو - حسابداری</label>
 											</td>
+											{% endif %}
 										</tr>
 									{% else %}
 										<tr>
@@ -308,136 +362,221 @@
 										</td>
 									</tr>
 										<tr class="access">
+											{% if 'caseOrdering' in session['access'] %}
 											<td>
 												<label><input id="access1" type="checkbox" {{ck1}} name="access" value="caseOrdering">ثبت سفارش موردی</label>
 											</td>
+											{% endif %}
+											{% if 'postAvvalOrdering' in session['access'] %}
 											<td>
 												<label><input id="access0" type="checkbox" {{ck0}} name="access" value="postAvvalOrdering">ثبت سفارش پست اول</label>
 											</td>
+											{% endif %}
+											{% if 'Ordering' in session['access'] %}
 											<td>
 												<label><input id="access2" type="checkbox" {{ck2}} name="access" value="Ordering">ثبت سفارش</label>
 											</td>
+											{% endif %}
+											{% if 'caseProcessList' in session['access'] %}
 											<td>
 												<label><input id="access3" type="checkbox" {{ck3}} name="access" value="caseProcessList">صف پردازش (موردی)</label>
 											</td>
+											{% endif %}
+											{% if 'processList' in session['access'] %}
 											<td>
 												<label><input id="access4" type="checkbox" {{ck4}} name="access" value="processList">صف پردازش (فروشگاه)</label>
 											</td>
+											{% endif %}
+											{% if 'todayOrders' in session['access'] %}
 											<td>
 												<label><input id="access5" type="checkbox" {{ck5}} name="access" value="todayOrders">سفارشات امروز</label>
 											</td>
+											{% endif %}
+											{% if 'cnlOrders' in session['access'] %}
 											<td>
 												<label><input id="access6" type="checkbox" {{ck6}} name="access" value="cnlOrders">سفارشات لغو شده</label>
 											</td>
+											{% endif %}
+											{% if 'rtsOrders' in session['access'] %}
 											<td>
 												<label><input id="access7" type="checkbox" {{ck7}} name="access" value="rtsOrders">سفارشات آماده ارسال</label>
 											</td>
+											{% endif %}
+											{% if 'pndOrders' in session['access'] %}
 											<td>
 												<label><input id="access8" type="checkbox" {{ck8}} name="access" value="pndOrders">سفارشات در انتظار کالا</label>
 											</td>
+											{% endif %}
+											{% if 'grntOrders' in session['access'] %}
 											<td>
 												<label><input id="access9" type="checkbox" {{ck9}} name="access" value="grntOrders">سفارشات گارانتی</label>
 											</td>
+											{% endif %}
+											{% if 'caseAllOrders' in session['access'] %}
 											<td>
 												<label><input id="access10" type="checkbox" {{ck10}} name="access" value="caseAllOrders">همه سفارشات موردی</label>
 											</td>
+											{% endif %}
+											{% if 'vendorsAllOrders' in session['access'] %}
 											<td>
 												<label><input id="access11" type="checkbox" {{ck11}} name="access" value="vendorsAllOrders">همه سفارشات فروشگاهی</label>
 											</td>
+											{% endif %}
+											{% if 'allOrders' in session['access'] %}
 											<td>
 												<label><input id="access12" type="checkbox" {{ck12}} name="access" value="allOrders">مشاهده همه سفارشات</label>
 											</td>
+											{% endif %}
+											{% if 'inventManagement' in session['access'] %}
 											<td>
 												<label><input id="access13" type="checkbox" {{ck13}} name="access" value="inventManagement">مدیریت انبار</label>
 											</td>
+											{% endif %}
+											{% if 'requestForStuff' in session['access'] %}
 											<td>
 												<label><input id="access14" type="checkbox" {{ck14}} name="access" value="requestForStuff">درخواست حواله و خروج از انبار</label>
 											</td>
+											{% endif %}
+											{% if 'caseNewStuff' in session['access'] %}
 											<td>
 												<label><input id="access15" type="checkbox" {{ck15}} name="access" value="caseNewStuff">افزودن کالای موردی</label>
 											</td>
+											{% endif %}
+											{% if 'caseEditStuff' in session['access'] %}
 											<td>
 												<label><input id="access16" type="checkbox" {{ck16}} name="access" value="caseEditStuff">ویرایش کالای موردی</label>
 											</td>
+											{% endif %}
+											{% if 'newStuff' in session['access'] %}
 											<td>
 												<label><input id="access17" type="checkbox" {{ck17}} name="access" value="newStuff">افزودن کالای جدید</label>
 											</td>
+											{% endif %}
+											{% if 'incStuff' in session['access'] %}
 											<td>
 												<label><input id="access18" type="checkbox" {{ck18}} name="access" value="incStuff">افزودن کالای موجود</label>
 											</td>
+											{% endif %}
+											{% if 'editStuff' in session['access'] %}
 											<td>
 												<label><input id="access19" type="checkbox" {{ck19}} name="access" value="editStuff">ویرایش کالا</label>
 											</td>
+											{% endif %}
+											{% if 'newPack' in session['access'] %}
 											<td>
 												<label><input id="access20" type="checkbox" {{ck20}} name="access" value="newPack">ایجاد بسته</label>
 											</td>
+											{% endif %}
+											{% if 'releaseStuff' in session['access'] %}
 											<td>
 												<label><input id="access21" type="checkbox" {{ck21}} name="access" value="releaseStuff">خروج از انبار</label>
 											</td>
+											{% endif %}
+											{% if 'searchStuff' in session['access'] %}
 											<td>
 												<label><input id="access22" type="checkbox" {{ck22}} name="access" value="searchStuff">جستجو در انبار</label>
 											</td>
+											{% endif %}
+											{% if 'inventory' in session['access'] %}
 											<td>
 												<label><input id="access23" type="checkbox" {{ck23}} name="access" value="inventory">انبارداری</label>
 											</td>
+											{% endif %}
+											{% if 'financialRep' in session['access'] %}
 											<td>
 												<label><input id="access24" type="checkbox" {{ck24}} name="access" value="financialRep">صفحه مالی</label>
 											</td>
+											{% endif %}
+											{% if 'accounting' in session['access'] %}
 											<td>
 												<label><input id="access25" type="checkbox" {{ck25}} name="access" value="accounting">حسابداری</label>
 											</td>
+											{% endif %}
+											{% if 'vendorCredit' in session['access'] %}
 											<td>
 												<label><input id="access26" type="checkbox" {{ck26}} name="access" value="vendorCredit">بستانکاری فروشگاه</label>
 											</td>
+											{% endif %}
+											{% if 'creditList' in session['access'] %}
 											<td>
 												<label><input id="access27" type="checkbox" {{ck27}} name="access" value="creditList">لیست درخواست های واریز وجه</label>
 											</td>
+											{% endif %}
+											{% if 'paidList' in session['access'] %}
 											<td>
 												<label><input id="access28" type="checkbox" {{ck28}} name="access" value="paidList">مبالغ واریزی</label>
 											</td>
+											{% endif %}
+											{% if 'vendorTicket' in session['access'] %}
 											<td>
 												<label><input id="access29" type="checkbox" {{ck29}} name="access" value="vendorTicket">تیکت فروشگاه</label>
 											</td>
+											{% endif %}
+											{% if 'adminTicket' in session['access'] %}
 											<td>
 												<label><input id="access30" type="checkbox" {{ck30}} name="access" value="adminTicket">تیکت مدیریت</label>
 											</td>
+											{% endif %}
+											{% if 'ordersTicket' in session['access'] %}
 											<td>
 												<label><input id="access31" type="checkbox" {{ck31}} name="access" value="ordersTicket">تیکت سفارشات</label>
 											</td>
+											{% endif %}
+											{% if 'inventoryTicket' in session['access'] %}
 											<td>
 												<label><input id="access32" type="checkbox" {{ck32}} name="access" value="inventoryTicket">تیکت انبارداری</label>
 											</td>
+											{% endif %}
+											{% if 'financialTicket' in session['access'] %}
 											<td>
 												<label><input id="access33" type="checkbox" {{ck33}}  name="access" value="financialTicket">تیکت حسابداری</label>
 											</td>
+											{% endif %}
+											{% if 'techTicket' in session['access'] %}
 											<td>
 												<label><input id="access34" type="checkbox" {{ck34}}  name="access" value="techTicket">تیکت فنی</label>
 											</td>
-
+											{% endif %}
+											{% if 'incCredit' in session['access'] %}
 											<td>
 												<label><input id="access35" type="checkbox" {{ck35}}  name="access" value="incCredit">افزایش اعتبار </label>
 											</td>
+											{% endif %}
+											{% if 'dashboard' in session['access'] %}
 											<td>
 												<label><input id="access36" type="checkbox" {{ck36}}  name="access" value="dashboard">داشبورد</label>
 											</td>
+											{% endif %}
+											{% if 'defineUser' in session['access'] %}
 											<td>
 												<label><input id="access37" type="checkbox" {{ck37}}  name="access" value="defineUser">ایجاد کاربری</label>
 											</td>
+											{% endif %}
+											{% if 'wageManagement' in session['access'] %}
 											<td>
 												<label><input id="access42" type="checkbox" {{ck42}}  name="access" value="wageManagement">مدیریت کارمزدها</label>
 											</td>
+											{% endif %}
+											{% if 'searchPage' in session['access'] %}
 											<td>
 												<label><input id="access38" type="checkbox" {{ck38}}  name="access" value="searchPage">صفحه جستجو</label>
 											</td>
+											{% endif %}
+											{% if 'searchInCases' in session['access'] %}
 											<td>
 												<label><input id="access39" type="checkbox" {{ck39}} name="access" value="searchInCases">جستجو - سفارشات موردی</label>
 											</td>
+											{% endif %}
+											{% if 'searchInVendors' in session['access'] %}
 											<td>
 												<label><input id="access40" type="checkbox" {{ck40}} name="access" value="searchInVendors">جستجو - سفارشات فروشگاهی</label>
 											</td>
+											{% endif %}
+											{% if 'searchInAccounting' in session['access'] %}
 											<td>
 												<label><input id="access41" type="checkbox" {{ck41}} name="access" value="searchInAccounting">جستجو - حسابداری</label>
 											</td>
+											{% endif %}
 										</tr>
 									{% endif %}
 								{% endif %}

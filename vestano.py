@@ -3283,6 +3283,7 @@ def request_credit():
                 {"orderId": orderId},
                 {'$set': {'credit_req_status': record['req_status']}})
         flash(u'درخواست واریز وجه با موفقیت ثبت شد. شماره ارجاع: '+record['number'], 'success')
+        return redirect(url_for('financial', sub_item='credit', page='all'))
 
     return render_template('includes/_requestCredit.html',
         price = price,

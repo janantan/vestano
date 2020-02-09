@@ -7,13 +7,13 @@
         <meta name="viewport" content="width=device-width,initial-scale=1.0" />
         <link rel="stylesheet" type="text/css" href="/static/css/vestano.css" />
     </head>
-    <body class="card" style="direction: rtl; margin: 0 auto;">
+    <body class="card" style="direction: rtl; margin: 0 auto;" onunload="closeWindow()">
     	{% include 'includes/_messages.html' %}
     	<fieldset class="fieldset font16" style="background-color: #bcd1fe; height: 85vh;">
     		<div style="margin-bottom: 2vh; font-weight: bold;">
     			<span>* جزئیات درخواست واریز وجه:</span>
     		</div>
-    		<form method="POST" action="" style="padding: 0 4vw;">
+    		<form id="credit-request" method="POST" action="" style="padding: 0 4vw;">
     			<div class="mrg-vh2" style="float: right; width: 25%; margin-right: 4vw;">
     				<label class="">مبلغ درخواستی (ریال):</label>
     				<input id="temp" type="text" value="{{price}}" name="temp" disabled required />
@@ -125,26 +125,27 @@
 						</tbody>
 					</table>
     			</fieldset>
-    			<div class="mrg-vh4" style="margin-right: 4vw;">
-    				<input style="font-size: 17px; font-family: BNazanin;" type="submit" onclick="closeWindow()" value="تایید و درخواست وجه" />
-    				<span class="font14" style="font-family: B-Roya;">(مبلغ درخواستی پس از بررسی حداکثر تا 2 روز کاری دیگر به حساب شما واریز خواهد شد.)</span>
-    			</div>
     		</form>
+    		<div class="mrg-vh4" style="margin-right: 4vw;">
+				<button style="font-size: 17px; font-family: BNazanin;" type="button" onclick="formSubmit()"/>تایید و درخواست وجه</button>
+				<span class="font14" style="font-family: B-Roya;">(مبلغ درخواستی پس از بررسی حداکثر تا 2 روز کاری دیگر به حساب شما واریز خواهد شد.)</span>
+			</div>
 		</fieldset>
 
 		<script type="text/javascript">
 			var flag = 0;
+
 			function showDetails() {
 				flag = 1;
 				document.getElementById("accounting").style.display = 'block';
 			}
-
+			
 			function closeWindow() {
-				//alert('clicked')
-				window.setTimeout(function(){
-					window.opener.location.reload();
-					close();
-				}, 2000);
+				window.opener.location.reload();
+			}
+
+			function formSubmit() {
+				document.getElementById('credit-request').submit();
 			}
 		</script>
     </body>
