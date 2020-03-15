@@ -193,6 +193,16 @@ class SomeSoapService(spyne.Service):
                 (sType, pType) = utils.typeOfServicesToString(serviceType, payType)
 
                 order_id = str(random2.randint(10000000, 99999999))
+                #prevent generating duplicate orderId
+                while True:
+                    duplicated_orderId = cursor.orderId_db.find_one({"orderId": order_id})
+                    print (duplicated_orderId)
+                    if duplicated_orderId:
+                        order_id = str(random2.randint(10000000, 99999999))
+                    else:
+                        break
+                #insert new orderId in orderId_db
+                cursor.orderId_db.insert_one({'orderId':order_id})
 
                 input_data = {
                 'vendorName' : user_result['vendor_name'],
@@ -2061,6 +2071,16 @@ def ordering(item):
                 #print(utils.test_temp_order(temp_order))
 
                 orderId = str(random2.randint(1000000, 9999999))
+                #prevent generating duplicate orderId
+                while True:
+                    duplicated_orderId = cursor.orderId_db.find_one({"orderId": orderId})
+                    print (duplicated_orderId)
+                    if duplicated_orderId:
+                        orderId = str(random2.randint(10000000, 99999999))
+                    else:
+                        break
+                #insert new orderId in orderId_db
+                cursor.orderId_db.insert_one({'orderId':orderId})
 
                 input_data = {
                 'vendorName' : request.form.get('vendor_name'),
@@ -2158,6 +2178,16 @@ def case_orders():
             (sType, pType) = utils.typeOfServicesToString(serviceType, pTypeCode)
 
             orderId = str(random2.randint(1000000, 9999999))
+            #prevent generating duplicate orderId
+            while True:
+                duplicated_orderId = cursor.orderId_db.find_one({"orderId": orderId})
+                print (duplicated_orderId)
+                if duplicated_orderId:
+                    orderId = str(random2.randint(10000000, 99999999))
+                else:
+                    break
+            #insert new orderId in orderId_db
+            cursor.orderId_db.insert_one({'orderId':orderId})
 
             input_data = {
             'vendorName' : u'سفارش موردی',
@@ -2287,6 +2317,16 @@ def postAvval_orders():
                 recieverIsLegal = True
 
             orderId = str(random2.randint(1000000, 9999999))
+            #prevent generating duplicate orderId
+            while True:
+                duplicated_orderId = cursor.orderId_db.find_one({"orderId": orderId})
+                print (duplicated_orderId)
+                if duplicated_orderId:
+                    orderId = str(random2.randint(10000000, 99999999))
+                else:
+                    break
+            #insert new orderId in orderId_db
+            cursor.orderId_db.insert_one({'orderId':orderId})
 
             input_data = {
             'vendorName' : u'سفارش موردی',
