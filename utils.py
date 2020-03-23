@@ -2200,6 +2200,21 @@ def transfer_details(cursor, number):
             #result['exist_count'] = r_result['count']
     return result
 
+#test of a method for android app api
+def RegisterOnApp():
+    client = Client(VESTANO_API)
+    result = client.service.RegisterOnApp(
+        username = 'jan',
+        password = '123',
+        name = u'محمدرضا بابالو',
+        email = 'mr_babalou@yahoo.com',
+        phone = '09393876076',
+        role = 'developer',
+        app_username = 'bl',
+        app_password = '123'
+        )
+    print(result)
+    
 def GetCities(stateId):
     client = Client(API_URI)
     #Get list of cities

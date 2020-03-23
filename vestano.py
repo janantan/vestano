@@ -306,6 +306,48 @@ class SomeSoapService(spyne.Service):
         else:
             return 102
 
+    #API for android app
+    @spyne.srpc(String, String, Unicode, String, String, String, String, String, _returns=String)
+    def RegisterOnApp(username, password, name, email, phone, role, app_username, app_password):
+        if not username:
+            return '3'
+        if not password:
+            return '3'
+        if not app_username:
+            return '3'
+        if not app_password:
+            return '3'
+        if not name:
+            return '3'
+        if not email:
+            email = ''
+        if not phone:
+            return '3'
+        if not role:
+            return '3'
+        api_user_result = cursor.api_users.find_one({"username": username})
+        if api_user_result:
+            if sha256_crypt.verify(password, api_user_result['password']):
+                app_user_result = cursor.app_users.find_one({"username": app_username})
+                if app_user_result:
+                    return '1'
+                else:
+                    users = {'created_date': jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')}
+                    users['name'] = name
+                    users['email'] = email
+                    users['phone'] = phone
+                    users['role'] = role
+                    users['username'] = app_username
+                    users['password'] = sha256_crypt.hash(str(app_password))
+                    users['user_id'] = str(uuid.uuid4()).upper()
+                    cursor.app_users.insert_one(users)
+                    if role == 'developer':
+                        cursor.apiKey_pool.insert_one({'apiKey':users['user_id']})
+                        return users['user_id']
+                    return '0'
+        else:
+            return '3'
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -448,7 +490,126 @@ def token_required(f):
 @app.route('/badrequest400')
 def bad_request():
     return abort(403)
+
+@app.route('/api/v1.0/connect/token', methods=['POST'])
+def rest_api_token():
+    api_key = str(request.args.get('API_KEY'))
+    if cursor.apiKey_pool.find_one({'apiKey':api_key}):
+        TOKEN = jwt.encode({'API_KEY':api_key,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=2)},
+            app.secret_key, algorithm='HS256')
+        token = TOKEN.decode('UTF-8')
+        status = 'success'
+        message =  {'access token': token, 'expires in': 120, "token_type": "Bearer"}
+    else:
+        status = 'unauthorized'
+        message = {'error': 'Not valid API key!'}
+    return jsonify({'status': status, 'message': message})
+
+@app.route('/api/v1.0/login/post', methods=['POST'])
+def loginToApp_rest_api():
+    auth = str(request.headers.get('Authorization')).split(' ')[1]
+    try:
+        data = jwt.decode(auth, app.secret_key, algorithm='HS256')
+        if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
+            app_username = str(request.args.get('username'))
+            app_password = str(request.args.get('password'))
+            app_user_result = cursor.app_users.find_one({"username": app_username})
+            if app_user_result:
+                if sha256_crypt.verify(app_password, app_user_result['password']):
+                    status = 'success'
+                    message = {'data': {
+                    'username': app_user_result['username'],
+                    'name': app_user_result['name'],
+                    'phoneNumber': app_user_result['phone'],
+                    'email': app_user_result['email']
+                    }}
+                else:
+                    status = 'not found'
+                    message = {'error': 'Password not Matched!'}
+            else:
+                status = 'not found'
+                message = {'error': 'Password not Matched!'}
+        else:
+            status = 'unauthorized'
+            message = {'error': 'Not authorized request!'}
+    except:
+        status = 'unauthorized'
+        message = {'error': 'Not authorized request!'}
+    return jsonify({'status': status, 'message': message})
+
+@app.route('/api/v1.0/location/post', methods=['POST'])
+def post_loc_rest_api():
+    auth = str(request.headers.get('Authorization')).split(' ')[1]
+    try:
+        data = jwt.decode(auth, app.secret_key, algorithm='HS256')
+        if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
+            app_username = str(request.args.get('username'))
+            lat = str(request.args.get('lat'))
+            lon = str(request.args.get('lon'))
+            now = jdatetime.datetime.now()
+            now_date = str(now.strftime('%Y/%m/%d'))
+            loc = []
+            loc.append((lat, lon, now.strftime('%Y/%m/%d %H:%M:%S')))
+            user_result = cursor.location.find_one({'username': app_username})
+            if user_result:
+                if now_date in user_result.keys():
+                    old_loc = user_result[now_date]
+                    old_loc.append((lat, lon, now.strftime('%Y/%m/%d %H:%M:%S')))
+                    cursor.location.update_many(
+                        {'username': app_username},
+                        {'$set':{now_date: old_loc}}
+                        )
+                else:
+                    cursor.location.update_many(
+                        {'username': app_username},
+                        {'$set':{now_date: loc}}
+                        )
+            else:
+                loc_record = {'username': app_username}
+                loc_record[now_date] = loc
+                cursor.location.insert_one(loc_record)
+            status = 'success'
+            message = {'data': loc}
+        else:
+            status = 'unauthorized'
+            message = {'error': 'Not authorized request!'}
+    except:
+        status = 'unauthorized'
+        message = {'error': 'Not authorized request!'}
+    return jsonify({'status': status, 'message': message})
    
+@app.route('/api/v1.0/location/get', methods=['GET'])
+def get_loc_rest_api():
+    auth = str(request.headers.get('Authorization')).split(' ')[1]
+    try:
+        data = jwt.decode(auth, app.secret_key, algorithm='HS256')
+        if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
+            api_username = str(request.args.get('username'))
+            requsted_date = str(request.args.get('date'))
+            r = cursor.location.find_one({'username':api_username})
+            if r:
+                if requsted_date in r.keys():
+                    status = 'success'
+                    message = {'data': {
+                    'username': api_username,
+                    'date': requsted_date,
+                    'loc': r[requsted_date]
+                    }}
+                else:
+                    status = 'not found'
+                    message = {'error': 'There is no record for %s' % requsted_date}
+            else:
+                status = 'not found'
+                message = {'error': "There is no record for user '%s'" % api_username}
+        else:
+            status = 'unauthorized'
+            message = {'error': 'Not authorized request!'}
+    except:
+        status = 'unauthorized'
+        message = {'error': 'Not authorized request!'}
+    return jsonify({'status': status, 'message': message})
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'username' in session:
@@ -523,12 +684,12 @@ def login():
 
 @app.route('/', methods=['GET'])
 def home():
-
     return render_template('home.html')
 
 @app.route('/user-pannel/orderList', methods=['GET'])
 @token_required
 def temp_orders():
+    #utils.RegisterOnApp()
     #utils.creat_postAvvalStates_collection()
     #result = cursor.vestano_inventory.find({'vendor': u'روژیاپ'})
     #for r in result:
@@ -633,16 +794,17 @@ def confirm_orders(code):
                 record['weight'] = result['products'][i]['weight']
                 record['count'] = result['products'][i]['count']
                 record['percentDiscount'] = result['products'][i]['percentDiscount']
-                record['description'] = inv['percentDiscount']
-                new_productId = str(utils.AddStuff(record))
-                result['products'][i]['productId'] = new_productId
+                record['description'] = inv['description']
+                #new_productId = str(utils.AddStuff(record))
+                #result['products'][i]['productId'] = new_productId
 
                 #edit the stuff for every case orders:
-                #edit_result = utils.editStuff(
-                    #result['products'][i]['productId'],
-                    #result['products'][i]['weight'],
-                    #result['products'][i]['price']
-                    #)
+
+                edit_result = utils.editStuff(
+                    result['products'][i]['productId'],
+                    result['products'][i]['weight'],
+                    result['products'][i]['price']
+                    )
                 #inv = cursor.case_inventory.find_one({'productId':result['products'][i]['productId']})
 
             elif not constant_wage_flag:
