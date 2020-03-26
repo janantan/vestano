@@ -493,7 +493,17 @@ def bad_request():
 
 @app.route('/api/v1.0/connect/token', methods=['POST'])
 def rest_api_token():
-    api_key = str(request.args.get('API_KEY'))
+    #api_key = str(request.args.get('API_KEY'))
+    if not request.get_json():
+        status = 'unauthorized'
+        message = {'error': 'There is no API key!'}
+        return jsonify({'status': status, 'message': message})
+    api_key = str(request.get_json()['API_KEY'])
+    #if not api_key:
+        #status = 'unauthorized'
+        #message = {'error': 'There is no API key!'}
+        #return jsonify({'status': status, 'message': message})
+    #api_key = str(api_key)
     if cursor.apiKey_pool.find_one({'apiKey':api_key}):
         TOKEN = jwt.encode({'API_KEY':api_key,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=2)},
@@ -512,24 +522,32 @@ def loginToApp_rest_api():
     try:
         data = jwt.decode(auth, app.secret_key, algorithm='HS256')
         if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
-            app_username = str(request.args.get('username'))
-            app_password = str(request.args.get('password'))
-            app_user_result = cursor.app_users.find_one({"username": app_username})
-            if app_user_result:
-                if sha256_crypt.verify(app_password, app_user_result['password']):
-                    status = 'success'
-                    message = {'data': {
-                    'username': app_user_result['username'],
-                    'name': app_user_result['name'],
-                    'phoneNumber': app_user_result['phone'],
-                    'email': app_user_result['email']
-                    }}
+            if not request.get_json():
+                status = 'not found'
+                message = {'error': 'There is some problems in your data!'}
+                return jsonify({'status': status, 'message': message})
+            if ['username', 'password'] == request.get_json().keys():
+                app_username = str(request.get_json()['username'])
+                app_password = str(request.get_json()['password'])
+                app_user_result = cursor.app_users.find_one({"username": app_username})
+                if app_user_result:
+                    if sha256_crypt.verify(app_password, app_user_result['password']):
+                        status = 'success'
+                        message = {'data': {
+                        'username': app_user_result['username'],
+                        'name': app_user_result['name'],
+                        'phoneNumber': app_user_result['phone'],
+                        'email': app_user_result['email']
+                        }}
+                    else:
+                        status = 'not found'
+                        message = {'error': 'Password not Matched!'}
                 else:
                     status = 'not found'
                     message = {'error': 'Password not Matched!'}
             else:
                 status = 'not found'
-                message = {'error': 'Password not Matched!'}
+                message = {'error': 'There is some problems in your data!'}
         else:
             status = 'unauthorized'
             message = {'error': 'Not authorized request!'}
@@ -544,33 +562,41 @@ def post_loc_rest_api():
     try:
         data = jwt.decode(auth, app.secret_key, algorithm='HS256')
         if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
-            app_username = str(request.args.get('username'))
-            lat = str(request.args.get('lat'))
-            lon = str(request.args.get('lon'))
-            now = jdatetime.datetime.now()
-            now_date = str(now.strftime('%Y/%m/%d'))
-            loc = []
-            loc.append((lat, lon, now.strftime('%Y/%m/%d %H:%M:%S')))
-            user_result = cursor.location.find_one({'username': app_username})
-            if user_result:
-                if now_date in user_result.keys():
-                    old_loc = user_result[now_date]
-                    old_loc.append((lat, lon, now.strftime('%Y/%m/%d %H:%M:%S')))
-                    cursor.location.update_many(
-                        {'username': app_username},
-                        {'$set':{now_date: old_loc}}
-                        )
+            if not request.get_json():
+                status = 'not found'
+                message = {'error': 'There is some problems in your data!'}
+                return jsonify({'status': status, 'message': message})
+            if ['username', 'lat', 'lon'] == request.get_json().keys():
+                app_username = str(request.get_json()['username'])
+                lat = str(request.get_json()['lat'])
+                lon = str(request.get_json()['lon'])
+                now = jdatetime.datetime.now()
+                now_date = str(now.strftime('%Y/%m/%d'))
+                loc = []
+                loc.append((lat, lon, now.strftime('%Y/%m/%d %H:%M:%S')))
+                user_result = cursor.location.find_one({'username': app_username})
+                if user_result:
+                    if now_date in user_result.keys():
+                        old_loc = user_result[now_date]
+                        old_loc.append((lat, lon, now.strftime('%Y/%m/%d %H:%M:%S')))
+                        cursor.location.update_many(
+                            {'username': app_username},
+                            {'$set':{now_date: old_loc}}
+                            )
+                    else:
+                        cursor.location.update_many(
+                            {'username': app_username},
+                            {'$set':{now_date: loc}}
+                            )
                 else:
-                    cursor.location.update_many(
-                        {'username': app_username},
-                        {'$set':{now_date: loc}}
-                        )
+                    loc_record = {'username': app_username}
+                    loc_record[now_date] = loc
+                    cursor.location.insert_one(loc_record)
+                status = 'success'
+                message = {'data': loc}
             else:
-                loc_record = {'username': app_username}
-                loc_record[now_date] = loc
-                cursor.location.insert_one(loc_record)
-            status = 'success'
-            message = {'data': loc}
+                status = 'not found'
+                message = {'error': 'There is some problems in your data!'}
         else:
             status = 'unauthorized'
             message = {'error': 'Not authorized request!'}
@@ -585,23 +611,31 @@ def get_loc_rest_api():
     try:
         data = jwt.decode(auth, app.secret_key, algorithm='HS256')
         if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
-            api_username = str(request.args.get('username'))
-            requsted_date = str(request.args.get('date'))
-            r = cursor.location.find_one({'username':api_username})
-            if r:
-                if requsted_date in r.keys():
-                    status = 'success'
-                    message = {'data': {
-                    'username': api_username,
-                    'date': requsted_date,
-                    'loc': r[requsted_date]
-                    }}
+            if not request.get_json():
+                status = 'not found'
+                message = {'error': 'There is some problems in your data!'}
+                return jsonify({'status': status, 'message': message})
+            if ['username', 'date'] == request.get_json().keys():
+                api_username = str(request.get_json()['username'])
+                requsted_date = str(request.get_json()['date'])
+                r = cursor.location.find_one({'username':api_username})
+                if r:
+                    if requsted_date in r.keys():
+                        status = 'success'
+                        message = {'data': {
+                        'username': api_username,
+                        'date': requsted_date,
+                        'loc': r[requsted_date]
+                        }}
+                    else:
+                        status = 'not found'
+                        message = {'error': 'There is no record for %s' % requsted_date}
                 else:
                     status = 'not found'
-                    message = {'error': 'There is no record for %s' % requsted_date}
+                    message = {'error': "There is no record for user '%s'" % api_username}
             else:
                 status = 'not found'
-                message = {'error': "There is no record for user '%s'" % api_username}
+                message = {'error': 'There is some problems in your data!'}
         else:
             status = 'unauthorized'
             message = {'error': 'Not authorized request!'}
