@@ -2209,8 +2209,8 @@ def RegisterOnApp():
         name = u'محمدرضا بابالو',
         email = 'mr_babalou@yahoo.com',
         phone = '09393876076',
-        role = 'developer',
-        app_username = 'bl',
+        role = 'peyk',
+        app_username = 'babalou',
         app_password = '123'
         )
     print(result)

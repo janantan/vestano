@@ -492,7 +492,7 @@ def bad_request():
     return abort(403)
 
 @app.route('/api/v1.0/connect/token', methods=['POST'])
-def rest_api_token():
+def token_restApi():
     #api_key = str(request.args.get('API_KEY'))
     if not request.get_json():
         status = 'unauthorized'
@@ -506,7 +506,7 @@ def rest_api_token():
     #api_key = str(api_key)
     if cursor.apiKey_pool.find_one({'apiKey':api_key}):
         TOKEN = jwt.encode({'API_KEY':api_key,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=2)},
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=20)},
             app.secret_key, algorithm='HS256')
         token = TOKEN.decode('UTF-8')
         status = 'success'
@@ -517,37 +517,138 @@ def rest_api_token():
     return jsonify({'status': status, 'message': message})
 
 @app.route('/api/v1.0/login/post', methods=['POST'])
-def loginToApp_rest_api():
+def loginToApp_restApi():
     auth = str(request.headers.get('Authorization')).split(' ')[1]
     try:
         data = jwt.decode(auth, app.secret_key, algorithm='HS256')
         if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
+            #defaul status and message if there was proplems in interance data
+            status = 'not found'
+            message = {'error': 'There is some problems in your data!'}
+
             if not request.get_json():
-                status = 'not found'
-                message = {'error': 'There is some problems in your data!'}
                 return jsonify({'status': status, 'message': message})
-            if ['username', 'password'] == request.get_json().keys():
-                app_username = str(request.get_json()['username'])
-                app_password = str(request.get_json()['password'])
-                app_user_result = cursor.app_users.find_one({"username": app_username})
-                if app_user_result:
-                    if sha256_crypt.verify(app_password, app_user_result['password']):
-                        status = 'success'
-                        message = {'data': {
-                        'username': app_user_result['username'],
-                        'name': app_user_result['name'],
-                        'phoneNumber': app_user_result['phone'],
-                        'email': app_user_result['email']
-                        }}
-                    else:
-                        status = 'not found'
-                        message = {'error': 'Password not Matched!'}
+            if ['username', 'password'] != request.get_json().keys():
+                return jsonify({'status': status, 'message': message})
+            app_username = str(request.get_json()['username'])
+            app_password = str(request.get_json()['password'])
+            app_user_result = cursor.app_users.find_one({"username": app_username})
+            if app_user_result:
+                if sha256_crypt.verify(app_password, app_user_result['password']):
+                    status = 'success'
+                    message = {'data': {
+                    'username': app_user_result['username'],
+                    'name': app_user_result['name'],
+                    'role': app_user_result['role'],
+                    'phoneNumber': app_user_result['phone'],
+                    'email': app_user_result['email']
+                    }}
                 else:
                     status = 'not found'
                     message = {'error': 'Password not Matched!'}
             else:
                 status = 'not found'
-                message = {'error': 'There is some problems in your data!'}
+                message = {'error': 'Username not Registered!'}
+        else:
+            status = 'unauthorized'
+            message = {'error': 'Not authorized request!'}
+    except:
+        status = 'unauthorized'
+        message = {'error': 'Not authorized request!'}
+    return jsonify({'status': status, 'message': message})
+
+@app.route('/api/v1.0/change-password', methods=['POST'])
+def changePass_restApi():
+    auth = str(request.headers.get('Authorization')).split(' ')[1]
+    try:
+        data = jwt.decode(auth, app.secret_key, algorithm='HS256')
+        if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
+            #defaul status and message if there was proplems in interance data
+            status = 'not found'
+            message = {'error': 'There is some problems in your data!'}
+
+            if not request.get_json():
+                return jsonify({'status': status, 'message': message})
+            if ['username', 'new_pass', 'old_pass'] != request.get_json().keys():
+                return jsonify({'status': status, 'message': message})
+            
+            app_username = str(request.get_json()['username'])
+            old_pass = str(request.get_json()['old_pass'])
+            new_pass = str(request.get_json()['new_pass'])
+            app_user_result = cursor.app_users.find_one({"username": app_username})
+            if app_user_result:
+                if sha256_crypt.verify(old_pass, app_user_result['password']):
+                    new_password = sha256_crypt.hash(new_pass)
+                    cursor.app_users.update_many(
+                        {'username': app_username},
+                        {'$set':{'password': new_password}}
+                        )
+                    status = 'success'
+                    message = 'Password changed successfully'
+                else:
+                    status = 'not found'
+                    message = {'error': 'Password not Matched!'}
+            else:
+                status = 'not found'
+                message = {'error': 'Username not Registered!'}
+        else:
+            status = 'unauthorized'
+            message = {'error': 'Not authorized request!'}
+    except:
+        status = 'unauthorized'
+        message = {'error': 'Not authorized request!'}
+    return jsonify({'status': status, 'message': message})
+
+@app.route('/api/v1.0/delete-user', methods=['POST'])
+def deleteUser_restApi():
+    auth = str(request.headers.get('Authorization')).split(' ')[1]
+    try:
+        data = jwt.decode(auth, app.secret_key, algorithm='HS256')
+        if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
+            #defaul status and message if there was proplems in interance data
+            status = 'not found'
+            message = {'error': 'There is some problems in your data!'}
+
+            if not request.get_json():
+                return jsonify({'status': status, 'message': message})
+            if ['username'] != request.get_json().keys():
+                return jsonify({'status': status, 'message': message})
+            app_username = str(request.get_json()['username'])
+            app_user_result = cursor.app_users.find_one({"username": app_username})
+            if app_user_result:
+                cursor.app_users.remove({'username': app_username})
+                status = 'success'
+                message = "The username '%s' deleted successfully!" % app_username
+            else:
+                status = 'not found'
+                message = {'error': 'NO such Username!'}
+        else:
+            status = 'unauthorized'
+            message = {'error': 'Not authorized request!'}
+    except:
+        status = 'unauthorized'
+        message = {'error': 'Not authorized request!'}
+    return jsonify({'status': status, 'message': message})
+
+@app.route('/api/v1.0/return-users', methods=['GET'])
+def returnAppUsers_restApi():
+    auth = str(request.headers.get('Authorization')).split(' ')[1]
+    try:
+        data = jwt.decode(auth, app.secret_key, algorithm='HS256')
+        if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
+            users_result = cursor.app_users.find()
+            data = []
+            for r in users_result:
+                if r['role'] == 'developer':
+                    continue
+                user = {
+                'username': r['username'],
+                'phoneNumber': r['phone'],
+                'role': r['role']
+                }
+                data.append(user)
+            status = 'success'
+            message = {'data': data}
         else:
             status = 'unauthorized'
             message = {'error': 'Not authorized request!'}
@@ -557,46 +658,46 @@ def loginToApp_rest_api():
     return jsonify({'status': status, 'message': message})
 
 @app.route('/api/v1.0/location/post', methods=['POST'])
-def post_loc_rest_api():
+def postLocation_restApi():
     auth = str(request.headers.get('Authorization')).split(' ')[1]
     try:
         data = jwt.decode(auth, app.secret_key, algorithm='HS256')
         if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
+            #defaul status and message if there was proplems in interance data
+            status = 'not found'
+            message = {'error': 'There is some problems in your data!'}
+
             if not request.get_json():
-                status = 'not found'
-                message = {'error': 'There is some problems in your data!'}
                 return jsonify({'status': status, 'message': message})
-            if ['username', 'lat', 'lon'] == request.get_json().keys():
-                app_username = str(request.get_json()['username'])
-                lat = str(request.get_json()['lat'])
-                lon = str(request.get_json()['lon'])
-                now = jdatetime.datetime.now()
-                now_date = str(now.strftime('%Y/%m/%d'))
-                loc = []
-                loc.append((lat, lon, now.strftime('%Y/%m/%d %H:%M:%S')))
-                user_result = cursor.location.find_one({'username': app_username})
-                if user_result:
-                    if now_date in user_result.keys():
-                        old_loc = user_result[now_date]
-                        old_loc.append((lat, lon, now.strftime('%Y/%m/%d %H:%M:%S')))
-                        cursor.location.update_many(
-                            {'username': app_username},
-                            {'$set':{now_date: old_loc}}
-                            )
-                    else:
-                        cursor.location.update_many(
-                            {'username': app_username},
-                            {'$set':{now_date: loc}}
-                            )
+            if ['username', 'lat', 'lon'] != request.get_json().keys():
+                return jsonify({'status': status, 'message': message})
+            app_username = str(request.get_json()['username'])
+            lat = str(request.get_json()['lat'])
+            lon = str(request.get_json()['lon'])
+            now = jdatetime.datetime.now()
+            now_date = str(now.strftime('%Y/%m/%d'))
+            loc = []
+            loc.append((lat, lon, now.strftime('%Y/%m/%d %H:%M:%S')))
+            user_result = cursor.location.find_one({'username': app_username})
+            if user_result:
+                if now_date in user_result.keys():
+                    old_loc = user_result[now_date]
+                    old_loc.append((lat, lon, now.strftime('%Y/%m/%d %H:%M:%S')))
+                    cursor.location.update_many(
+                        {'username': app_username},
+                        {'$set':{now_date: old_loc}}
+                        )
                 else:
-                    loc_record = {'username': app_username}
-                    loc_record[now_date] = loc
-                    cursor.location.insert_one(loc_record)
-                status = 'success'
-                message = {'data': loc}
+                    cursor.location.update_many(
+                        {'username': app_username},
+                        {'$set':{now_date: loc}}
+                        )
             else:
-                status = 'not found'
-                message = {'error': 'There is some problems in your data!'}
+                loc_record = {'username': app_username}
+                loc_record[now_date] = loc
+                cursor.location.insert_one(loc_record)
+            status = 'success'
+            message = {'data': (lat, lon, now.strftime('%Y/%m/%d %H:%M:%S'))}
         else:
             status = 'unauthorized'
             message = {'error': 'Not authorized request!'}
@@ -606,7 +707,7 @@ def post_loc_rest_api():
     return jsonify({'status': status, 'message': message})
    
 @app.route('/api/v1.0/location/get', methods=['GET'])
-def get_loc_rest_api():
+def getLocation_restApi():
     auth = str(request.headers.get('Authorization')).split(' ')[1]
     try:
         data = jwt.decode(auth, app.secret_key, algorithm='HS256')
@@ -636,6 +737,58 @@ def get_loc_rest_api():
             else:
                 status = 'not found'
                 message = {'error': 'There is some problems in your data!'}
+        else:
+            status = 'unauthorized'
+            message = {'error': 'Not authorized request!'}
+    except:
+        status = 'unauthorized'
+        message = {'error': 'Not authorized request!'}
+    return jsonify({'status': status, 'message': message})
+
+@app.route('/api/v1.0/users-last-location', methods=['GET'])
+def usersLastLocation_restApi():
+    auth = str(request.headers.get('Authorization')).split(' ')[1]
+    try:
+        data = jwt.decode(auth, app.secret_key, algorithm='HS256')
+        if cursor.apiKey_pool.find_one({'apiKey':str(data['API_KEY'])}):
+            #defaul status and message if there was proplems in interance data
+            status = 'not found'
+            message = {'error': 'There is some problems in your data!'}
+
+            if not request.get_json():
+                return jsonify({'status': status, 'message': message})
+            if ['username_list'] != request.get_json().keys():
+                return jsonify({'status': status, 'message': message})
+            username_list = request.get_json()['username_list']
+            if not isinstance(username_list, (list, tuple)):
+                status = 'unprocessable entity'
+                message = {'error': 'Invalid data type! Enterance data must be an array.'}
+                return jsonify({'status': status, 'message': message})
+            data = []
+            for user in username_list:
+                user_result = cursor.app_users.find_one({"username": user})
+                if not user_result:
+                    status = 'success'
+                    message = "The username '%s' does not exist!" % user
+                    break
+                loc_result = cursor.location.find_one({"username": user})
+                if not loc_result:
+                    user_last_loc = {
+                    'username': user,
+                    'last loc': 'no record'
+                    }
+                else:
+                    date_list = loc_result.keys()
+                    date_list.remove('_id')
+                    date_list.remove('username')
+                    date_list.sort()
+                    user_last_loc = {
+                    'username': user,
+                    'last loc': loc_result[date_list[-1]][-1]
+                    }
+                data.append(user_last_loc)
+                status = 'success'
+                message = {'data': data}
         else:
             status = 'unauthorized'
             message = {'error': 'Not authorized request!'}
