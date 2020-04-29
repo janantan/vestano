@@ -15,6 +15,9 @@
               <div style="display: inline-block; margin-right: 2vw;">
                 <input id="group_orders_count" type="number" name="group_orders_count" value="{{senderTempInfo['groupOrdersCount']}}" placeholder="تعداد سفارشات" />
               </div>
+              <div style="display: inline-block; margin-right: 2vw;">
+                <a id="reset-group-orders" class="button" style="background-color: #f3f3f3;" href="/reset-groupOrders/{{session['username']}}" title="ریست کردن اطلاعات سفارش انبوه"><span style="font-size: 15px;">بازنشانی</span></a>
+              </div>
               <div>
                 <label>فرستنده</label>
                 <input id="s_first_name" type="text" name="s_first_name" value="{{senderTempInfo['senderFirstName']}}" onchange="validator('s_first_name', 'name')"  placeholder="نام" required />
@@ -809,9 +812,11 @@
     if (document.getElementById(elem_id).checked) {
       document.getElementById('group_orders_count').style.display = 'block';
       document.getElementById('group_orders_count').required = true;
+      document.getElementById('reset-group-orders').style.display = 'block';
     } else {
       document.getElementById('group_orders_count').style.display = 'none';
       document.getElementById('group_orders_count').required = false;
+      document.getElementById('reset-group-orders').style.display = 'none';
     }
   }
 </script>

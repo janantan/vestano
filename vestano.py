@@ -5100,6 +5100,11 @@ def update_status():
         item = "statusUpdate",
         )
 
+@app.route('/reset-groupOrders/<username>')
+def reset_groupOrder(username):
+    cursor.sender_temp_info.remove({'username': username})
+    return redirect(url_for('case_orders'))
+
 @app.route('/show-pdf/<orderId>', methods=['GET'])
 @token_required
 def show_pdf(orderId):
