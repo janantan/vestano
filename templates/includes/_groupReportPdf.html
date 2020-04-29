@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html style="background: #fff; padding-top: 0;" lang="fa-IR">
+    <head>
+        <title>سامانه پستی وستانو</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="http://vestanops.com/static/css/vestano.css" />
+    </head>
+    <body class="card" style="direction: rtl; margin: 0 auto; font-family: initial; font-size: 16px;">
+    	
+    	<fieldset class="fieldset" style="margin: 50px 10px; padding: 0; border: none; border-bottom: 2px solid red;">
+    		<div style="float: left; margin: 30px 50px;">
+	    		<span>{{datetime}}</span>
+	    	</div>
+    		<!--<div>
+				<figure>
+					<img id="factor-vestano" src="http://vestanops.com/static/img/fp-vestano2.png" alt="vestano post system" width="125" height="80" style="position: relative; right: 5px;" />
+				</figure>
+			</div>-->
+			<div style="float: right;">
+				<h3>شرکت توسعه دانش و  فناوری وستا</h3>
+				<h4>شناسه ملی: 14008255881</h4>
+				<h5>سامانه پستی وستانو</h5>
+			</div>
+			<div style="text-align: center; position: relative; top: 70px;">
+				<span>رسید پستی مرسوله</span>
+			</div>
+		</fieldset>
+
+    	<fieldset class="fieldset" style="margin: 10px 10px; border: none;">
+			<legend>گزارش سفارشات انبوه:</legend>
+			<table style="text-align: center; border: 1px solid gray; margin-top: 3vh; font-size: 11px;">
+				<tr>
+					<th style="height: 30px; width: 20px; background: yellow;">
+						<span>ردیف</span>
+					</th>
+					<th style="height: 30px; width: 200px; background: yellow;">
+						<span>بارکد پستی</span>
+					</th>
+					<th style="height: 30px; width: 100px; background: yellow;">
+						<span>فرستنده</span>
+					</th>
+					<th style="height: 30px; width: 100px; background: yellow;">
+						<span>گیرنده</span>
+					</th>
+					<th style="height: 30px; width: 100px; background: yellow;">
+						<span>مقصد</span>
+					</th>
+					<th style="height: 30px; width: 100px; background: yellow;">
+						<span>زمان</span>
+					</th>
+					<th style="height: 30px; width: 100px; background: yellow;">
+						<span>سرویس</span>
+					</th>
+					<th style="height: 30px; width: 100px; background: yellow;">
+						<span>پرداخت</span>
+					</th>
+					<th style="height: 30px; width: 100px; background: yellow;">
+						<span>ش پیگیری</span>
+					</th>
+					<th style="height: 30px; width: 80px; background: yellow;">
+						<span>وزن</span>
+					</th>
+					<th style="height: 30px; width: 100px; background: yellow;">
+						<span>هزینه کالا</span>
+					</th>
+					<th style="height: 30px; width: 80px; background: yellow;">
+						<span>کارتن</span>
+					</th>
+					<th style="height: 30px; width: 80px; background: yellow;">
+						<span>بسته بندی</span>
+					</th>
+					<th style="height: 30px; width: 80px; background: yellow;">
+						<span>ارسال</span>
+					</th>
+					<!--<th style="height: 60px; width: 100px; background: yellow;">
+						<span>مالیات بر ارزش افزوده</span>
+					</th>-->
+					<th style="height: 30px; width: 80px; background: yellow;">
+						<span>جمع آوری</span>
+					</th>
+					<th style="height: 30px; width: 100px; background: yellow;">
+						<span>مجموع</span>
+					</th>
+				</tr>
+				{% for i in range(result|length) %}
+					<tr>
+						<td style="height: 30px;">
+							<span>{{loop.index}}</span>
+						</td>
+						<td>
+							<span>{{result[i][20]}}</span>
+						</td>
+						<td>
+							<span>{{result[i][10]}}</span>
+						</td>
+						<td>
+							<span>{{result[i][2]}}</span>
+						</td>
+						<td>
+							<span>{{result[i][21]}}</span>
+						</td>
+						<td>
+							<span>{{result[i][24]}}</span>
+						</td>
+						<td>
+							<span>{{result[i][12]}}</span>
+						</td>
+						<td>
+							{% if result[i][22] %}
+							<span>هزینه کالا در مقصد</span>
+							{% elif result[i][23] %}
+							<span>کرایه در مقصد</span>
+							{% else %}
+							<span>{{result[i][6]}}</span>
+							{% endif %}
+						</td>
+						<td>
+							<span>{{result[i][0]}}</span>
+						</td>
+						<td>
+							<span>{{result[i][19]}}</span>
+						</td>
+						<!--cgd-->
+						{% if result[i][22] %}
+							<td>
+								<span>{{result[i][14]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][15]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][16]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][13]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][17]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][13]+result[i][15]+result[i][16]+result[i][17]}}</span>
+							</td>
+						<!--rad-->
+						{% elif result[i][23] %}
+							<td>
+								<span>-</span>
+							</td>
+							<td>
+								<span>{{result[i][15]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][16]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][13]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][17]}}</span>
+							</td>
+							<td style="background: #eee;">
+								<span>{{result[i][13]+result[i][15]+result[i][16]+result[i][17]}}</span>
+							</td>
+						<!--پرداخت آنلاین-->
+						{% elif result[i][6]=='پرداخت آنلاین' %}
+							<td>
+								<span>-</span>
+							</td>
+							<td>
+								<span>{{result[i][15]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][16]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][13]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][17]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][13]+result[i][15]+result[i][16]+result[i][17]}}</span>
+							</td>
+						<!--پرداخت در محل-->
+						{% elif result[i][6]=='پرداخت در محل' %}
+							<td>
+								<span>{{result[i][14]-(result[i][15]+result[i][16]+result[i][17]+result[i][18])}}</span>
+							</td>
+							<td>
+								<span>{{result[i][15]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][16]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][13]}}</span>
+							</td>
+							<td>
+								<span>{{result[i][17]}}</span>
+							</td>
+							<td style="background: #eee;">
+								<span>{{result[i][14]+result[i][13]-result[i][18]}}</span>
+							</td>
+						{% endif %}
+					</tr>
+					<tr>
+				        <td colspan="16"><hr/></td>
+				    </tr>
+				{% endfor %}
+				<tr style="border-bottom: 1px solid black;">
+					<td colspan="9" style="height: 30px;">
+						<span>مجموع</span>
+					</td>
+					<td>
+						<span>{{t_weight}}</span>
+					</td>
+					<td>
+						<span></span>
+					</td>
+					<td>
+						<span></span>
+					</td>
+					<td>
+						<span></span>
+					</td>
+					<td>
+						<span></span>
+					</td>
+					<td>
+						<span>{{t_gathering}}</span>
+					</td>
+					<td>
+						<span></span>
+					</td>
+				</tr>
+				<tr>
+			        <td colspan="16"><hr/></td>
+			    </tr>
+				<tr style="border-bottom: 1px solid black;">
+					<td colspan="9" style="height: 30px;">
+						<span>صورت حساب فرستنده</span>
+					</td>
+					<td colspan="7">
+						<span>{{sender_bill}} ریال</span>
+					</td>
+				</tr>
+			</table>
+		</fieldset>
+		<fieldset class="fieldset" style="margin: 20px 10px; padding: 0; border: none;">
+			<div style="padding-right: 10px;">
+				<p>
+					هموطن گرامی جهت رهگیری مرسوله خود با شماره پیگیری و یا بارکد پستی مرسوله به درگاه اینترنتی <span style="color: blue;">vestanops.com</span> مراجعه نمایید.
+				</p>
+			</div>
+			<div style="padding-right: 10px;">
+				<p>
+					در صورت هرگونه انتقاد یا شکایت از محصول و یا روند ارسال مرسوله به نشانی اینترنتی <span style="color: blue;">vestanops.com</span> قسمت ثبت شکایات مراجعه نمایید.
+				</p>
+			</div>
+		</fieldset>
+		<fieldset class="fieldset" style="margin: 50px 10px; padding: 0; border: none;">
+			<div>
+				<figure>
+					<img id="factor-vestano" src="http://vestanops.com/static/img/mohr.png" alt="سامانه پستی وستانو" width="270" height="120" style="position: relative; right: 15px; " />
+					<img id="factor-vestano" src="http://vestanops.com/static/img/faghed.png" alt="فاقد وجه نقد و اشیاء قیمتی" width="250" height="100" style="position: relative; left: 5px; float: left;" />
+				</figure>
+			</div>
+    	</fieldset>
+    </body>
+</html>

@@ -8,6 +8,36 @@
           <td>
             <fieldset style="background: rgb(255,248,248);">
               <legend>اطلاعات</legend>
+              {% if groupOrdersFlag %}
+              <div style="display: inline-block;">
+                <label><input id="group_orders" type="checkbox" name="group_orders" value="yes" onchange="groupOrder('group_orders')" checked >ثبت سفارش انبوه</label>
+              </div>
+              <div style="display: inline-block; margin-right: 2vw;">
+                <input id="group_orders_count" type="number" name="group_orders_count" value="{{senderTempInfo['groupOrdersCount']}}" placeholder="تعداد سفارشات" />
+              </div>
+              <div>
+                <label>فرستنده</label>
+                <input id="s_first_name" type="text" name="s_first_name" value="{{senderTempInfo['senderFirstName']}}" onchange="validator('s_first_name', 'name')"  placeholder="نام" required />
+                <input id="s_last_name" type="text" name="s_last_name" value="{{senderTempInfo['senderLastName']}}" onchange="validator('s_last_name', 'name')"  placeholder="نام خانوادگی" required />
+                <input id="s_cell_number" type="text" name="s_cell_number" value="{{senderTempInfo['senderCellNumber']}}" onchange="validator('s_cell_number', 'number')"  placeholder="شماره موبایل" />
+                <input id="s_phone_number" type="text" name="s_phone_number" value="{{senderTempInfo['senderPhoneNumber']}}" onchange="validator('s_phone_number', 'phone')" placeholder="تلفن ثابت" />
+              </div>
+              <div>
+                <label>آدرس فرستنده</label>
+              </div>
+              <div id="address">
+                <textarea name="s_address" placeholder="نشانی فرستنده">{{senderTempInfo['senderAddress']}}</textarea>
+              </div>
+              <div id="postal_code">
+                <input id="postal_code" type="text" name="s_postal_code" value="{{senderTempInfo['senderPostalCode']}}" placeholder="کد پستی فرستنده" />
+              </div>
+              {% else %}
+              <div style="display: inline-block;">
+                <label><input id="group_orders" type="checkbox" name="group_orders" value="yes" onchange="groupOrder('group_orders')" >ثبت سفارش انبوه</label>
+              </div>
+              <div style="display: inline-block; margin-right: 2vw;">
+                <input id="group_orders_count" type="number" name="group_orders_count" placeholder="تعداد سفارشات" style="display: none;" />
+              </div>
               <div>
                 <label>فرستنده</label>
                 <input id="s_first_name" type="text" name="s_first_name" onchange="validator('s_first_name', 'name')"  placeholder="نام" required />
@@ -24,6 +54,8 @@
               <div id="postal_code">
                 <input id="postal_code" type="text" name="s_postal_code" placeholder="کد پستی فرستنده" />
               </div>
+              {% endif %}
+              
               <div>
                 <label>گیرنده</label>
                 <input id="r_first_name" type="text" name="r_first_name" onchange="validator('r_first_name', 'name')" placeholder=" نام" required />
@@ -183,7 +215,7 @@
                     <label><input id="pishtaz-radio" type="radio" name="serviceType" onchange="getDeliveryPrice()" value="1" required/>پیشتاز <span id="pishtaz" style="color: green;"></span></label>
                   </td>
                   <td>
-                    <label><input id="free" type="checkbox" name="free" value="88"/>ارسال رایگان</label>
+                    <label><input id="free" type="checkbox" name="free" value="88" disabled />ارسال رایگان</label>
                   </td>
                 </tr>
               </table>
@@ -771,5 +803,15 @@
     document.getElementById('price-sum').value = document.getElementById('onChange-product-price').value;
     getDeliveryPrice();
     wageCalculator(document.getElementById('weight1').value);
+  }
+
+  function groupOrder(elem_id) {
+    if (document.getElementById(elem_id).checked) {
+      document.getElementById('group_orders_count').style.display = 'block';
+      document.getElementById('group_orders_count').required = true;
+    } else {
+      document.getElementById('group_orders_count').style.display = 'none';
+      document.getElementById('group_orders_count').required = false;
+    }
   }
 </script>

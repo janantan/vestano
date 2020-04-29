@@ -170,7 +170,18 @@ a.export {
     border: 1px solid #e1e1e1;
     border-radius: 5px;
     padding: 2px 5px;
-} 
+}
+
+a.pdfExport {
+    display: inline-block;
+    text-decoration: none;
+    background-color: rgb(248,192,192,0.72);
+    font-family: "BNazanin";
+    font-size: 17px;
+    border: 1px solid #e1e1e1;
+    border-radius: 5px;
+    padding: 2px 5px;
+}
 
 #inventory thead tr {
     display:block;
@@ -882,6 +893,7 @@ a.export {
 .navbar-link.login {background-image: url(/static/img/icon/login.png);}
 .navbar-link.register {background-image: url(/static/img/icon/register.png);}
 .navbar-link.xls {background-image: url(/static/img/icon/xls.png);}
+.navbar-link.pdf {background-image: url(/static/img/icon/pdf.png);}
 
 .navbar-link.reply {background-image: url(/static/img/icon/reply.png);}
 .navbar-link.forward {background-image: url(/static/img/icon/forward.png);}

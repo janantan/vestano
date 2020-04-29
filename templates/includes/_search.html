@@ -2,6 +2,9 @@
 	<legend>لطفا یکی از فیلدهای زیر را جهت جستجو انتخاب کنید:</legend>
 	{% if (session['role'] != 'vendor_admin') and (sub_item in ['cases']) %}
 		<div class="dropdown-content-inventory" style="margin-left: 1vw; border: none; background: none; top: 16vh;">
+			{% if (result|length) and (groupRep_flag) %}
+				<a href="/export-groupReport/{{sub_item}}" title="گزارش سفارش انبوه" class="pdfExport navbar-link pdf" style="margin-left: 10vw;"><span style="margin-right: 2vw;">گزارش انبوه</span></a>
+			{% endif %}
 			<a href="/export-excel-lias/{{sub_item}}" title="تولید خروجی گزارش ثبت" class="export navbar-link xls"><span style="margin-right: 2vw;">گزارش ثبت</span></a>
 		</div>
 	{% endif %}
@@ -143,8 +146,11 @@
 								</th>
 							</tr>
 						</table>
-						<div class="mrg-vh4" style="margin-right: 15px;">
+						<div class="mrg-vh4" style="margin-right: 15px; display: inline-block;">
 							<label>نمایش نزولی نتایج<input type="checkbox" name="count_down" value="true"/></label>
+						</div>
+						<div class="mrg-vh4" style="margin-right: 15px; display: inline-block;">
+							<label>تولید گزارش انبوه<input type="checkbox" name="createGroupReport" value="true"/></label>
 						</div>
 						<div class="mrg-vh4" style="margin-right: 15px;">
 							<input style="font-size: 17px; font-family: BNazanin;" type="submit" value="انجام جستجو" />

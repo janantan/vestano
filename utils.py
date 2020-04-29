@@ -22,10 +22,12 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 DB_NAME = 'vestano'
 API_URI = 'http://svc.ebazaar-post.ir/EShopService.svc?WSDL'
-VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
-#VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
-username = 'vestano3247'
-password = 'Vestano3247'
+#VESTANO_API = 'http://vestanops.com/soap/VestanoWebService?wsdl'
+VESTANO_API = 'http://localhost:5000/soap/VestanoWebService?wsdl'
+old_username = 'vestano3247'
+old_password = 'Vestano3247'
+username = 'vestano37518'
+password = 'Vestano423186'
 postAvval_username = 'vesta'
 postAvval_password = 'w8cv9e1n'
 REC_IN_EACH_PAGE = 100
@@ -406,6 +408,64 @@ def search_result(cursor, result):
             state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
             status, pNameList, sender_name, postAvvalOrder))
     return all_list
+
+def groupRep_result(cursor, result):
+    all_list = []
+    t_gathering = 0
+    t_weight = 0
+    sender_bill = 0
+    
+    for r in result:
+        if (r['parcelCode'] == '-') or (r['status']==1):
+            continue
+        cgd = []
+        rad = []
+        if 'postAvvalFlag' in r.keys():
+            postAvvalOrder = True
+            status = postAvvalStatusToString(r['status'])
+        else:
+            postAvvalOrder = False
+            status = statusToString(r['status'])
+        case_result = cursor.case_orders.find_one({'orderId': r['orderId']})
+        if case_result:
+            sender_name = case_result['senderFirstName']+' '+case_result['senderLastName']
+            carton = case_result['carton']
+            packing = case_result['packing']
+            gathering = case_result['gathering']
+            wage = case_result['wage']
+            cgd = case_result['cgd']
+            rad = case_result['rad']
+        else:
+            sender_name = '-'
+            carton = 0
+            packing = 0
+            gathering = 0
+            wage = 0
+        pNameList = []
+        weight = 0
+        for i in range(len(r['products'])):
+            pNameList.append(r['products'][i]['productName'] +' - '+str(r['products'][i]['count']) + u' عدد ')
+            weight = weight + (r['products'][i]['count']*r['products'][i]['weight'])
+        deliveryPrice = r['costs']['PostDeliveryPrice'] + r['costs']['VatTax'] + wage
+        price = r['costs']['price']
+        if postAvvalOrder:
+            state_result = cursor.postAvvalStates.find_one({'Code': r['stateCode']})
+        else:
+            state_result = cursor.states.find_one({'Code': r['stateCode']})
+        for c in state_result['Cities']:
+            if c['Code'] == r['cityCode']:
+                city = c['Name']
+                break
+
+        all_list.append((r['orderId'], r['vendorName'], r['registerFirstName']+' '+r['registerLastName'],
+            state_result['Name'],r['record_date'],r['record_time'], r['payType'], r['registerCellNumber'],
+            status, pNameList, sender_name, postAvvalOrder, r['serviceType'], deliveryPrice, price,
+            carton, packing, gathering, wage, weight, r['parcelCode'], city, cgd, rad, r['record_datetime']))
+        t_gathering = t_gathering + gathering
+        t_weight = t_weight + weight
+        if cgd or (r['payType']==u'پرداخت آنلاین'):
+            sender_bill = sender_bill + (deliveryPrice+carton+packing+gathering)
+    return (all_list, t_gathering, t_weight, sender_bill)
 
 def inventory(cursor):
     if session['role'] == 'vendor_admin':
@@ -2292,8 +2352,14 @@ def GetStatus(cursor, s):
         if not orders_records:
             continue
 
-        status = client.service.GetStatus(username = username, password = password,
-            parcelCode=rec['parcelCode'])
+        #check datetime of the order to if use old username password or not:
+        deadtime = jdatetime.datetime.strptime("1399/02/10", "%Y/%m/%d")
+        if jdatetime.datetime.strptime(str(rec['datetime']), "%Y/%m/%d") >= deadtime:
+            status = client.service.GetStatus(username = username, password = password,
+                parcelCode=rec['parcelCode'])
+        else:
+            status = client.service.GetStatus(username = old_username, password = old_password,
+                parcelCode=rec['parcelCode'])
 
         if (orders_records['status'] == 81) and (status == 2):
             continue
@@ -2372,9 +2438,15 @@ def GetStatus(cursor, s):
         
     return change_flag
 
-def GetStatus_one(cursor, parcelCode):
+def GetStatus_one(cursor, parcelCode, datetime):
     client = Client(API_URI)
-    status = client.service.GetStatus(username = username, password = password,
+    #check datetime of the order to if use old username password or not:
+    deadtime = jdatetime.datetime.strptime("1399/02/10", "%Y/%m/%d")
+    if jdatetime.datetime.strptime(str(datetime), "%Y/%m/%d") >= deadtime:
+        status = client.service.GetStatus(username = username, password = password,
+            parcelCode=parcelCode)
+    else:
+        status = client.service.GetStatus(username = old_username, password = old_password,
             parcelCode=parcelCode)
     return status
 
@@ -3141,7 +3213,7 @@ def lias_search(cursor, rec, prev_lias):
             continue
 
         if r['status'] in [0, 2]:
-            status = GetStatus_one(cursor, r['parcelCode'])
+            status = GetStatus_one(cursor, r['parcelCode'], r['datetime'])
             if status not in [0, 1, 3]:
                 result.append(r)
                 prev_status = r['status']
@@ -3466,15 +3538,15 @@ def update_settlement_status(src):
     if_change = False
     file = exel(src)
     for i in range(1, file.nrows):
-        rec = cursor.orders.find_one({'parcelCode': str(file.cell(i, 1).value)})
+        rec = cursor.orders.find_one({'parcelCode': str(file.cell(i, 2).value)})
         if rec:
-            if str(file.cell(i, 5).value) in ['1', '4']:
+            if not int(file.cell(i, 10).value):
                 if_change = True
                 cursor.orders.update_many(
                     {'parcelCode': rec['parcelCode']},
                     {'$set':{
                     'status': 71,
-                    'payInCode' : str(file.cell(i, 4).value),
+                    'payInCode' : str(file.cell(i, 1).value),
                     'lastUpdate' : datetime.datetime.now(),
                     'status_updated' : True
                     }
@@ -3484,7 +3556,7 @@ def update_settlement_status(src):
                     {'parcelCode': rec['parcelCode']},
                     {'$set':{
                     'status': 71,
-                    'payInCode' : str(file.cell(i, 4).value)
+                    'payInCode' : str(file.cell(i, 1).value)
                     }
                     }
                     )
@@ -3492,7 +3564,7 @@ def update_settlement_status(src):
                     {'parcelCode': rec['parcelCode']},
                     {'$set':{
                     'status': 71,
-                    'payInCode' : str(file.cell(i, 4).value)
+                    'payInCode' : str(file.cell(i, 1).value)
                     }
                     }
                     )
@@ -3500,7 +3572,7 @@ def update_settlement_status(src):
                     {'parcelCode': rec['parcelCode']},
                     {'$set':{
                     'status': 71,
-                    'payInCode' : str(file.cell(i, 4).value)
+                    'payInCode' : str(file.cell(i, 1).value)
                     }
                     }
                     )
@@ -3512,13 +3584,13 @@ def update_settlement_status(src):
                     }
                     }
                     )
-            elif str(file.cell(i, 5).value) == '2':
+            else:
                 if_change = True
                 cursor.orders.update_many(
                     {'parcelCode': rec['parcelCode']},
                     {'$set':{
                     'status': 11,
-                    'payInCode' : str(file.cell(i, 4).value),
+                    'payInCode' : str(file.cell(i, 1).value),
                     'lastUpdate' : datetime.datetime.now(),
                     'status_updated' : True
                     }
@@ -3528,7 +3600,7 @@ def update_settlement_status(src):
                     {'parcelCode': rec['parcelCode']},
                     {'$set':{
                     'status': 11,
-                    'payInCode' : str(file.cell(i, 4).value)
+                    'payInCode' : str(file.cell(i, 1).value)
                     }
                     }
                     )
@@ -3536,7 +3608,7 @@ def update_settlement_status(src):
                     {'parcelCode': rec['parcelCode']},
                     {'$set':{
                     'status': 11,
-                    'payInCode' : str(file.cell(i, 4).value)
+                    'payInCode' : str(file.cell(i, 1).value)
                     }
                     }
                     )
@@ -3544,7 +3616,7 @@ def update_settlement_status(src):
                     {'parcelCode': rec['parcelCode']},
                     {'$set':{
                     'status': 11,
-                    'payInCode' : str(file.cell(i, 4).value)
+                    'payInCode' : str(file.cell(i, 1).value)
                     }
                     }
                     )

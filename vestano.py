@@ -639,10 +639,11 @@ def returnAppUsers_restApi():
             users_result = cursor.app_users.find()
             data = []
             for r in users_result:
-                if r['role'] == 'developer':
-                    continue
+                #if r['role'] == 'developer':
+                    #continue
                 user = {
                 'username': r['username'],
+                'name': r['name'],
                 'phoneNumber': r['phone'],
                 'role': r['role']
                 }
@@ -706,7 +707,7 @@ def postLocation_restApi():
         message = {'error': 'Not authorized request!'}
     return jsonify({'status': status, 'message': message})
    
-@app.route('/api/v1.0/location/get', methods=['GET'])
+@app.route('/api/v1.0/location/get', methods=['POST'])
 def getLocation_restApi():
     auth = str(request.headers.get('Authorization')).split(' ')[1]
     try:
@@ -745,7 +746,7 @@ def getLocation_restApi():
         message = {'error': 'Not authorized request!'}
     return jsonify({'status': status, 'message': message})
 
-@app.route('/api/v1.0/users-last-location', methods=['GET'])
+@app.route('/api/v1.0/users-last-location', methods=['POST'])
 def usersLastLocation_restApi():
     auth = str(request.headers.get('Authorization')).split(' ')[1]
     try:
@@ -758,6 +759,7 @@ def usersLastLocation_restApi():
             if not request.get_json():
                 return jsonify({'status': status, 'message': message})
             if ['username_list'] != request.get_json().keys():
+                print(request.get_json())
                 return jsonify({'status': status, 'message': message})
             username_list = request.get_json()['username_list']
             if not isinstance(username_list, (list, tuple)):
@@ -775,7 +777,7 @@ def usersLastLocation_restApi():
                 if not loc_result:
                     user_last_loc = {
                     'username': user,
-                    'last loc': 'no record'
+                    'last loc': []
                     }
                 else:
                     date_list = loc_result.keys()
@@ -2491,6 +2493,16 @@ def case_orders():
     if 'username' in session:
         ordered_products = []
         username = session['username']
+
+        #check if group orders exist for this username:
+        if_sender_exist = cursor.sender_temp_info.find_one({'username':username})
+        if if_sender_exist:
+            senderTempInfo = if_sender_exist
+            groupOrdersFlag = True
+        else:
+            senderTempInfo = {}
+            groupOrdersFlag = False
+
         if request.method == 'POST':
 
             temp_order_products = []
@@ -2600,6 +2612,27 @@ def case_orders():
             #cursor.today_orders.insert_one(input_data)
             cursor.all_records.insert_one(input_data)
 
+            if request.form.getlist('group_orders'):
+                sender_temp_info = {
+                'username' : username,
+                'senderFirstName' : request.form.get('s_first_name'),
+                'senderLastName' : request.form.get('s_last_name'),
+                'senderCellNumber' : request.form.get('s_cell_number'),
+                'senderPhoneNumber' : request.form.get('s_phone_number'),
+                'senderAddress' : request.form.get('s_address'),
+                'senderPostalCode' : request.form.get('s_postal_code'),
+                'groupOrdersCount' : int(request.form.get('group_orders_count')) - 1
+                }
+                sender_exist = cursor.sender_temp_info.find_one({'username':username})
+                if sender_exist:
+                    if sender_exist['groupOrdersCount']>1:
+                        cursor.sender_temp_info.update_many({'username': username},
+                        {'$set':{'groupOrdersCount': sender_exist['groupOrdersCount'] - 1}})
+                    else:
+                        cursor.sender_temp_info.remove({'username': username})
+                else:
+                    cursor.sender_temp_info.insert_one(sender_temp_info)
+
             flash(u'ثبت شد!', 'success')
 
             return redirect(url_for('case_orders'))
@@ -2609,7 +2642,9 @@ def case_orders():
     return render_template('user_pannel.html',
         item='case-orders',
         inventory = utils.case_inventory(cursor),
-        states = utils.states(cursor)
+        states = utils.states(cursor),
+        senderTempInfo = senderTempInfo,
+        groupOrdersFlag = groupOrdersFlag
         )
 
 @app.route('/user-pannel/postAvval-orders', methods=['GET', 'POST'])
@@ -3997,6 +4032,7 @@ def search(sub_item):
     s_financial = None
     s_v_financial = None
     countDown_flag = False
+    groupRep_flag = False
     if request.method == 'POST':
         rec = {}
         orderId_list = []
@@ -4042,6 +4078,16 @@ def search(sub_item):
             elif rec['payType'] == 'cgd':
                 rec['cgd'] = ['true']
             result = utils.case_search(cursor, rec)
+            if request.form.getlist('createGroupReport'):
+                groupRep_flag = True
+                res = utils.groupRep_result(cursor, result)
+                pdfkit.from_string(render_template('includes/_groupReportPdf.html',
+                    datetime = jdatetime.datetime.now().strftime('%H:%M %Y/%m/%d'),
+                    result = res[0],
+                    t_gathering = res[1],
+                    t_weight = res[2],
+                    sender_bill = res[3]
+                    ), 'static/pdf/groupReports/report.pdf')
         if sub_item == 'vendors':
             rec['orderId'] = request.form.get('orderId')
             rec['vendorName'] = request.form.get('vendor')
@@ -4098,6 +4144,7 @@ def search(sub_item):
         item = "search",
         sub_item = sub_item,
         countDown_flag = countDown_flag,
+        groupRep_flag = groupRep_flag,
         states = utils.states(cursor),
         inventory = utils.inventory(cursor),
         case_inventory = utils.case_inventory(cursor),
@@ -4163,6 +4210,27 @@ def lias_export(sub_item):
     utils.lias_write_excel(cursor, result)
     return send_file(filename, as_attachment=True)
     #return redirect(request.referrer)
+
+@app.route('/export-groupReport/<sub_item>', methods=['GET'])
+@token_required
+def groupReport_export(sub_item):
+    if 'searchPage' not in session['access']:
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='cases') and ('searchInCases' not in session['access']):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if (sub_item=='vendors') or (sub_item=='accounting'):
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+    if session['role'] == 'vendor_admin':
+        flash(u'شما مجوز لازم برای استفاده از این صفحه را ندارید!', 'error')
+        return redirect(request.referrer)
+
+    filename = '/root/vestano/static/pdf/groupReports/report.pdf'
+    #filename = 'E:/projects/VESTANO/Vestano/static/pdf/groupReports/report.pdf'
+
+    return send_file(filename, as_attachment=True)
 
 @app.route('/export-excel-sellsProducts', methods=['GET'])
 @token_required
